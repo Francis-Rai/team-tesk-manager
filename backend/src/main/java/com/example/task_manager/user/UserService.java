@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.task_manager.exception.api.UnauthorizedException;
+import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.UserNotFoundException;
 import com.example.task_manager.user.dto.UserResponse;
 import com.example.task_manager.user.entity.UserEntity;
@@ -49,7 +49,7 @@ public class UserService {
         .orElseThrow(UserNotFoundException::new);
 
     if (currentUser.getRole() != UserRole.SUPER_ADMIN) {
-      throw new UnauthorizedException();
+      throw new ForbiddenException();
     }
 
     UserEntity targetUser = userRepository.findById(targetUserId)
@@ -57,7 +57,7 @@ public class UserService {
 
     // Prevent self-demotion of the only SUPER_ADMIN (optional advanced safety)
     if (currentUserId.equals(targetUserId) && newRole != UserRole.SUPER_ADMIN) {
-      throw new IllegalStateException("SUPER_ADMIN cannot demote themselves.");
+      throw new ForbiddenException("SUPER ADMIN cannot demote themselves.");
     }
 
     targetUser.setRole(newRole);

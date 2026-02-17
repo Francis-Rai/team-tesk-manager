@@ -39,7 +39,7 @@ public class AdminUserController {
       @AuthenticationPrincipal CustomUserPrincipal currentUser) {
 
     if (currentUser == null) {
-      throw new UnauthorizedException();
+      throw new UnauthorizedException("Authentication is Required");
     }
 
     userService.updateUserRole(
