@@ -1,5 +1,6 @@
 package com.example.task_manager.team;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -97,6 +98,140 @@ public class TeamService {
     teamMemberRepository.save(newMember);
 
     return mapToMemberResponse(newMember);
+  }
+
+  /**
+   * Removes a member in a team
+   */
+  public void removeMember(
+      UUID teamId,
+      UUID memberUserId,
+      String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    TeamMemberEntity requesterMembership = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+
+    TeamMemberEntity memberToRemove = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, memberUserId)
+        .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+
+    // Cannot remove OWNER
+    if (memberToRemove.getRole() == TeamRole.OWNER) {
+      throw new ForbiddenException("Transfer ownership before removing OWNER");
+    }
+
+    // ADMIN restrictions
+    if (requesterMembership.getRole() == TeamRole.ADMIN) {
+      if (memberToRemove.getRole() != TeamRole.MEMBER) {
+        throw new ForbiddenException("ADMIN can only remove MEMBER");
+      }
+    }
+
+    // OWNER cannot remove themselves
+    if (requesterMembership.getRole() == TeamRole.OWNER &&
+        requester.getId().equals(memberUserId)) {
+      throw new ForbiddenException("OWNER cannot remove themselves");
+    }
+
+    teamMemberRepository.delete(memberToRemove);
+  }
+
+  /**
+   * Transfers Team Ownership to other member
+   */
+  public TeamMemberResponse transferOwnership(
+      UUID teamId,
+      UUID newOwnerUserId,
+      String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    TeamMemberEntity currentOwner = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+
+    if (currentOwner.getRole() != TeamRole.OWNER) {
+      throw new ForbiddenException("Only OWNER can transfer ownership");
+    }
+
+    TeamMemberEntity newOwner = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, newOwnerUserId)
+        .orElseThrow(() -> new ResourceNotFoundException("New owner must be team member"));
+
+    if (newOwner.getRole() == TeamRole.OWNER) {
+      throw new ConflictException("User is already OWNER");
+    }
+
+    // Transfer
+    currentOwner.setRole(TeamRole.ADMIN);
+    newOwner.setRole(TeamRole.OWNER);
+
+    return mapToMemberResponse(newOwner);
+  }
+
+  /**
+   * Soft Deletes a team.
+   */
+  public void deleteTeam(UUID teamId, String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    TeamMemberEntity membership = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+
+    if (membership.getRole() != TeamRole.OWNER) {
+      throw new ForbiddenException("Only OWNER can delete team");
+    }
+
+    TeamEntity team = membership.getTeam();
+    team.setDeleted(true);
+    team.setDeletedAt(LocalDateTime.now());
+  }
+
+  /**
+   * Returns a team by id.
+   */
+  public TeamResponse getTeamById(UUID teamId, String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    TeamEntity team = teamRepository.findWithMembersById(teamId)
+        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+
+    boolean isMember = team.getMembers()
+        .stream()
+        .anyMatch(m -> m.getUser().getId().equals(requester.getId()));
+
+    if (!isMember) {
+      throw new ForbiddenException("You are not a member of this team");
+    }
+
+    return mapToResponse(team);
+  }
+
+  /**
+   * Returns all the team of user.
+   */
+  public List<TeamResponse> getMyTeams(String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    List<TeamMemberEntity> memberships = teamMemberRepository.findByUserId(requester.getId());
+
+    return memberships.stream()
+        .map(TeamMemberEntity::getTeam)
+        .distinct()
+        .map(this::mapToResponse)
+        .toList();
   }
 
   // HELPERS

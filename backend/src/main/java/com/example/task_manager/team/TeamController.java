@@ -1,10 +1,14 @@
 package com.example.task_manager.team;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +38,6 @@ public class TeamController {
    * Create new team.
    */
   @PostMapping
-  @ResponseStatus(HttpStatus.CREATED)
   public ResponseEntity<TeamResponse> create(
       @Valid @RequestBody CreateTeamRequest request,
       Authentication authentication) {
@@ -51,6 +54,63 @@ public class TeamController {
       Authentication authentication) {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(teamService.addMember(teamId, request, authentication.getName()));
+  }
+
+  /**
+   * Transfer ownership of a team.
+   */
+  @PatchMapping("/{teamId}/transfer/{userId}")
+  public ResponseEntity<TeamMemberResponse> transferOwnership(
+      @PathVariable UUID teamId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.transferOwnership(teamId, userId, authentication.getName()));
+  }
+
+  /**
+   * Remove a member of a team.
+   */
+  @DeleteMapping("/{teamId}/members/{userId}")
+  public ResponseEntity<Void> removeMember(
+      @PathVariable UUID teamId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+    teamService.removeMember(teamId, userId, authentication.getName());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Soft delete a team.
+   */
+  @DeleteMapping("/{teamId}")
+  public ResponseEntity<Void> deleteTeam(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    teamService.deleteTeam(teamId, authentication.getName());
+    return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Get team by ID.
+   */
+  @GetMapping("/{teamId}")
+  public ResponseEntity<TeamResponse> getTeam(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    TeamResponse response = teamService.getTeamById(teamId, authentication.getName());
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all user's teams
+   */
+  @GetMapping
+  public ResponseEntity<List<TeamResponse>> getMyTeams(
+      Authentication authentication) {
+    List<TeamResponse> response = teamService.getMyTeams(authentication.getName());
+
+    return ResponseEntity.ok(response);
   }
 
 }

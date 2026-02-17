@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -18,4 +19,8 @@ public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UU
   boolean existsByTeamIdAndUserId(UUID teamId, UUID userId);
 
   List<TeamMemberEntity> findByTeamId(UUID teamId);
+
+  @EntityGraph(attributePaths = { "team", "team.members", "team.members.user" })
+  List<TeamMemberEntity> findByUserId(UUID userId);
+
 }
