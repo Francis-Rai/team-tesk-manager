@@ -1,5 +1,6 @@
 package com.example.task_manager.team;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -22,6 +23,7 @@ import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
+import com.example.task_manager.team.dto.UpdateTeamRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -81,6 +83,14 @@ public class TeamController {
     return ResponseEntity.noContent().build();
   }
 
+  @PatchMapping("/{teamId}")
+  public ResponseEntity<TeamResponse> updateTeam(
+      @PathVariable UUID teamId,
+      @Valid @RequestBody UpdateTeamRequest request,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
+  }
+
   /**
    * Soft delete a team.
    */
@@ -102,6 +112,13 @@ public class TeamController {
     TeamResponse response = teamService.getTeamById(teamId, authentication.getName());
 
     return ResponseEntity.ok(response);
+  }
+
+  @GetMapping("/{teamId}/members")
+  public ResponseEntity<List<TeamMemberResponse>> getTeamMembers(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
   }
 
   /**

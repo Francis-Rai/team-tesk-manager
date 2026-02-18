@@ -13,6 +13,8 @@ import com.example.task_manager.team.entity.TeamEntity;
  */
 public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
 
+  Optional<TeamEntity> findById(UUID id);
+
   @EntityGraph(attributePaths = { "members", "members.user" })
   Optional<TeamEntity> findWithMembersById(UUID id);
 }

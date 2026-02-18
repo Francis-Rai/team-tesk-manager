@@ -6,7 +6,6 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -22,7 +21,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UU
 
   List<TeamMemberEntity> findByTeamId(UUID teamId);
 
-  @EntityGraph(attributePaths = { "team", "team.members", "team.members.user" })
   Page<TeamMemberEntity> findByUserId(UUID userId, Pageable pageable);
 
 }

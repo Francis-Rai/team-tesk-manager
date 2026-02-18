@@ -1,7 +1,6 @@
 package com.example.task_manager.team.dto;
 
 import java.time.LocalDateTime;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -14,6 +13,5 @@ public record TeamResponse(
     UUID ownerId,
     boolean deleted,
     LocalDateTime createdAt,
-    LocalDateTime updatedAt,
-    List<TeamMemberResponse> members) {
+    LocalDateTime updatedAt) {
 }

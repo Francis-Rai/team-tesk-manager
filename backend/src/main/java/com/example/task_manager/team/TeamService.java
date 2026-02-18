@@ -17,6 +17,7 @@ import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
+import com.example.task_manager.team.dto.UpdateTeamRequest;
 import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
@@ -180,6 +181,42 @@ public class TeamService {
   }
 
   /**
+   * Updates team for the owner.
+   */
+  @Transactional
+  public TeamResponse updateTeam(
+      UUID teamId,
+      UpdateTeamRequest request,
+      String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    TeamMemberEntity membership = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+
+    if (membership.getRole() != TeamRole.OWNER) {
+      throw new ForbiddenException("Only OWNER can update team");
+    }
+
+    TeamEntity team = membership.getTeam();
+
+    if (request.name() != null) {
+      if (request.name().isBlank()) {
+        throw new ForbiddenException("Name cannot be blank");
+      }
+      team.setName(request.name());
+    }
+
+    if (request.description() != null) {
+      team.setDescription(request.description());
+    }
+
+    return mapToResponse(team);
+  }
+
+  /**
    * Soft Deletes a team.
    */
   @Transactional
@@ -251,16 +288,38 @@ public class TeamService {
         page.isLast());
   }
 
+  /**
+   * Returns all the team's members.
+   */
+  @Transactional(readOnly = true)
+  public List<TeamMemberResponse> getTeamMembers(
+      UUID teamId,
+      String requesterEmail) {
+
+    UserEntity requester = userRepository.findByEmail(requesterEmail)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    if (!teamMemberRepository.existsByTeamIdAndUserId(teamId, requester.getId())) {
+      throw new ForbiddenException("Not a team member");
+    }
+
+    List<TeamMemberEntity> members = teamMemberRepository.findByTeamId(teamId);
+
+    return members.stream()
+        .map(member -> new TeamMemberResponse(
+            member.getUser().getId(),
+            member.getUser().getEmail(),
+            member.getRole(),
+            member.getJoinedAt()))
+        .toList();
+  }
+
   // HELPERS
 
   /**
    * Maps a TeamEntity to a TeamResponse.
    */
   public TeamResponse mapToResponse(TeamEntity team) {
-    List<TeamMemberResponse> members = team.getMembers()
-        .stream()
-        .map(this::mapToMemberResponse)
-        .toList();
 
     return new TeamResponse(
         team.getId(),
@@ -269,8 +328,7 @@ public class TeamService {
         team.getOwner().getId(),
         team.isDeleted(),
         team.getCreatedAt(),
-        team.getUpdatedAt(),
-        members);
+        team.getUpdatedAt());
   }
 
   /**
