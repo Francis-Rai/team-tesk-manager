@@ -1,8 +1,10 @@
 package com.example.task_manager.team;
 
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
@@ -105,9 +108,10 @@ public class TeamController {
    * Get all user's teams
    */
   @GetMapping
-  public ResponseEntity<List<TeamResponse>> getMyTeams(
+  public ResponseEntity<PageResponse<TeamResponse>> getMyTeams(
+      @PageableDefault(size = 10, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    List<TeamResponse> response = teamService.getMyTeams(authentication.getName());
+    PageResponse<TeamResponse> response = teamService.getMyTeams(authentication.getName(), pageable);
 
     return ResponseEntity.ok(response);
   }

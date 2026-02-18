@@ -4,8 +4,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
@@ -20,7 +23,7 @@ import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -223,18 +226,29 @@ public class TeamService {
   /**
    * Returns all the team of user.
    */
-  public List<TeamResponse> getMyTeams(String requesterEmail) {
+  @Transactional(readOnly = true)
+  public PageResponse<TeamResponse> getMyTeams(String requesterEmail, Pageable pageable) {
 
     UserEntity requester = userRepository.findByEmail(requesterEmail)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    List<TeamMemberEntity> memberships = teamMemberRepository.findByUserId(requester.getId());
+    Page<TeamMemberEntity> page = teamMemberRepository.findByUserId(requester.getId(), pageable);
 
-    return memberships.stream()
+    List<TeamResponse> content = page.getContent()
+        .stream()
         .map(TeamMemberEntity::getTeam)
         .distinct()
         .map(this::mapToResponse)
         .toList();
+
+    return new PageResponse<>(
+        content,
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
   }
 
   // HELPERS
