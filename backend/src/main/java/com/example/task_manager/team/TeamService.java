@@ -20,6 +20,7 @@ import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -143,6 +144,7 @@ public class TeamService {
   /**
    * Transfers Team Ownership to other member
    */
+  @Transactional
   public TeamMemberResponse transferOwnership(
       UUID teamId,
       UUID newOwnerUserId,
@@ -177,6 +179,7 @@ public class TeamService {
   /**
    * Soft Deletes a team.
    */
+  @Transactional
   public void deleteTeam(UUID teamId, String requesterEmail) {
 
     UserEntity requester = userRepository.findByEmail(requesterEmail)
