@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -90,4 +91,20 @@ public class GlobalExceptionHandler {
         "Request body is missing or malformed",
         request);
   }
+
+  /**
+   * Handles optimistic locking exceptions.
+   */
+  @ExceptionHandler(ObjectOptimisticLockingFailureException.class)
+  public ResponseEntity<ErrorResponse> handleOptimisticLock(
+      ObjectOptimisticLockingFailureException ex,
+      HttpServletRequest request) {
+
+    return build(
+        HttpStatus.CONFLICT,
+        ErrorCode.CONFLICT,
+        "Resource was modified by another user. Please refresh and try again.",
+        request);
+  }
+
 }
