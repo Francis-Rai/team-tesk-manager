@@ -83,6 +83,9 @@ public class TeamController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Update team info.
+   */
   @PatchMapping("/{teamId}")
   public ResponseEntity<TeamResponse> updateTeam(
       @PathVariable UUID teamId,

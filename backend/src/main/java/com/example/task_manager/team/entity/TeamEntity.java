@@ -23,6 +23,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
+import jakarta.persistence.Version;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -66,4 +67,6 @@ public class TeamEntity {
 
   private LocalDateTime deletedAt;
 
+  @Version
+  private Long version;
 }

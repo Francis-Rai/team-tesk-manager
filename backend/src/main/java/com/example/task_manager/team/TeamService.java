@@ -41,10 +41,10 @@ public class TeamService {
   /**
    * Creates a new team for the authenticated user.
    */
+  @Transactional
   public TeamResponse create(CreateTeamRequest request, String userEmail) {
 
-    UserEntity owner = userRepository.findByEmail(userEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity owner = getUserByEmail(userEmail);
 
     TeamEntity team = new TeamEntity();
     team.setName(request.name());
@@ -66,6 +66,7 @@ public class TeamService {
   /**
    * Adds new member in a team
    */
+  @Transactional
   public TeamMemberResponse addMember(
       UUID teamId,
       AddTeamMemberRequest request,
@@ -74,8 +75,7 @@ public class TeamService {
     TeamEntity team = teamRepository.findById(teamId)
         .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
     // Permission check
     validateCanManageMembers(teamId, requester.getId());
@@ -84,15 +84,14 @@ public class TeamService {
       throw new ConflictException("User already in team");
     }
 
-    UserEntity userToAdd = userRepository.findById(request.userId())
-        .orElseThrow(() -> new ResourceNotFoundException("User to add not found"));
+    UserEntity userToAdd = getUserById(request.userId());
 
     TeamRole role = request.role() == null
         ? TeamRole.MEMBER
         : request.role();
 
     if (role == TeamRole.OWNER) {
-      throw new IllegalArgumentException("Cannot assign OWNER role");
+      throw new ConflictException("Cannot assign OWNER role");
     }
 
     TeamMemberEntity newMember = new TeamMemberEntity();
@@ -108,21 +107,19 @@ public class TeamService {
   /**
    * Removes a member in a team
    */
+  @Transactional
   public void removeMember(
       UUID teamId,
       UUID memberUserId,
       String requesterEmail) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity requesterMembership = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, requester.getId())
-        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+    TeamMemberEntity requesterMembership = getMembershipOrThrow(teamId, requester.getId());
 
-    TeamMemberEntity memberToRemove = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, memberUserId)
-        .orElseThrow(() -> new ResourceNotFoundException("Member not found"));
+    TeamMemberEntity memberToRemove = getMembershipOrThrow(teamId, memberUserId);
+
+    validateCanManageMembers(teamId, requester.getId());
 
     // Cannot remove OWNER
     if (memberToRemove.getRole() == TeamRole.OWNER) {
@@ -154,20 +151,15 @@ public class TeamService {
       UUID newOwnerUserId,
       String requesterEmail) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity currentOwner = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, requester.getId())
-        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+    TeamMemberEntity currentOwner = getMembershipOrThrow(teamId, requester.getId());
 
     if (currentOwner.getRole() != TeamRole.OWNER) {
       throw new ForbiddenException("Only OWNER can transfer ownership");
     }
 
-    TeamMemberEntity newOwner = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, newOwnerUserId)
-        .orElseThrow(() -> new ResourceNotFoundException("New owner must be team member"));
+    TeamMemberEntity newOwner = getMembershipOrThrow(teamId, newOwnerUserId);
 
     if (newOwner.getRole() == TeamRole.OWNER) {
       throw new ConflictException("User is already OWNER");
@@ -189,12 +181,9 @@ public class TeamService {
       UpdateTeamRequest request,
       String requesterEmail) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity membership = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, requester.getId())
-        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+    TeamMemberEntity membership = getMembershipOrThrow(teamId, requester.getId());
 
     if (membership.getRole() != TeamRole.OWNER) {
       throw new ForbiddenException("Only OWNER can update team");
@@ -222,12 +211,9 @@ public class TeamService {
   @Transactional
   public void deleteTeam(UUID teamId, String requesterEmail) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity membership = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, requester.getId())
-        .orElseThrow(() -> new ForbiddenException("Not a team member"));
+    TeamMemberEntity membership = getMembershipOrThrow(teamId, requester.getId());
 
     if (membership.getRole() != TeamRole.OWNER) {
       throw new ForbiddenException("Only OWNER can delete team");
@@ -241,13 +227,13 @@ public class TeamService {
   /**
    * Returns a team by id.
    */
+  @Transactional(readOnly = true)
   public TeamResponse getTeamById(UUID teamId, String requesterEmail) {
 
     UserEntity requester = userRepository.findByEmail(requesterEmail)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
-    TeamEntity team = teamRepository.findWithMembersById(teamId)
-        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+    TeamEntity team = getTeamById(teamId);
 
     boolean isMember = team.getMembers()
         .stream()
@@ -266,8 +252,7 @@ public class TeamService {
   @Transactional(readOnly = true)
   public PageResponse<TeamResponse> getMyTeams(String requesterEmail, Pageable pageable) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
     Page<TeamMemberEntity> page = teamMemberRepository.findByUserId(requester.getId(), pageable);
 
@@ -296,8 +281,7 @@ public class TeamService {
       UUID teamId,
       String requesterEmail) {
 
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
     if (!teamMemberRepository.existsByTeamIdAndUserId(teamId, requester.getId())) {
       throw new ForbiddenException("Not a team member");
@@ -356,5 +340,42 @@ public class TeamService {
         membership.getRole() != TeamRole.ADMIN) {
       throw new ForbiddenException("Insufficient permissions");
     }
+  }
+
+  /**
+   * Checks if the user is a member of the team
+   */
+  private TeamMemberEntity getMembershipOrThrow(UUID teamId, UUID userId) {
+    TeamMemberEntity member = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, userId)
+        .orElseThrow(() -> new ForbiddenException("User is not a team member"));
+    return member;
+  }
+
+  /**
+   * Checks if the user exist by email
+   */
+  private UserEntity getUserByEmail(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    return user;
+  }
+
+  /**
+   * Checks if the user exist by id
+   */
+  private UserEntity getUserById(UUID id) {
+    UserEntity user = userRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    return user;
+  }
+
+  /**
+   * Checks if the team exist by id
+   */
+  private TeamEntity getTeamById(UUID id) {
+    TeamEntity team = teamRepository.findById(id)
+        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+    return team;
   }
 }
