@@ -29,7 +29,6 @@ import lombok.Setter;
  * Entity representing a team member.
  */
 @Entity
-
 // Ensure that a user can only be a member of a team once
 @Table(name = "team_members", uniqueConstraints = {
     @UniqueConstraint(columnNames = { "team_id", "user_id" })

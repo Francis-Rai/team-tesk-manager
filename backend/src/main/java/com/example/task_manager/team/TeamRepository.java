@@ -10,7 +10,5 @@ import com.example.task_manager.team.entity.TeamEntity;
  * Repository interface for Team entities.
  */
 public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
-  // Optional<TeamEntity> findById(UUID id);
-  // Optional<TeamEntity> findByIdAndDeletedAtIsNull(UUID id);
-  // Boolean existByIdAndDeletedAtIsNull(UUID id);
+  boolean existsByOwnerIdAndNameAndDeletedAtIsNull(UUID teamId, String name);
 }

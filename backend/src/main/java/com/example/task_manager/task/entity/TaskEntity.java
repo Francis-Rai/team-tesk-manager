@@ -53,4 +53,7 @@ public class TaskEntity {
   @LastModifiedDate
   @Column(nullable = false)
   private Instant updatedAt;
+
+  private Instant deletedAt;
+
 }

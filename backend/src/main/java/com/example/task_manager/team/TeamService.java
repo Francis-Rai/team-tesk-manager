@@ -27,7 +27,11 @@ import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
 
+import jakarta.persistence.EntityManager;
+
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
+
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -42,6 +46,7 @@ public class TeamService {
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final TaskRepository taskRepository;
+  private final EntityManager entityManager;
 
   /**
    * Creates a new team for the authenticated user.
@@ -55,12 +60,21 @@ public class TeamService {
 
     // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
 
+    if (teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
+        owner.getId(), request.name().trim())) {
+      throw new ConflictException("Team name already exists for User");
+    }
+
     TeamEntity team = new TeamEntity();
     team.setName(request.name());
     team.setDescription(request.description());
     team.setOwner(owner);
 
-    teamRepository.save(team);
+    try {
+      teamRepository.saveAndFlush(team);
+    } catch (DataIntegrityViolationException ex) {
+      throw new ConflictException("Team name already exists for User");
+    }
 
     TeamMemberEntity ownerMember = new TeamMemberEntity();
     ownerMember.setTeam(team);
@@ -88,12 +102,6 @@ public class TeamService {
 
     TeamEntity team = requesterMembership.getTeam();
 
-    // Soft-delete aware membership check
-    if (teamMemberRepository.existsByTeamIdAndUserIdAndTeamDeletedAtIsNull(
-        teamId, request.userId())) {
-      throw new ConflictException("User already in team");
-    }
-
     UserEntity userToAdd = getUserById(request.userId());
 
     TeamRole role = request.role() == null
@@ -111,7 +119,7 @@ public class TeamService {
     newMember.setRole(role);
 
     try {
-      teamMemberRepository.save(newMember);
+      teamMemberRepository.saveAndFlush(newMember);
     } catch (DataIntegrityViolationException ex) {
       // Protect against concurrent inserts
       throw new ConflictException("User already in team");
@@ -211,6 +219,12 @@ public class TeamService {
         throw new BadRequestInputException("Team name cannot be blank");
       }
 
+      if (!trimmedName.equals(team.getName()) &&
+          teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
+              team.getOwner().getId(), trimmedName)) {
+        throw new ConflictException("Team name already exists for User");
+      }
+
       team.setName(trimmedName);
     }
 
@@ -238,11 +252,11 @@ public class TeamService {
     // Soft delete team
     team.setDeletedAt(now);
 
-    // Soft delete projects
-    projectRepository.softDeleteByTeamId(teamId, now);
+    // TODO Soft delete projects
+    // projectRepository.softDeleteByTeamId(teamId, now);
 
-    // Soft delete tasks under team (direct bulk update)
-    taskRepository.softDeleteByTeamId(teamId, now);
+    // TODO Soft delete tasks under team (direct bulk update)
+    // taskRepository.softDeleteByTeamId(teamId, now);
   }
 
   /**
@@ -301,13 +315,7 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    boolean isMember = teamMemberRepository
-        .existsByTeamIdAndUserIdAndTeamDeletedAtIsNull(
-            teamId, requester.getId());
-
-    if (!isMember) {
-      throw new ResourceNotFoundException("Team not found");
-    }
+    validateMembership(teamId, requester.getId());
 
     List<TeamMemberEntity> members = teamMemberRepository.findMembersByTeamId(teamId);
 
@@ -379,6 +387,16 @@ public class TeamService {
     return teamMemberRepository
         .findByTeamIdAndUserIdAndTeamDeletedAtIsNull(teamId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+  }
+
+  private void validateMembership(UUID teamId, UUID userId) {
+    boolean isMember = teamMemberRepository
+        .existsByTeamIdAndUserId(
+            teamId, userId);
+
+    if (!isMember) {
+      throw new ResourceNotFoundException("Team not found");
+    }
   }
 
   /**
