@@ -15,11 +15,11 @@ import com.example.task_manager.team.entity.TeamMemberEntity;
  */
 public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UUID> {
 
-  Optional<TeamMemberEntity> findByTeamIdAndUserId(UUID teamId, UUID userId);
+  Optional<TeamMemberEntity> findByTeamIdAndUserIdAndTeamDeletedAtIsNull(UUID teamId, UUID userId);
 
-  boolean existsByTeamIdAndUserId(UUID teamId, UUID userId);
+  boolean existsByTeamIdAndUserIdAndTeamDeletedAtIsNull(UUID teamId, UUID userId);
 
-  List<TeamMemberEntity> findByTeamId(UUID teamId);
+  List<TeamMemberEntity> findMembersByTeamId(UUID teamId);
 
   Page<TeamMemberEntity> findByUserId(UUID userId, Pageable pageable);
 

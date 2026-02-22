@@ -17,6 +17,7 @@ public record ErrorResponse(int status, ErrorCode error, String message, String 
     VALIDATION_ERROR,
     INVALID_PARAMETER,
     INVALID_METHOD,
-    CONFLICT
+    CONFLICT,
+    BAD_REQUEST
   }
 }
