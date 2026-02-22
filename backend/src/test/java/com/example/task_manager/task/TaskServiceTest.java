@@ -64,7 +64,7 @@ class TaskServiceTest {
     // Project owned by user
     ProjectEntity project = new ProjectEntity();
     project.setId(projectId);
-    project.setOwner(user);
+    project.setCreatedBy(user);
 
     when(projectRepository.findById(projectId))
         .thenReturn(Optional.of(project));
@@ -122,7 +122,7 @@ class TaskServiceTest {
         .thenReturn(Optional.of(assignee));
 
     ProjectEntity project = new ProjectEntity();
-    project.setOwner(owner);
+    project.setCreatedBy(owner);
 
     // Create task
     TaskEntity task = new TaskEntity();

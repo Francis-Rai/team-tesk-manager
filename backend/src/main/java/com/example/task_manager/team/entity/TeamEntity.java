@@ -1,12 +1,12 @@
 package com.example.task_manager.team.entity;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import com.example.task_manager.user.entity.UserEntity;
@@ -19,6 +19,7 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.Index;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
@@ -34,7 +35,9 @@ import lombok.Setter;
 @Setter
 @Entity
 @EntityListeners(AuditingEntityListener.class) // Enable auditing for createdAt and updatedAt fields
-@Table(name = "teams")
+@Table(name = "teams", indexes = {
+    @Index(name = "idx_team_owner_id", columnList = "owner_id")
+})
 public class TeamEntity {
 
   @Id
@@ -57,15 +60,12 @@ public class TeamEntity {
   private List<TeamMemberEntity> members = new ArrayList<>();
 
   @CreationTimestamp
-  private LocalDateTime createdAt;
+  private Instant createdAt;
 
-  @UpdateTimestamp
-  private LocalDateTime updatedAt;
+  @LastModifiedDate
+  private Instant updatedAt;
 
-  @Column(nullable = false)
-  private boolean deleted = false;
-
-  private LocalDateTime deletedAt;
+  private Instant deletedAt;
 
   @Version
   private Long version;

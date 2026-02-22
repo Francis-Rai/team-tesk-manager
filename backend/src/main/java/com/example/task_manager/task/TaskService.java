@@ -90,7 +90,7 @@ public class TaskService {
         .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
     boolean isOwner = task.getProject()
-        .getOwner()
+        .getCreatedBy()
         .getEmail()
         .equals(userEmail);
 
@@ -166,7 +166,7 @@ public class TaskService {
         .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
 
     if (!task.getProject()
-        .getOwner()
+        .getCreatedBy()
         .getEmail()
         .equals(userEmail)) {
 
@@ -186,7 +186,7 @@ public class TaskService {
     ProjectEntity project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
 
-    if (!project.getOwner()
+    if (!project.getCreatedBy()
         .getEmail()
         .equals(userEmail)) {
 

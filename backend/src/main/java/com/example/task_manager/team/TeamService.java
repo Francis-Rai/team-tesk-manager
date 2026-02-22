@@ -1,6 +1,6 @@
 package com.example.task_manager.team;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -220,8 +220,7 @@ public class TeamService {
     }
 
     TeamEntity team = membership.getTeam();
-    team.setDeleted(true);
-    team.setDeletedAt(LocalDateTime.now());
+    team.setDeletedAt(Instant.now());
   }
 
   /**
@@ -310,7 +309,6 @@ public class TeamService {
         team.getName(),
         team.getDescription(),
         team.getOwner().getId(),
-        team.isDeleted(),
         team.getCreatedAt(),
         team.getUpdatedAt());
   }

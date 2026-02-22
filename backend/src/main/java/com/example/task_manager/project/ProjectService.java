@@ -38,7 +38,7 @@ public class ProjectService {
     ProjectEntity project = new ProjectEntity();
     project.setName(request.name());
     project.setDescription(request.description());
-    project.setOwner(owner);
+    project.setCreatedBy(owner);
 
     return mapToResponse(projectRepository.save(project));
   }
@@ -117,7 +117,7 @@ public class ProjectService {
     ProjectEntity project = projectRepository.findById(projectId)
         .orElseThrow(() -> new ResourceNotFoundException("Project not found for user: " + userEmail));
 
-    if (!project.getOwner()
+    if (!project.getCreatedBy()
         .getEmail()
         .equals(userEmail)) {
       throw new UnauthorizedException();
@@ -131,10 +131,10 @@ public class ProjectService {
    */
   private ProjectResponse mapToResponse(ProjectEntity project) {
     ProjectResponse.ProjectOwner owner = new ProjectResponse.ProjectOwner(
-        project.getOwner().getId(),
-        project.getOwner().getFirstName(),
-        project.getOwner().getLastName(),
-        project.getOwner().getEmail());
+        project.getCreatedBy().getId(),
+        project.getCreatedBy().getFirstName(),
+        project.getCreatedBy().getLastName(),
+        project.getCreatedBy().getEmail());
 
     return new ProjectResponse(
         project.getId(),

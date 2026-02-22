@@ -46,7 +46,7 @@ class ProjectServiceTest {
         // Project
         ProjectEntity project = new ProjectEntity();
         project.setId(projectId);
-        project.setOwner(owner);
+        project.setCreatedBy(owner);
 
         when(projectRepository.findById(projectId))
                 .thenReturn(Optional.of(project));
@@ -70,7 +70,7 @@ class ProjectServiceTest {
         owner.setEmail("owner@test.com");
 
         ProjectEntity project = new ProjectEntity();
-        project.setOwner(owner);
+        project.setCreatedBy(owner);
 
         when(projectRepository.findById(projectId))
                 .thenReturn(Optional.of(project));
