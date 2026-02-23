@@ -45,7 +45,7 @@ public class TeamController {
   public ResponseEntity<TeamResponse> create(
       @Valid @RequestBody CreateTeamRequest request,
       Authentication authentication) {
-    return ResponseEntity.status(HttpStatus.CREATED).body(teamService.create(request, authentication.getName()));
+    return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(request, authentication.getName()));
   }
 
   /**
@@ -61,17 +61,6 @@ public class TeamController {
   }
 
   /**
-   * Transfer ownership of a team.
-   */
-  @PatchMapping("/{teamId}/transfer/{userId}")
-  public ResponseEntity<TeamMemberResponse> transferOwnership(
-      @PathVariable UUID teamId,
-      @PathVariable UUID userId,
-      Authentication authentication) {
-    return ResponseEntity.ok(teamService.transferOwnership(teamId, userId, authentication.getName()));
-  }
-
-  /**
    * Remove a member of a team.
    */
   @DeleteMapping("/{teamId}/members/{userId}")
@@ -81,6 +70,17 @@ public class TeamController {
       Authentication authentication) {
     teamService.removeMember(teamId, userId, authentication.getName());
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Transfer ownership of a team.
+   */
+  @PatchMapping("/{teamId}/transfer/{userId}")
+  public ResponseEntity<TeamMemberResponse> transferOwnership(
+      @PathVariable UUID teamId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.transferOwnership(teamId, userId, authentication.getName()));
   }
 
   /**
@@ -106,13 +106,25 @@ public class TeamController {
   }
 
   /**
-   * Get team by ID.
+   * Get Active team by ID.
    */
   @GetMapping("/{teamId}")
-  public ResponseEntity<TeamResponse> getTeam(
+  public ResponseEntity<TeamResponse> getActiveTeamById(
       @PathVariable UUID teamId,
       Authentication authentication) {
-    TeamResponse response = teamService.getTeamById(teamId, authentication.getName());
+    TeamResponse response = teamService.getActiveTeamById(teamId, authentication.getName());
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get Existing team by ID.
+   */
+  @GetMapping("/{teamId}/existing")
+  public ResponseEntity<TeamResponse> getExistingTeamById(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    TeamResponse response = teamService.getExistingTeamById(teamId, authentication.getName());
 
     return ResponseEntity.ok(response);
   }
@@ -125,13 +137,25 @@ public class TeamController {
   }
 
   /**
-   * Get all user's teams
+   * Get all user's active teams
    */
   @GetMapping
-  public ResponseEntity<PageResponse<TeamResponse>> getMyTeams(
-      @PageableDefault(size = 10, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable,
+  public ResponseEntity<PageResponse<TeamResponse>> getAllActiveTeams(
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    PageResponse<TeamResponse> response = teamService.getMyTeams(authentication.getName(), pageable);
+    PageResponse<TeamResponse> response = teamService.getAllActiveTeams(authentication.getName(), pageable);
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all user's existing teams
+   */
+  @GetMapping("/teams-all")
+  public ResponseEntity<PageResponse<TeamResponse>> getAllExistingTeams(
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+    PageResponse<TeamResponse> response = teamService.getAllExistingTeams(authentication.getName(), pageable);
 
     return ResponseEntity.ok(response);
   }

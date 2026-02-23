@@ -52,7 +52,7 @@ public class TeamService {
    * Sets user as the owner
    */
   @Transactional
-  public TeamResponse create(
+  public TeamResponse createTeam(
       CreateTeamRequest request,
       String userEmail) {
 
@@ -60,7 +60,7 @@ public class TeamService {
 
     // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
 
-    // Checks uniqueness of Team Name
+    // Checks uniqueness of Team Name by Owner
     if (teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
         owner.getId(), request.name().trim())) {
       throw new ConflictException("Team name already exists for User");
@@ -87,6 +87,73 @@ public class TeamService {
     teamMemberRepository.save(ownerMember);
 
     return mapToResponse(team);
+  }
+
+  /**
+   * Updates team information.
+   * Only Owner can update the team
+   */
+  @Transactional
+  public TeamResponse updateTeam(
+      UUID teamId,
+      UpdateTeamRequest request,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TeamMemberEntity requesterMembership = validateOwner(teamId, requester.getId());
+
+    TeamEntity team = requesterMembership.getTeam();
+
+    if (request.name() != null) {
+      String trimmedName = request.name().trim();
+
+      // Checks if name is blank
+      if (trimmedName.isEmpty()) {
+        throw new BadRequestInputException("Team name cannot be blank");
+      }
+
+      // Checks if name is unique for the user
+      if (!trimmedName.equals(team.getName()) &&
+          teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
+              team.getOwner().getId(), trimmedName)) {
+        throw new ConflictException("Team name already exists for User");
+      }
+      team.setName(trimmedName);
+    }
+
+    if (request.description() != null) {
+      team.setDescription(request.description().trim());
+    }
+
+    return mapToResponse(team);
+  }
+
+  /**
+   * Soft-deletes a team and cascades soft-delete to all dependent data.
+   * Only Owner can soft-delete team
+   */
+  @Transactional
+  public void deleteTeam(
+      UUID teamId,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TeamMemberEntity owner = validateOwner(teamId, requester.getId());
+
+    TeamEntity team = owner.getTeam();
+
+    Instant now = Instant.now();
+
+    team.setDeletedAt(now);
+    // Bulk repository updates clear persistence context; flush prevents losing
+    // the in-memory team update before the transaction commits.
+    entityManager.flush();
+
+    // Soft-delete tasks and projects owned by this team.
+    taskRepository.softDeleteByTeamId(teamId, now);
+    projectRepository.softDeleteByTeamId(teamId, now);
   }
 
   /**
@@ -196,106 +263,81 @@ public class TeamService {
   }
 
   /**
-   * Updates team information.
-   * Only Owner can update the team
-   */
-  @Transactional
-  public TeamResponse updateTeam(
-      UUID teamId,
-      UpdateTeamRequest request,
-      String requesterEmail) {
-
-    UserEntity requester = getUserByEmail(requesterEmail);
-
-    TeamMemberEntity requesterMembership = validateOwner(teamId, requester.getId());
-
-    TeamEntity team = requesterMembership.getTeam();
-
-    if (request.name() != null) {
-      String trimmedName = request.name().trim();
-
-      // Checks if name is blank
-      if (trimmedName.isEmpty()) {
-        throw new BadRequestInputException("Team name cannot be blank");
-      }
-
-      // Checks if name is unique for the user
-      if (!trimmedName.equals(team.getName()) &&
-          teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
-              team.getOwner().getId(), trimmedName)) {
-        throw new ConflictException("Team name already exists for User");
-      }
-      team.setName(trimmedName);
-    }
-
-    if (request.description() != null) {
-      team.setDescription(request.description().trim());
-    }
-
-    return mapToResponse(team);
-  }
-
-  /**
-   * Soft-deletes a team and cascades soft-delete to all dependent data.
-   * Only Owner can soft-delete team
-   */
-  @Transactional
-  public void deleteTeam(UUID teamId, String requesterEmail) {
-
-    UserEntity requester = getUserByEmail(requesterEmail);
-
-    TeamMemberEntity owner = validateOwner(teamId, requester.getId());
-
-    TeamEntity team = owner.getTeam();
-
-    Instant now = Instant.now();
-
-    team.setDeletedAt(now);
-    // Bulk repository updates clear persistence context; flush prevents losing
-    // the in-memory team update before the transaction commits.
-    entityManager.flush();
-
-    // Soft-delete tasks and projects owned by this team.
-    taskRepository.softDeleteByTeamId(teamId, now);
-    projectRepository.softDeleteByTeamId(teamId, now);
-  }
-
-  /**
-   * Returns a team by id.
+   * Returns an non-archived team by id.
    * Ensures :
    * - Requester is a member
    */
   @Transactional(readOnly = true)
-  public TeamResponse getTeamById(UUID teamId, String requesterEmail) {
+  public TeamResponse getActiveTeamById(
+      UUID teamId,
+      String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
     TeamMemberEntity membership = getMembership(teamId, requester.getId());
 
-    TeamEntity team = membership.getTeam();
-
-    return mapToResponse(team);
+    return mapToResponse(membership.getTeam());
   }
 
   /**
-   * Returns all the team of user.
+   * Returns an existing team by id.
+   * Ensures :
+   * - Requester is a member
    */
   @Transactional(readOnly = true)
-  public PageResponse<TeamResponse> getMyTeams(String requesterEmail, Pageable pageable) {
+  public TeamResponse getExistingTeamById(
+      UUID teamId,
+      String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    Page<TeamMemberEntity> page = teamMemberRepository.findByUserId(requester.getId(), pageable);
+    TeamMemberEntity membership = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
 
-    List<TeamResponse> content = page.getContent()
-        .stream()
-        .map(TeamMemberEntity::getTeam)
-        .distinct()
-        .map(this::mapToResponse)
-        .toList();
+    return mapToResponse(membership.getTeam());
+  }
+
+  /**
+   * Returns all existing team of authenticated user.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TeamResponse> getAllExistingTeams(
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    Page<TeamEntity> page = teamRepository.findExistingTeamsByUser(
+        requester.getId(),
+        pageable);
 
     return new PageResponse<>(
-        content,
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
+   * Returns all non-archived team of authenticated user.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TeamResponse> getAllActiveTeams(
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    Page<TeamEntity> page = teamRepository.findActiveTeamsByUser(
+        requester.getId(),
+        pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -330,7 +372,7 @@ public class TeamService {
   // HELPERS
 
   /**
-   * Maps a TeamEntity to a TeamResponse.
+   * Maps a TeamEntity to a Team Response.
    */
   public TeamResponse mapToResponse(TeamEntity team) {
 

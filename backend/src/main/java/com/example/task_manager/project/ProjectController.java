@@ -22,7 +22,7 @@ import lombok.RequiredArgsConstructor;
  * REST controller for managing projects.
  */
 @RestController
-@RequestMapping("/api/projects")
+@RequestMapping("/api/teams/{teamId}/projects")
 @RequiredArgsConstructor
 public class ProjectController {
 
@@ -31,33 +31,57 @@ public class ProjectController {
   /**
    * Create new project.
    */
-  @PostMapping("/teams/{teamId}/projects")
-  public ResponseEntity<ProjectResponse> create(
+  @PostMapping
+  public ResponseEntity<ProjectResponse> createProject(
       @PathVariable UUID teamId,
       @Valid @RequestBody CreateProjectRequest request,
       Authentication authentication) {
 
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(projectService.create(teamId, request, authentication.getName()));
+        .body(projectService.createProject(teamId, request, authentication.getName()));
 
+  }
+
+  /**
+   * Update project.
+   */
+  @PatchMapping("/{projectId}")
+  public ProjectResponse updateProject(
+      @PathVariable UUID projectId,
+      @Valid @RequestBody UpdateProjectRequest request,
+      Authentication authentication) {
+
+    return projectService.updateProject(projectId, request, authentication.getName());
+  }
+
+  /**
+   * Delete project.
+   */
+  @DeleteMapping("/{projectId}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  public void deleteProject(
+      @PathVariable UUID projectId,
+      Authentication authentication) {
+
+    projectService.delete(projectId, authentication.getName());
   }
 
   /**
    * Get all existing projects for authenticated user.
    */
-  @GetMapping("/teams/{teamId}/projects-all")
-  public PageResponse<ProjectResponse> getAllProjects(
+  @GetMapping("/projects-all")
+  public PageResponse<ProjectResponse> getAllExistingProjects(
       @PathVariable UUID teamId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return projectService.getAllProjects(teamId, pageable, authentication.getName());
+    return projectService.getAllExistingProjects(teamId, pageable, authentication.getName());
   }
 
   /**
    * Get all active projects for authenticated user.
    */
-  @GetMapping("/teams/{teamId}/projects")
+  @GetMapping
   public PageResponse<ProjectResponse> getAllActiveProjects(
       @PathVariable UUID teamId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
@@ -70,33 +94,19 @@ public class ProjectController {
    * Get project by ID.
    */
   @GetMapping("/{projectId}")
-  public ProjectResponse getProject(
+  public ProjectResponse getActiveProjectById(
       @PathVariable UUID projectId,
       Authentication authentication) {
-    return projectService.getProjectById(projectId, authentication.getName());
+    return projectService.getActiveProjectById(projectId, authentication.getName());
   }
 
   /**
-   * Update project.
+   * Get project by ID.
    */
-  @PatchMapping("/{projectId}")
-  public ProjectResponse updateProject(
-      @PathVariable UUID projectId,
-      @Valid @RequestBody UpdateProjectRequest request,
-      Authentication authentication) {
-
-    return projectService.update(projectId, request, authentication.getName());
-  }
-
-  /**
-   * Delete project.
-   */
-  @DeleteMapping("/{id}")
-  @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteProject(
+  @GetMapping("/{projectId}/existing")
+  public ProjectResponse getExistingProjectById(
       @PathVariable UUID projectId,
       Authentication authentication) {
-
-    projectService.delete(projectId, authentication.getName());
+    return projectService.getExistingProjectById(projectId, authentication.getName());
   }
 }

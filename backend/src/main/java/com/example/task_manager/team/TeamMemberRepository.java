@@ -23,4 +23,6 @@ public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UU
 
   Page<TeamMemberEntity> findByUserId(UUID userId, Pageable pageable);
 
+  Optional<TeamMemberEntity> findByTeamIdAndUserId(UUID teamId, UUID userId);
+
 }
