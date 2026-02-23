@@ -3,7 +3,6 @@ package com.example.task_manager.project;
 import java.time.Instant;
 import java.util.UUID;
 
-import org.apache.coyote.BadRequestException;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;

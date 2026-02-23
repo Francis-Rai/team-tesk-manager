@@ -30,7 +30,6 @@ import com.example.task_manager.user.entity.UserEntity;
 import jakarta.persistence.EntityManager;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import lombok.RequiredArgsConstructor;
 
@@ -50,6 +49,7 @@ public class TeamService {
 
   /**
    * Creates a new team for the authenticated user.
+   * Sets user as the owner
    */
   @Transactional
   public TeamResponse create(
@@ -60,6 +60,7 @@ public class TeamService {
 
     // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
 
+    // Checks uniqueness of Team Name
     if (teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
         owner.getId(), request.name().trim())) {
       throw new ConflictException("Team name already exists for User");
@@ -70,6 +71,8 @@ public class TeamService {
     team.setDescription(request.description());
     team.setOwner(owner);
 
+    // Flush immediately so unique-constraint violations are caught here
+    // and mapped to a domain conflict.
     try {
       teamRepository.saveAndFlush(team);
     } catch (DataIntegrityViolationException ex) {
@@ -88,6 +91,7 @@ public class TeamService {
 
   /**
    * Adds new member in a team
+   * New member must be unique for the team
    */
   @Transactional
   public TeamMemberResponse addMember(
@@ -97,7 +101,6 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    // Ensures team exists, not deleted, requester is OWNER/ADMIN
     TeamMemberEntity requesterMembership = validateCanManageTeam(teamId, requester.getId());
 
     TeamEntity team = requesterMembership.getTeam();
@@ -118,10 +121,11 @@ public class TeamService {
     newMember.setUser(userToAdd);
     newMember.setRole(role);
 
+    // Flush immediately so unique-constraint violations are caught here
+    // and mapped to a domain conflict.
     try {
       teamMemberRepository.saveAndFlush(newMember);
     } catch (DataIntegrityViolationException ex) {
-      // Protect against concurrent inserts
       throw new ConflictException("User already in team");
     }
 
@@ -130,6 +134,8 @@ public class TeamService {
 
   /**
    * Removes a member in a team
+   * Only Admin and Owner can remove member
+   * Only Owner can remove an Admin and can't remove themselves
    */
   @Transactional
   public void removeMember(
@@ -164,7 +170,7 @@ public class TeamService {
   }
 
   /**
-   * Transfers Team Ownership to other member
+   * Transfers Team Ownership to another member
    */
   @Transactional
   public TeamMemberResponse transferOwnership(
@@ -174,7 +180,6 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    // Ensures team exists, requester is member
     TeamMemberEntity requesterMember = validateOwner(teamId, requester.getId());
 
     // Cannot transfer to self
@@ -184,11 +189,6 @@ public class TeamService {
 
     TeamMemberEntity newOwner = getMembership(teamId, newOwnerUserId);
 
-    if (newOwner.getRole() == TeamRole.OWNER) {
-      throw new ConflictException("User is already OWNER");
-    }
-
-    // Transfer roles atomically
     requesterMember.setRole(TeamRole.ADMIN);
     newOwner.setRole(TeamRole.OWNER);
 
@@ -196,7 +196,8 @@ public class TeamService {
   }
 
   /**
-   * Updates team for the owner.
+   * Updates team information.
+   * Only Owner can update the team
    */
   @Transactional
   public TeamResponse updateTeam(
@@ -206,7 +207,6 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    // Ensures team exists, not deleted, and requester is OWNER
     TeamMemberEntity requesterMembership = validateOwner(teamId, requester.getId());
 
     TeamEntity team = requesterMembership.getTeam();
@@ -214,17 +214,17 @@ public class TeamService {
     if (request.name() != null) {
       String trimmedName = request.name().trim();
 
-      // Fix Codex
+      // Checks if name is blank
       if (trimmedName.isEmpty()) {
         throw new BadRequestInputException("Team name cannot be blank");
       }
 
+      // Checks if name is unique for the user
       if (!trimmedName.equals(team.getName()) &&
           teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
               team.getOwner().getId(), trimmedName)) {
         throw new ConflictException("Team name already exists for User");
       }
-
       team.setName(trimmedName);
     }
 
@@ -236,7 +236,8 @@ public class TeamService {
   }
 
   /**
-   * Soft Deletes a team.
+   * Soft-deletes a team and cascades soft-delete to all dependent data.
+   * Only Owner can soft-delete team
    */
   @Transactional
   public void deleteTeam(UUID teamId, String requesterEmail) {
@@ -249,28 +250,26 @@ public class TeamService {
 
     Instant now = Instant.now();
 
-    // Soft delete team
     team.setDeletedAt(now);
+    // Bulk repository updates clear persistence context; flush prevents losing
+    // the in-memory team update before the transaction commits.
+    entityManager.flush();
 
-    // TODO Soft delete projects
-    // projectRepository.softDeleteByTeamId(teamId, now);
-
-    // TODO Soft delete tasks under team (direct bulk update)
-    // taskRepository.softDeleteByTeamId(teamId, now);
+    // Soft-delete tasks and projects owned by this team.
+    taskRepository.softDeleteByTeamId(teamId, now);
+    projectRepository.softDeleteByTeamId(teamId, now);
   }
 
   /**
    * Returns a team by id.
+   * Ensures :
+   * - Requester is a member
    */
   @Transactional(readOnly = true)
   public TeamResponse getTeamById(UUID teamId, String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    // Ensures:
-    // - Team exists
-    // - Team not deleted
-    // - User is member
     TeamMemberEntity membership = getMembership(teamId, requester.getId());
 
     TeamEntity team = membership.getTeam();
@@ -389,6 +388,9 @@ public class TeamService {
         .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
   }
 
+  /**
+   * Checks if a User is member of a team
+   */
   private void validateMembership(UUID teamId, UUID userId) {
     boolean isMember = teamMemberRepository
         .existsByTeamIdAndUserId(
@@ -401,8 +403,6 @@ public class TeamService {
 
   /**
    * Ensures:
-   * - Team exists
-   * - Team not soft deleted
    * - User is member
    * - Role is OWNER or ADMIN
    */
@@ -418,6 +418,11 @@ public class TeamService {
     return membership;
   }
 
+  /**
+   * Ensures:
+   * - User is a member
+   * - Role is Owner
+   */
   private TeamMemberEntity validateOwner(UUID teamId, UUID userId) {
 
     TeamMemberEntity member = getMembership(teamId, userId);
