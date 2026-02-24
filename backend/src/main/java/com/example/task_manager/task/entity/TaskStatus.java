@@ -8,7 +8,10 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 public enum TaskStatus {
     TODO,
     IN_PROGRESS,
-    DONE;
+    IN_REVIEW,
+    ON_HOLD,
+    DONE,
+    CANCELLED;
 
     // Converts a string to a TaskStatus enum, ignoring case
     @JsonCreator

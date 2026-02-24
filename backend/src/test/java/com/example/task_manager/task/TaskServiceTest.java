@@ -79,7 +79,7 @@ class TaskServiceTest {
     savedTask.setTitle(request.title());
     savedTask.setDescription(request.description());
     savedTask.setStatus(request.status());
-    savedTask.setAssignedUser(user);
+    savedTask.setAssignee(user);
 
     when(taskRepository.save(any(TaskEntity.class)))
         .thenReturn(savedTask);
@@ -131,7 +131,7 @@ class TaskServiceTest {
     task.setDescription("Old Description");
     task.setStatus(TaskStatus.TODO);
     task.setProject(project);
-    task.setAssignedUser(assignee);
+    task.setAssignee(assignee);
 
     when(taskRepository.findById(taskId))
         .thenReturn(Optional.of(task));

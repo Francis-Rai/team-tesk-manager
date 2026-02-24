@@ -54,7 +54,7 @@ public class TaskService {
         // default to TODO if not assigned to user
         request.assignedUserId() != null && request.status() != null ? request.status() : TaskStatus.TODO);
     task.setProject(project);
-    task.setAssignedUser(assignee);
+    task.setAssignee(assignee);
 
     return mapToResponse(taskRepository.save(task));
   }
@@ -94,8 +94,8 @@ public class TaskService {
         .getEmail()
         .equals(userEmail);
 
-    boolean isAssignee = task.getAssignedUser() != null &&
-        task.getAssignedUser()
+    boolean isAssignee = task.getAssignee() != null &&
+        task.getAssignee()
             .getEmail()
             .equals(userEmail);
 
@@ -115,7 +115,7 @@ public class TaskService {
       }
 
       if (request.assignedUserId() != null) {
-        task.setAssignedUser(
+        task.setAssignee(
             resolveAssignee(request.assignedUserId()));
       }
     }
@@ -202,11 +202,11 @@ public class TaskService {
   private TaskResponse mapToResponse(TaskEntity task) {
     TaskResponse.TaskUser assignedTo = null;
 
-    if (task.getAssignedUser() != null) {
-      assignedTo = new TaskResponse.TaskUser(task.getAssignedUser().getId(),
-          task.getAssignedUser().getFirstName(),
-          task.getAssignedUser().getLastName(),
-          task.getAssignedUser().getEmail());
+    if (task.getAssignee() != null) {
+      assignedTo = new TaskResponse.TaskUser(task.getAssignee().getId(),
+          task.getAssignee().getFirstName(),
+          task.getAssignee().getLastName(),
+          task.getAssignee().getEmail());
     }
 
     return new TaskResponse(
