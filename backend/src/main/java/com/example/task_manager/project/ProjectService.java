@@ -13,6 +13,7 @@ import com.example.task_manager.exception.api.BadRequestInputException;
 import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
+import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.UpdateProjectRequest;
@@ -236,10 +237,14 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
+  /**
+   * Change the status of a project
+   * Only admin and owner can change status
+   */
   @Transactional
   public ProjectResponse changeProjectStatus(
       UUID projectId,
-      ProjectStatus newStatus,
+      ChangeProjectStatusRequest newStatus,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
@@ -248,9 +253,9 @@ public class ProjectService {
 
     validateCanManageTeamProject(project.getTeam().getId(), requester.getId());
 
-    validateStatusChange(project, newStatus);
+    validateStatusChange(project, newStatus.status());
 
-    project.setStatus(newStatus);
+    project.setStatus(newStatus.status());
 
     return mapToResponse(project);
   }

@@ -11,6 +11,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import com.example.task_manager.common.PageResponse;
+import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.UpdateProjectRequest;
@@ -111,11 +112,14 @@ public class ProjectController {
     return projectService.getExistingProjectById(projectId, authentication.getName());
   }
 
+  /**
+   * Change project's status
+   */
   @PatchMapping("/{projectId}/status")
   public ProjectResponse changeStatus(
       @PathVariable UUID projectId,
-      @RequestParam ProjectStatus status,
+      @Valid @RequestBody ChangeProjectStatusRequest request,
       Authentication authentication) {
-    return projectService.changeProjectStatus(projectId, status, authentication.getName());
+    return projectService.changeProjectStatus(projectId, request, authentication.getName());
   }
 }
