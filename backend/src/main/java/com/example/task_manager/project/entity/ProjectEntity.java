@@ -1,15 +1,13 @@
 package com.example.task_manager.project.entity;
 
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import com.example.task_manager.task.entity.TaskEntity;
+import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.user.entity.UserEntity;
 
 import jakarta.persistence.*;
@@ -23,25 +21,34 @@ import lombok.Setter;
 @Setter
 @Entity
 @EntityListeners(AuditingEntityListener.class) // Enable auditing for createdAt and updatedAt fields
-@Table(name = "projects")
+@Table(name = "projects", uniqueConstraints = {
+    @UniqueConstraint(name = "uk_project_team_name", columnNames = { "team_id", "name" })
+}, indexes = {
+    @Index(name = "idx_project_team_deleted", columnList = "team_id, deleted_at")
+})
 public class ProjectEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-  @Column(nullable = false)
+  @Column(nullable = false, length = 100)
   private String name;
 
+  @Column(length = 500)
   private String description;
 
-  // Many-to-one relationship with user (owner)
-  @ManyToOne
-  @JoinColumn(name = "owner_id", nullable = false)
-  private UserEntity owner;
+  @Enumerated(EnumType.STRING)
+  @Column(nullable = false, length = 20)
+  private ProjectStatus status = ProjectStatus.ACTIVE;
 
-  // One-to-many relationship with tasks
-  @OneToMany(mappedBy = "project", cascade = CascadeType.ALL)
-  private List<TaskEntity> tasks = new ArrayList<>();
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "team_id", nullable = false)
+  private TeamEntity team;
+
+  // Many-to-one relationship with user (owner)
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "created_by", nullable = false)
+  private UserEntity createdBy;
 
   @CreatedDate
   @Column(nullable = false, updatable = false)
@@ -50,4 +57,9 @@ public class ProjectEntity {
   @LastModifiedDate
   @Column(nullable = false)
   private Instant updatedAt;
+
+  private Instant deletedAt;
+
+  @Version
+  private Long version;
 }

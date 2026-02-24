@@ -46,12 +46,12 @@ class ProjectServiceTest {
         // Project
         ProjectEntity project = new ProjectEntity();
         project.setId(projectId);
-        project.setOwner(owner);
+        project.setCreatedBy(owner);
 
         when(projectRepository.findById(projectId))
                 .thenReturn(Optional.of(project));
 
-        projectService.delete(projectId, userEmail);
+        projectService.deleteProject(projectId, userEmail);
 
         // Assert that delete was called
         verify(projectRepository).delete(project);
@@ -70,7 +70,7 @@ class ProjectServiceTest {
         owner.setEmail("owner@test.com");
 
         ProjectEntity project = new ProjectEntity();
-        project.setOwner(owner);
+        project.setCreatedBy(owner);
 
         when(projectRepository.findById(projectId))
                 .thenReturn(Optional.of(project));
@@ -78,7 +78,7 @@ class ProjectServiceTest {
         // Assert that UnauthorizedException is thrown
         assertThrows(
                 UnauthorizedException.class,
-                () -> projectService.delete(projectId, "hacker@test.com"));
+                () -> projectService.deleteProject(projectId, "hacker@test.com"));
     }
 
 }

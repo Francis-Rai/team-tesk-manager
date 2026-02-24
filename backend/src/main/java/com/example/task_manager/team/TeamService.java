@@ -1,18 +1,21 @@
 package com.example.task_manager.team;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
+import com.example.task_manager.exception.api.BadRequestInputException;
 import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
-import com.example.task_manager.exception.api.UnauthorizedException;
+import com.example.task_manager.project.ProjectRepository;
+import com.example.task_manager.task.TaskRepository;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
@@ -24,7 +27,10 @@ import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
 
+import jakarta.persistence.EntityManager;
+
 import org.springframework.transaction.annotation.Transactional;
+
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -37,21 +43,41 @@ public class TeamService {
   private final TeamRepository teamRepository;
   private final TeamMemberRepository teamMemberRepository;
   private final UserRepository userRepository;
+  private final ProjectRepository projectRepository;
+  private final TaskRepository taskRepository;
+  private final EntityManager entityManager;
 
   /**
    * Creates a new team for the authenticated user.
+   * Sets user as the owner
    */
   @Transactional
-  public TeamResponse create(CreateTeamRequest request, String userEmail) {
+  public TeamResponse createTeam(
+      CreateTeamRequest request,
+      String userEmail) {
 
     UserEntity owner = getUserByEmail(userEmail);
+
+    // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
+
+    // Checks uniqueness of Team Name by Owner
+    if (teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
+        owner.getId(), request.name().trim())) {
+      throw new ConflictException("Team name already exists for User");
+    }
 
     TeamEntity team = new TeamEntity();
     team.setName(request.name());
     team.setDescription(request.description());
     team.setOwner(owner);
 
-    teamRepository.save(team);
+    // Flush immediately so unique-constraint violations are caught here
+    // and mapped to a domain conflict.
+    try {
+      teamRepository.saveAndFlush(team);
+    } catch (DataIntegrityViolationException ex) {
+      throw new ConflictException("Team name already exists for User");
+    }
 
     TeamMemberEntity ownerMember = new TeamMemberEntity();
     ownerMember.setTeam(team);
@@ -64,7 +90,75 @@ public class TeamService {
   }
 
   /**
+   * Updates team information.
+   * Only Owner can update the team
+   */
+  @Transactional
+  public TeamResponse updateTeam(
+      UUID teamId,
+      UpdateTeamRequest request,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TeamMemberEntity requesterMembership = validateOwner(teamId, requester.getId());
+
+    TeamEntity team = requesterMembership.getTeam();
+
+    if (request.name() != null) {
+      String trimmedName = request.name().trim();
+
+      // Checks if name is blank
+      if (trimmedName.isEmpty()) {
+        throw new BadRequestInputException("Team name cannot be blank");
+      }
+
+      // Checks if name is unique for the user
+      if (!trimmedName.equals(team.getName()) &&
+          teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(
+              team.getOwner().getId(), trimmedName)) {
+        throw new ConflictException("Team name already exists for User");
+      }
+      team.setName(trimmedName);
+    }
+
+    if (request.description() != null) {
+      team.setDescription(request.description().trim());
+    }
+
+    return mapToResponse(team);
+  }
+
+  /**
+   * Soft-deletes a team and cascades soft-delete to all dependent data.
+   * Only Owner can soft-delete team
+   */
+  @Transactional
+  public void deleteTeam(
+      UUID teamId,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TeamMemberEntity owner = validateOwner(teamId, requester.getId());
+
+    TeamEntity team = owner.getTeam();
+
+    Instant now = Instant.now();
+
+    team.setDeletedAt(now);
+    // Bulk repository updates clear persistence context; flush prevents losing
+    // the in-memory team update before the transaction commits.
+    entityManager.flush();
+
+    // Soft-delete tasks and projects owned by this team.
+    taskRepository.softDeleteByTeamId(teamId, now);
+    projectRepository.softDeleteByTeamId(teamId, now);
+  }
+
+  /**
    * Adds new member in a team
+   * New member must be unique for the team
    */
   @Transactional
   public TeamMemberResponse addMember(
@@ -72,17 +166,11 @@ public class TeamService {
       AddTeamMemberRequest request,
       String requesterEmail) {
 
-    TeamEntity team = teamRepository.findById(teamId)
-        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
-
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    // Permission check
-    validateCanManageMembers(teamId, requester.getId());
+    TeamMemberEntity requesterMembership = validateCanManageTeam(teamId, requester.getId());
 
-    if (teamMemberRepository.existsByTeamIdAndUserId(teamId, request.userId())) {
-      throw new ConflictException("User already in team");
-    }
+    TeamEntity team = requesterMembership.getTeam();
 
     UserEntity userToAdd = getUserById(request.userId());
 
@@ -90,6 +178,7 @@ public class TeamService {
         ? TeamRole.MEMBER
         : request.role();
 
+    // Prevent direct OWNER assignment
     if (role == TeamRole.OWNER) {
       throw new ConflictException("Cannot assign OWNER role");
     }
@@ -99,13 +188,21 @@ public class TeamService {
     newMember.setUser(userToAdd);
     newMember.setRole(role);
 
-    teamMemberRepository.save(newMember);
+    // Flush immediately so unique-constraint violations are caught here
+    // and mapped to a domain conflict.
+    try {
+      teamMemberRepository.saveAndFlush(newMember);
+    } catch (DataIntegrityViolationException ex) {
+      throw new ConflictException("User already in team");
+    }
 
     return mapToMemberResponse(newMember);
   }
 
   /**
    * Removes a member in a team
+   * Only Admin and Owner can remove member
+   * Only Owner can remove an Admin and can't remove themselves
    */
   @Transactional
   public void removeMember(
@@ -115,22 +212,19 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity requesterMembership = getMembershipOrThrow(teamId, requester.getId());
+    TeamMemberEntity requesterMembership = validateCanManageTeam(teamId, requester.getId());
 
-    TeamMemberEntity memberToRemove = getMembershipOrThrow(teamId, memberUserId);
-
-    validateCanManageMembers(teamId, requester.getId());
+    TeamMemberEntity memberToRemove = getMembership(teamId, memberUserId);
 
     // Cannot remove OWNER
     if (memberToRemove.getRole() == TeamRole.OWNER) {
       throw new ForbiddenException("Transfer ownership before removing OWNER");
     }
 
-    // ADMIN restrictions
-    if (requesterMembership.getRole() == TeamRole.ADMIN) {
-      if (memberToRemove.getRole() != TeamRole.MEMBER) {
-        throw new ForbiddenException("ADMIN can only remove MEMBER");
-      }
+    // ADMIN can only remove MEMBER
+    if (requesterMembership.getRole() == TeamRole.ADMIN &&
+        memberToRemove.getRole() != TeamRole.MEMBER) {
+      throw new ForbiddenException("ADMIN can only remove MEMBER");
     }
 
     // OWNER cannot remove themselves
@@ -143,7 +237,7 @@ public class TeamService {
   }
 
   /**
-   * Transfers Team Ownership to other member
+   * Transfers Team Ownership to another member
    */
   @Transactional
   public TeamMemberResponse transferOwnership(
@@ -153,118 +247,97 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity currentOwner = getMembershipOrThrow(teamId, requester.getId());
+    TeamMemberEntity requesterMember = validateOwner(teamId, requester.getId());
 
-    if (currentOwner.getRole() != TeamRole.OWNER) {
-      throw new ForbiddenException("Only OWNER can transfer ownership");
+    // Cannot transfer to self
+    if (requester.getId().equals(newOwnerUserId)) {
+      throw new ConflictException("You are already the OWNER");
     }
 
-    TeamMemberEntity newOwner = getMembershipOrThrow(teamId, newOwnerUserId);
+    TeamMemberEntity newOwner = getMembership(teamId, newOwnerUserId);
 
-    if (newOwner.getRole() == TeamRole.OWNER) {
-      throw new ConflictException("User is already OWNER");
-    }
-
-    // Transfer
-    currentOwner.setRole(TeamRole.ADMIN);
+    requesterMember.setRole(TeamRole.ADMIN);
     newOwner.setRole(TeamRole.OWNER);
 
     return mapToMemberResponse(newOwner);
   }
 
   /**
-   * Updates team for the owner.
+   * Returns an non-archived team by id.
+   * Ensures :
+   * - Requester is a member
    */
-  @Transactional
-  public TeamResponse updateTeam(
+  @Transactional(readOnly = true)
+  public TeamResponse getActiveTeamById(
       UUID teamId,
-      UpdateTeamRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity membership = getMembershipOrThrow(teamId, requester.getId());
+    TeamMemberEntity membership = getMembership(teamId, requester.getId());
 
-    if (membership.getRole() != TeamRole.OWNER) {
-      throw new ForbiddenException("Only OWNER can update team");
-    }
-
-    TeamEntity team = membership.getTeam();
-
-    if (request.name() != null) {
-      if (request.name().isBlank()) {
-        throw new ForbiddenException("Name cannot be blank");
-      }
-      team.setName(request.name());
-    }
-
-    if (request.description() != null) {
-      team.setDescription(request.description());
-    }
-
-    return mapToResponse(team);
+    return mapToResponse(membership.getTeam());
   }
 
   /**
-   * Soft Deletes a team.
+   * Returns an existing team by id.
+   * Ensures :
+   * - Requester is a member
    */
-  @Transactional
-  public void deleteTeam(UUID teamId, String requesterEmail) {
+  @Transactional(readOnly = true)
+  public TeamResponse getExistingTeamById(
+      UUID teamId,
+      String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity membership = getMembershipOrThrow(teamId, requester.getId());
+    TeamMemberEntity membership = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId())
+        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
 
-    if (membership.getRole() != TeamRole.OWNER) {
-      throw new ForbiddenException("Only OWNER can delete team");
-    }
-
-    TeamEntity team = membership.getTeam();
-    team.setDeleted(true);
-    team.setDeletedAt(LocalDateTime.now());
+    return mapToResponse(membership.getTeam());
   }
 
   /**
-   * Returns a team by id.
+   * Returns all existing team of authenticated user.
    */
   @Transactional(readOnly = true)
-  public TeamResponse getTeamById(UUID teamId, String requesterEmail) {
-
-    UserEntity requester = userRepository.findByEmail(requesterEmail)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-
-    TeamEntity team = getTeamById(teamId);
-
-    boolean isMember = team.getMembers()
-        .stream()
-        .anyMatch(m -> m.getUser().getId().equals(requester.getId()));
-
-    if (!isMember) {
-      throw new ForbiddenException("You are not a member of this team");
-    }
-
-    return mapToResponse(team);
-  }
-
-  /**
-   * Returns all the team of user.
-   */
-  @Transactional(readOnly = true)
-  public PageResponse<TeamResponse> getMyTeams(String requesterEmail, Pageable pageable) {
+  public PageResponse<TeamResponse> getAllExistingTeams(
+      String requesterEmail,
+      Pageable pageable) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    Page<TeamMemberEntity> page = teamMemberRepository.findByUserId(requester.getId(), pageable);
-
-    List<TeamResponse> content = page.getContent()
-        .stream()
-        .map(TeamMemberEntity::getTeam)
-        .distinct()
-        .map(this::mapToResponse)
-        .toList();
+    Page<TeamEntity> page = teamRepository.findExistingTeamsByUser(
+        requester.getId(),
+        pageable);
 
     return new PageResponse<>(
-        content,
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
+   * Returns all non-archived team of authenticated user.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TeamResponse> getAllActiveTeams(
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    Page<TeamEntity> page = teamRepository.findActiveTeamsByUser(
+        requester.getId(),
+        pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -283,11 +356,9 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    if (!teamMemberRepository.existsByTeamIdAndUserId(teamId, requester.getId())) {
-      throw new ForbiddenException("Not a team member");
-    }
+    validateMembership(teamId, requester.getId());
 
-    List<TeamMemberEntity> members = teamMemberRepository.findByTeamId(teamId);
+    List<TeamMemberEntity> members = teamMemberRepository.findMembersByTeamId(teamId);
 
     return members.stream()
         .map(member -> new TeamMemberResponse(
@@ -301,7 +372,7 @@ public class TeamService {
   // HELPERS
 
   /**
-   * Maps a TeamEntity to a TeamResponse.
+   * Maps a TeamEntity to a Team Response.
    */
   public TeamResponse mapToResponse(TeamEntity team) {
 
@@ -310,7 +381,6 @@ public class TeamService {
         team.getName(),
         team.getDescription(),
         team.getOwner().getId(),
-        team.isDeleted(),
         team.getCreatedAt(),
         team.getUpdatedAt());
   }
@@ -327,33 +397,7 @@ public class TeamService {
   }
 
   /**
-   * Check if a user can manage team
-   * Only Team Admin and Team Owner can manage teams
-   */
-  private void validateCanManageMembers(UUID teamId, UUID userId) {
-
-    TeamMemberEntity membership = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, userId)
-        .orElseThrow(() -> new UnauthorizedException());
-
-    if (membership.getRole() != TeamRole.OWNER &&
-        membership.getRole() != TeamRole.ADMIN) {
-      throw new ForbiddenException("Insufficient permissions");
-    }
-  }
-
-  /**
-   * Checks if the user is a member of the team
-   */
-  private TeamMemberEntity getMembershipOrThrow(UUID teamId, UUID userId) {
-    TeamMemberEntity member = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, userId)
-        .orElseThrow(() -> new ForbiddenException("User is not a team member"));
-    return member;
-  }
-
-  /**
-   * Checks if the user exist by email
+   * Returns the user by email
    */
   private UserEntity getUserByEmail(String email) {
     UserEntity user = userRepository.findByEmail(email)
@@ -362,7 +406,7 @@ public class TeamService {
   }
 
   /**
-   * Checks if the user exist by id
+   * Returns the user by id
    */
   private UserEntity getUserById(UUID id) {
     UserEntity user = userRepository.findById(id)
@@ -371,11 +415,65 @@ public class TeamService {
   }
 
   /**
-   * Checks if the team exist by id
+   * Ensures:
+   * - Team exists
+   * - Team not deleted
+   * - Membership exists
+   *
+   * Returns membership entity.
+   * Uses ResourceNotFound to prevent ID probing.
    */
-  private TeamEntity getTeamById(UUID id) {
-    TeamEntity team = teamRepository.findById(id)
+  private TeamMemberEntity getMembership(UUID teamId, UUID userId) {
+
+    return teamMemberRepository
+        .findByTeamIdAndUserIdAndTeamDeletedAtIsNull(teamId, userId)
         .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
-    return team;
   }
+
+  /**
+   * Checks if a User is member of a team
+   */
+  private void validateMembership(UUID teamId, UUID userId) {
+    boolean isMember = teamMemberRepository
+        .existsByTeamIdAndUserId(
+            teamId, userId);
+
+    if (!isMember) {
+      throw new ResourceNotFoundException("Team not found");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - User is member
+   * - Role is OWNER or ADMIN
+   */
+  private TeamMemberEntity validateCanManageTeam(UUID teamId, UUID userId) {
+
+    TeamMemberEntity membership = getMembership(teamId, userId);
+
+    if (membership.getRole() != TeamRole.OWNER &&
+        membership.getRole() != TeamRole.ADMIN) {
+      throw new ForbiddenException("Insufficient permissions");
+    }
+
+    return membership;
+  }
+
+  /**
+   * Ensures:
+   * - User is a member
+   * - Role is Owner
+   */
+  private TeamMemberEntity validateOwner(UUID teamId, UUID userId) {
+
+    TeamMemberEntity member = getMembership(teamId, userId);
+
+    if (member.getRole() != TeamRole.OWNER) {
+      throw new ForbiddenException("Only owner allowed");
+    }
+
+    return member;
+  }
+
 }
