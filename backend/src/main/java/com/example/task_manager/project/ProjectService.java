@@ -147,8 +147,6 @@ public class ProjectService {
 
   }
 
-  // TODO - Change Project Status
-
   /**
    * Returns all non-archived projects by authenticated user.
    */
@@ -357,6 +355,12 @@ public class ProjectService {
     return member;
   }
 
+  /**
+   * Ensures:
+   * - Project is active
+   * - Project status cannot be changed to its current value
+   * All transitions between ACTIVE, ON_HOLD, COMPLETED are allowed
+   */
   private void validateStatusChange(
       ProjectEntity project,
       ProjectStatus newStatus) {
@@ -370,8 +374,6 @@ public class ProjectService {
       throw new ConflictException(
           "Project is already in this status");
     }
-
-    // All transitions between ACTIVE, ON_HOLD, COMPLETED are allowed
   }
 
 }

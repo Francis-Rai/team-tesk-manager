@@ -17,9 +17,6 @@ import com.example.task_manager.project.entity.ProjectEntity;
  */
 public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
-  // Page<ProjectEntity> findActiveProjectsByTeam(UUID teamId, String search,
-  // Pageable pageable);
-
   Optional<ProjectEntity> findById(UUID id);
 
   Optional<ProjectEntity> findByIdAndDeletedAtIsNull(UUID id);

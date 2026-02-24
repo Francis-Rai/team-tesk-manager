@@ -24,8 +24,6 @@ import lombok.Setter;
 @Table(name = "projects", uniqueConstraints = {
     @UniqueConstraint(name = "uk_project_team_name", columnNames = { "team_id", "name" })
 }, indexes = {
-    @Index(name = "idx_project_team_id", columnList = "team_id"),
-    @Index(name = "idx_project_deleted_at", columnList = "deleted_at"),
     @Index(name = "idx_project_team_deleted", columnList = "team_id, deleted_at")
 })
 public class ProjectEntity {
@@ -61,4 +59,7 @@ public class ProjectEntity {
   private Instant updatedAt;
 
   private Instant deletedAt;
+
+  @Version
+  private Long version;
 }

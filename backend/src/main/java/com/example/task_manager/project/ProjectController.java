@@ -15,7 +15,6 @@ import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.UpdateProjectRequest;
-import com.example.task_manager.project.entity.ProjectStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
