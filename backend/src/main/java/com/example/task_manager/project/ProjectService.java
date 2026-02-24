@@ -128,7 +128,7 @@ public class ProjectService {
    * Only Owner and Admin can soft-delete project
    */
   @Transactional
-  public void delete(
+  public void deleteProject(
       UUID projectId,
       String requesterEmail) {
 
@@ -236,6 +236,25 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
+  @Transactional
+  public ProjectResponse changeProjectStatus(
+      UUID projectId,
+      ProjectStatus newStatus,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    ProjectEntity project = getExistingProject(projectId);
+
+    validateCanManageTeamProject(project.getTeam().getId(), requester.getId());
+
+    validateStatusChange(project, newStatus);
+
+    project.setStatus(newStatus);
+
+    return mapToResponse(project);
+  }
+
   // HELPERS
 
   /**
@@ -331,6 +350,23 @@ public class ProjectService {
     }
 
     return member;
+  }
+
+  private void validateStatusChange(
+      ProjectEntity project,
+      ProjectStatus newStatus) {
+
+    if (project.getDeletedAt() != null) {
+      throw new ConflictException(
+          "Archived projects cannot change status");
+    }
+
+    if (project.getStatus() == newStatus) {
+      throw new ConflictException(
+          "Project is already in this status");
+    }
+
+    // All transitions between ACTIVE, ON_HOLD, COMPLETED are allowed
   }
 
 }

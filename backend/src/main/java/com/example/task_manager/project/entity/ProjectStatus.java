@@ -8,7 +8,7 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 public enum ProjectStatus {
   ACTIVE,
   ON_HOLD,
-  ARCHIVED;
+  COMPLETED;
 
   // Converts a string to a Project Status enum, ignoring case
   @JsonCreator

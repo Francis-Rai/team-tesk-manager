@@ -14,6 +14,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.UpdateProjectRequest;
+import com.example.task_manager.project.entity.ProjectStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -63,7 +64,7 @@ public class ProjectController {
       @PathVariable UUID projectId,
       Authentication authentication) {
 
-    projectService.delete(projectId, authentication.getName());
+    projectService.deleteProject(projectId, authentication.getName());
   }
 
   /**
@@ -108,5 +109,13 @@ public class ProjectController {
       @PathVariable UUID projectId,
       Authentication authentication) {
     return projectService.getExistingProjectById(projectId, authentication.getName());
+  }
+
+  @PatchMapping("/{projectId}/status")
+  public ProjectResponse changeStatus(
+      @PathVariable UUID projectId,
+      @RequestParam ProjectStatus status,
+      Authentication authentication) {
+    return projectService.changeProjectStatus(projectId, status, authentication.getName());
   }
 }
