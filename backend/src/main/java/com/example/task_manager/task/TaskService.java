@@ -1,29 +1,33 @@
 package com.example.task_manager.task;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.common.PageResponse;
+import com.example.task_manager.exception.api.BadRequestInputException;
 import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
-import com.example.task_manager.exception.api.UnauthorizedException;
 import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.TaskResponse;
+import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskRequest;
 import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.task.entity.TaskStatus;
+import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.TeamMemberRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
 
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 /**
@@ -37,32 +41,11 @@ public class TaskService {
   private final ProjectRepository projectRepository;
   private final TeamMemberRepository teamMemberRepository;
   private final UserRepository userRepository;
+  private final TaskUpdateRepository taskUpdateRepository;
 
   /**
-   * Creates task under project and optionally assigns user.
+   * Creates task under project and optionally add a support user.
    */
-  // public TaskResponse create(
-  // UUID projectId,
-  // CreateTaskRequest request,
-  // String userEmail) {
-
-  // ProjectEntity project = getOwnedProject(projectId, userEmail);
-
-  // UserEntity assignee = resolveAssignee(request.assignedUserId());
-
-  // TaskEntity task = new TaskEntity();
-  // task.setTitle(request.title());
-  // task.setDescription(request.description());
-  // task.setStatus(
-  // // default to TODO if no status provided
-  // // default to TODO if not assigned to user
-  // request.assignedUserId() != null && request.status() != null ?
-  // request.status() : TaskStatus.TODO);
-  // task.setProject(project);
-  // task.setAssignee(assignee);
-
-  // return mapToResponse(taskRepository.save(task));
-  // }
   @Transactional
   public TaskResponse createTask(
       UUID projectId,
@@ -71,39 +54,41 @@ public class TaskService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = projectRepository
-        .findByIdAndDeletedAtIsNull(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+    ProjectEntity project = getActiveProject(projectId);
 
-    validateCanManageProjectTask(project.getTeam().getId(), requester.getId());
+    UUID teamId = project.getTeam().getId();
 
-    Long nextNumber = taskRepository
-        .findMaxTaskNumberByProject(projectId) + 1;
-
-    // 3️⃣ Create task
-    TaskEntity task = new TaskEntity();
-    task.setProject(project);
-    task.setTaskNumber(nextNumber);
-    task.setTitle(request.title());
-    task.setDescription(request.description());
-    task.setPriority(request.priority());
-    task.setStatus(TaskStatus.TODO);
-
-    // validate dates
+    validateCanManageProjectTask(teamId, requester.getId());
     validateDates(request.startDate(), request.dueDate());
 
+    TeamMemberEntity assigneeMember = getMembership(teamId, request.assigneeId());
+    getMembership(teamId, request.supportId());
+
+    TeamMemberEntity supportMember = getMembership(teamId, request.supportId());
+    getMembership(teamId, request.supportId());
+
+    Long taskNumber = project.getNextTaskNumber();
+    project.setNextTaskNumber(taskNumber + 1);
+
+    if (request.supportId() != null) {
+      validateAssignment(project.getTeam().getId(),
+          request.assigneeId(),
+          request.supportId());
+    }
+
+    TaskEntity task = new TaskEntity();
+    task.setTaskNumber(taskNumber);
+    task.setTitle(request.title());
+    task.setDescription(request.description());
+    task.setStatus(TaskStatus.TODO);
+    task.setPriority(request.priority());
     task.setStartDate(request.startDate());
     task.setDueDate(request.dueDate());
 
-    // validate assignee + support
-    validateAssignment(project.getTeam().getId(),
-        request.assigneeId(),
-        request.supportId());
-
-    task.setAssignee(getUserById(request.assigneeId()));
+    task.setAssignee(assigneeMember.getUser());
     task.setSupport(request.supportId() == null
         ? null
-        : getUserById(request.supportId()));
+        : supportMember.getUser());
 
     taskRepository.save(task);
 
@@ -112,58 +97,7 @@ public class TaskService {
 
   /**
    * Updates task.
-   *
-   * Rules:
-   * - Only project owner can edit title, description, assignee
-   * - Project owner OR assigned user can update status
    */
-
-  // public TaskResponse update(
-  // UUID taskId,
-  // UpdateTaskRequest request,
-  // String userEmail) {
-
-  // TaskEntity task = taskRepository.findById(taskId)
-  // .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-
-  // boolean isOwner = task.getProject()
-  // .getCreatedBy()
-  // .getEmail()
-  // .equals(userEmail);
-
-  // boolean isAssignee = task.getAssignee() != null &&
-  // task.getAssignee()
-  // .getEmail()
-  // .equals(userEmail);
-
-  // if (!isOwner && !isAssignee) {
-  // throw new UnauthorizedException();
-  // }
-
-  // // OWNER-ONLY FIELDS
-  // if (isOwner) {
-
-  // if (request.title() != null) {
-  // task.setTitle(request.title());
-  // }
-
-  // if (request.description() != null) {
-  // task.setDescription(request.description());
-  // }
-
-  // if (request.assignedUserId() != null) {
-  // task.setAssignee(
-  // resolveAssignee(request.assignedUserId()));
-  // }
-  // }
-
-  // // OWNER OR ASSIGNEE
-  // if (request.status() != null) {
-  // task.setStatus(request.status());
-  // }
-
-  // return mapToResponse(taskRepository.save(task));
-  // }
   @Transactional
   public TaskResponse updateTask(
       UUID taskId,
@@ -174,9 +108,7 @@ public class TaskService {
 
     TaskEntity task = getActiveTask(taskId);
 
-    validateProjectNotArchived(task.getProject());
-
-    validateCanModifyTask(task, requester.getId());
+    validateCanManageProjectTask(task.getProject().getId(), requester.getId());
 
     if (request.title() != null) {
       task.setTitle(request.title());
@@ -196,21 +128,22 @@ public class TaskService {
       task.setDueDate(request.dueDate());
     }
 
+    if (request.assigneeId() != null) {
+      TeamMemberEntity assignee = getMembership(task.getProject().getTeam().getId(), request.assigneeId());
+      task.setAssignee(assignee.getUser());
+    }
+
+    if (request.supportId() != null) {
+      TeamMemberEntity support = getMembership(task.getProject().getTeam().getId(), request.assigneeId());
+      task.setAssignee(support.getUser());
+    }
+
     return mapToResponse(task);
   }
 
   /**
    * Deletes task.
-   * Owner only.
    */
-  // public void delete(
-  // UUID taskId,
-  // String userEmail) {
-
-  // TaskEntity task = getOwnedTask(taskId, userEmail);
-  // taskRepository.delete(task);
-  // }
-
   @Transactional
   public void deleteTask(UUID taskId, String requesterEmail) {
 
@@ -218,210 +151,105 @@ public class TaskService {
 
     TaskEntity task = getActiveTask(taskId);
 
-    validateProjectNotArchived(task.getProject());
-
-    validateOwnerOrAdmin(task.getProject().getTeam().getId(),
-        requester.getId());
+    validateCanManageProjectTask(taskId, requester.getId());
 
     task.setDeletedAt(Instant.now());
   }
 
-  // HELPERS
-
   /**
-   * Returns the user by email
+   * Change the status of a task
    */
-  private UserEntity getUserByEmail(String email) {
-    UserEntity user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    return user;
-  }
+  @Transactional
+  public TaskResponse changeStatus(UUID taskId, TaskStatus newStatus, String requesterEmail) {
 
-  /**
-   * Returns all tasks for a project.
-   */
-  public List<TaskResponse> getByProject(UUID projectId) {
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+    TaskEntity task = getActiveTask(taskId);
 
-    return taskRepository
-        .findByProjectId(project.getId())
-        .stream()
-        .map(this::mapToResponse)
-        .toList();
+    validateCanChangeStatusAndUpdate(task, requester.getId());
+    validateStatusTransition(task.getStatus(), newStatus);
+
+    task.setStatus(newStatus);
+    return mapToResponse(task);
   }
 
   /**
-   * Ensures:
-   * - Team exists
-   * - Team not deleted
-   * - Membership exists
-   *
-   * Returns membership entity.
-   * Uses ResourceNotFound to prevent ID probing.
+   * Create an update for a task
    */
-  private TeamMemberEntity getMembership(UUID teamId, UUID userId) {
-    TeamMemberEntity member = teamMemberRepository
-        .findByTeamIdAndUserIdAndTeamDeletedAtIsNull(teamId, userId)
-        .orElseThrow(() -> new ForbiddenException("User is not a team member"));
-    return member;
+  @Transactional
+  public TaskUpdateResponse addTaskUpdate(UUID taskId, String message, String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TaskEntity task = getActiveTask(taskId);
+
+    validateCanChangeStatusAndUpdate(task, requester.getId());
+
+    TaskUpdateEntity update = new TaskUpdateEntity();
+    update.setTask(task);
+    update.setMessage(message);
+    update.setCreatedBy(requester);
+
+    taskUpdateRepository.save(update);
+
+    return mapToUpdateResponse(update);
   }
 
   /**
-   * Returns the user by email
+   * Returns all existing tasks of a project.
    */
-  private UserEntity getUserById(UUID id) {
-    UserEntity user = userRepository.findById(id)
-        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
-    return user;
-  }
-
-  private ProjectEntity getActiveProjectForUpdate(UUID projectId) {
-    return projectRepository.findByIdAndDeletedAtIsNull(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
-  }
-
-  private TaskEntity getActiveTask(UUID taskId) {
-    return taskRepository.findByIdAndDeletedAtIsNull(taskId)
-        .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-  }
-
-  private void validateProjectNotArchived(ProjectEntity project) {
-    if (project.getDeletedAt() != null) {
-      throw new ConflictException("Project is archived");
-    }
-  }
-
-  private void validateOwnerOrAdmin(UUID teamId, UUID userId) {
-    TeamMemberEntity member = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
-
-    if (member.getRole() != TeamRole.OWNER &&
-        member.getRole() != TeamRole.ADMIN) {
-      throw new ForbiddenException("Insufficient permissions");
-    }
-  }
-
-  private void validateCanModifyTask(TaskEntity task, UUID userId) {
-
-    UUID teamId = task.getProject().getTeam().getId();
-
-    TeamMemberEntity member = teamMemberRepository
-        .findByTeamIdAndUserId(teamId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
-
-    boolean isOwnerOrAdmin = member.getRole() == TeamRole.OWNER ||
-        member.getRole() == TeamRole.ADMIN;
-
-    boolean isAssignee = task.getAssignee().getId().equals(userId);
-
-    boolean isSupport = task.getSupport() != null &&
-        task.getSupport().getId().equals(userId);
-
-    if (!(isOwnerOrAdmin || isAssignee || isSupport)) {
-      throw new ForbiddenException("Insufficient permissions");
-    }
-  }
-
-  /**
-   * Ensures:
-   * - User is Team member
-   * - Role is Team OWNER or ADMIN
-   */
-  private TeamMemberEntity validateCanManageProjectTask(UUID teamId, UUID userId) {
-    TeamMemberEntity member = getMembership(teamId, userId);
-
-    if (member.getRole() != TeamRole.OWNER &&
-        member.getRole() != TeamRole.ADMIN) {
-      throw new ForbiddenException("Insufficient permissions");
-    }
-
-    return member;
-  }
-
-  private void validateDates(Instant start, Instant due) {
-    if (due.isBefore(start)) {
-      throw new ConflictException("Due date must be after start date");
-    }
-  }
-
-  private void validateMembership(UUID teamId, UUID userId) {
-    if (!teamMemberRepository.existsByTeamIdAndUserId(teamId, userId)) {
-      throw new ConflictException("User must belong to the same team");
-    }
-  }
-
-  private void validateAssignment(
-      UUID teamId,
-      UUID assigneeId,
-      UUID supportId) {
-
-    if (supportId != null && assigneeId.equals(supportId)) {
-      throw new ConflictException("Assignee and support cannot be the same");
-    }
-
-    validateMembership(teamId, assigneeId);
-
-    if (supportId != null) {
-      validateMembership(teamId, supportId);
-    }
-  }
-
-  /**
-   * Resolves assignee by ID or returns null if ID is null.
-   */
-  private UserEntity resolveAssignee(UUID assigneeId) {
-
-    if (assigneeId == null) {
-      return null;
-    }
-
-    return userRepository.findById(assigneeId)
-        .orElseThrow(() -> new ResourceNotFoundException("Assignee not found"));
-  }
-
-  /**
-   * Ensures task exists and belongs to project owned by user.
-   */
-  private TaskEntity getOwnedTask(
-      UUID taskId,
-      String userEmail) {
-
-    TaskEntity task = taskRepository.findById(taskId)
-        .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
-
-    if (!task.getProject()
-        .getCreatedBy()
-        .getEmail()
-        .equals(userEmail)) {
-
-      throw new UnauthorizedException();
-    }
-
-    return task;
-  }
-
-  /**
-   * Ensures project exists and belongs to user.
-   */
-  private ProjectEntity getOwnedProject(
+  public PageResponse<TaskResponse> getAllExistingTaskByProjectId(
       UUID projectId,
-      String userEmail) {
+      Pageable pageable,
+      String requesterEmail) {
 
-    ProjectEntity project = projectRepository.findById(projectId)
-        .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+    UserEntity requester = getUserByEmail(requesterEmail);
 
-    if (!project.getCreatedBy()
-        .getEmail()
-        .equals(userEmail)) {
+    ProjectEntity project = getActiveProject(projectId);
 
-      throw new UnauthorizedException();
-    }
+    validateMembership(project.getTeam().getId(), requester.getId());
 
-    return project;
+    Page<TaskEntity> page = taskRepository.findByProjectId(project.getId(), pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
   }
+
+  /**
+   * Returns all active tasks of a project.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TaskResponse> getAllActiveTasksByProjectId(
+      UUID projectId,
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    ProjectEntity project = getActiveProject(projectId);
+
+    validateMembership(project.getTeam().getId(), requester.getId());
+
+    Page<TaskEntity> page = taskRepository
+        .findByProjectIdAndDeletedAtIsNull(projectId, pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  // HELPERS
 
   /**
    * Maps TaskEntity to TaskResponse.
@@ -445,4 +273,157 @@ public class TaskService {
         task.getCreatedAt(),
         task.getUpdatedAt());
   }
+
+  /**
+   * Maps TaskUpdateEntity to TaskUpdateResponse.
+   */
+  public TaskUpdateResponse mapToUpdateResponse(TaskUpdateEntity entity) {
+    return new TaskUpdateResponse(
+        entity.getId(),
+        entity.getMessage(),
+        entity.getCreatedBy().getId(),
+        entity.getCreatedBy().getFirstName(),
+        entity.getCreatedAt());
+  }
+
+  /**
+   * Returns the user by email
+   */
+  private UserEntity getUserByEmail(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+    return user;
+  }
+
+  /**
+   * Ensures:
+   * - Team exists
+   * - Team not deleted
+   * - Membership exists
+   *
+   * Returns membership entity.
+   * Uses ResourceNotFound to prevent ID probing.
+   */
+  private TeamMemberEntity getMembership(UUID teamId, UUID userId) {
+    TeamMemberEntity member = teamMemberRepository
+        .findByTeamIdAndUserIdAndTeamDeletedAtIsNull(teamId, userId)
+        .orElseThrow(() -> new ForbiddenException("User is not a team member"));
+    return member;
+  }
+
+  /**
+   * Checks if a User is member of a team
+   */
+  private void validateMembership(UUID teamId, UUID userId) {
+    validateUserExist(userId);
+
+    if (!teamMemberRepository.existsByTeamIdAndUserId(teamId, userId)) {
+      throw new ConflictException("User must belong to the same team");
+    }
+  }
+
+  /**
+   * Checks if a User exist
+   */
+  private void validateUserExist(UUID id) {
+    boolean user = userRepository.existsById(id);
+    if (!user) {
+      throw new ResourceNotFoundException("Team not found");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - Project exists
+   * - Project not deleted
+   * - Membership exists
+   *
+   * Returns project entity.
+   * Uses ResourceNotFound to prevent ID probing.
+   */
+  private ProjectEntity getActiveProject(UUID projectId) {
+    return projectRepository.findByIdAndDeletedAtIsNull(projectId)
+        .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+  }
+
+  /**
+   * Ensures:
+   * - Task exists
+   * - Task not deleted
+   * - Membership exists
+   *
+   * Returns task entity.
+   * Uses ResourceNotFound to prevent ID probing.
+   */
+  private TaskEntity getActiveTask(UUID taskId) {
+    return taskRepository.findByIdAndDeletedAtIsNull(taskId)
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+  }
+
+  /**
+   * Ensures:
+   * - User is Team member
+   * - Role is Team OWNER or ADMIN
+   */
+  private void validateCanManageProjectTask(UUID teamId, UUID userId) {
+    TeamMemberEntity member = getMembership(teamId, userId);
+
+    if (member.getRole() != TeamRole.OWNER &&
+        member.getRole() != TeamRole.ADMIN) {
+      throw new ForbiddenException("Insufficient permissions");
+    }
+  }
+
+  /**
+   * Checks if Start Date < Due Date
+   */
+  private void validateDates(Instant start, Instant due) {
+    if (due.isBefore(start)) {
+      throw new ConflictException("Due date must be after start date");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - User is Owner, Admin, Assignee, or Support
+   */
+  private void validateCanChangeStatusAndUpdate(TaskEntity task, UUID userId) {
+    UUID teamId = task.getProject().getTeam().getId();
+
+    TeamMemberEntity member = getMembership(teamId, userId);
+
+    boolean allowed = member.getRole() == TeamRole.OWNER ||
+        member.getRole() == TeamRole.ADMIN ||
+        task.getAssignee().getId().equals(userId) ||
+        (task.getSupport() != null && task.getSupport().getId().equals(userId));
+
+    if (!allowed) {
+      throw new ForbiddenException("Cannot change task status");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - Task status cannot be set to todo
+   */
+  private void validateStatusTransition(TaskStatus current, TaskStatus next) {
+    if (next == TaskStatus.TODO && current != TaskStatus.TODO) {
+      throw new BadRequestInputException("Cannot transition back to TODO");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - Assignee is not Support
+   */
+  private void validateAssignment(
+      UUID teamId,
+      UUID assigneeId,
+      UUID supportId) {
+
+    if (assigneeId.equals(supportId)) {
+      throw new ConflictException("Assignee and support cannot be the same");
+    }
+  }
+
 }

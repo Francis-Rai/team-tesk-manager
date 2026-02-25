@@ -46,10 +46,10 @@ public class TaskUpdateEntity {
   private String message;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "created_by", nullable = false)
+  @JoinColumn(nullable = false)
   private UserEntity createdBy;
 
   @CreatedDate
-  @Column(name = "created_at", nullable = false, updatable = false)
+  @Column(nullable = false, updatable = false)
   private Instant createdAt;
 }

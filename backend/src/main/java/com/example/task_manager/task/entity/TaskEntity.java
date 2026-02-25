@@ -46,7 +46,7 @@ public class TaskEntity {
   @Column(nullable = false)
   private TaskPriority priority;
 
-  @Column(name = "task_number", nullable = false)
+  @Column(nullable = false)
   private Long taskNumber;
 
   private Instant startDate;

@@ -1,13 +1,11 @@
 package com.example.task_manager.task;
 
 import java.security.Principal;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -53,12 +51,12 @@ public class TaskController {
   /**
    * Get all tasks for a project.
    */
-  @GetMapping
-  public ResponseEntity<List<TaskResponse>> getProjectTasks(
-      @PathVariable UUID projectId) {
+  // @GetMapping
+  // public ResponseEntity<List<TaskResponse>> getProjectTasks(
+  //     @PathVariable UUID projectId) {
 
-    return ResponseEntity.ok(taskService.getByProject(projectId));
-  }
+  //   return ResponseEntity.ok(taskService.getByProject(projectId));
+  // }
 
   /**
    * Update task details (title, description, assignee).

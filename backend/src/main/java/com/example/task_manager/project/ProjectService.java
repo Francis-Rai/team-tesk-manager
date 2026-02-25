@@ -53,7 +53,7 @@ public class ProjectService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity requesterMembership = validateCanManageTeamProject(teamId, requester.getId());
+    TeamMemberEntity requesterMembership = canManageTeamProject(teamId, requester.getId());
 
     // Checks uniqueness of Project Name in Team
     if (projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(
@@ -344,7 +344,7 @@ public class ProjectService {
    * - User is Team member
    * - Role is Team OWNER or ADMIN
    */
-  private TeamMemberEntity validateCanManageTeamProject(UUID teamId, UUID userId) {
+  private TeamMemberEntity canManageTeamProject(UUID teamId, UUID userId) {
     TeamMemberEntity member = getMembership(teamId, userId);
 
     if (member.getRole() != TeamRole.OWNER &&
@@ -353,6 +353,20 @@ public class ProjectService {
     }
 
     return member;
+  }
+
+  /**
+   * Ensures:
+   * - User is Team member
+   * - Role is Team OWNER or ADMIN
+   */
+  private void validateCanManageTeamProject(UUID teamId, UUID userId) {
+    TeamMemberEntity member = getMembership(teamId, userId);
+
+    if (member.getRole() != TeamRole.OWNER &&
+        member.getRole() != TeamRole.ADMIN) {
+      throw new ForbiddenException("Insufficient permissions");
+    }
   }
 
   /**
