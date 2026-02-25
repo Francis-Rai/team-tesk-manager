@@ -4,6 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +21,7 @@ import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.TaskResponse;
 import com.example.task_manager.task.dto.UpdateTaskRequest;
 import com.example.task_manager.task.entity.TaskEntity;
+import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
@@ -51,14 +54,15 @@ class TaskServiceTest {
     // Test data
     UUID projectId = UUID.randomUUID();
     String userEmail = "test@test.com";
-    UUID assignedUserId = UUID.randomUUID();
+    UUID assigneeId = UUID.randomUUID();
+    UUID supportId = UUID.randomUUID();
 
     // Assigned user
     UserEntity user = new UserEntity();
-    user.setId(assignedUserId);
+    user.setId(assigneeId);
     user.setEmail(userEmail);
 
-    when(userRepository.findById(assignedUserId))
+    when(userRepository.findById(assigneeId))
         .thenReturn(Optional.of(user));
 
     // Project owned by user
@@ -69,27 +73,32 @@ class TaskServiceTest {
     when(projectRepository.findById(projectId))
         .thenReturn(Optional.of(project));
 
+    Instant startDate = Instant.now();
+    Instant dueDate = startDate.plus(1, ChronoUnit.DAYS);
+
     CreateTaskRequest request = new CreateTaskRequest(
         "Learn JUnit",
         "Write first unit test",
-        TaskStatus.TODO,
-        assignedUserId);
+        TaskPriority.MEDIUM,
+        startDate,
+        dueDate,
+        assigneeId,
+        supportId);
 
     TaskEntity savedTask = new TaskEntity();
     savedTask.setTitle(request.title());
     savedTask.setDescription(request.description());
-    savedTask.setStatus(request.status());
     savedTask.setAssignee(user);
 
     when(taskRepository.save(any(TaskEntity.class)))
         .thenReturn(savedTask);
 
-    TaskResponse response = taskService.create(projectId, request, userEmail);
+    TaskResponse response = taskService.createTask(projectId, request, userEmail);
 
     assertThat(response.title()).isEqualTo("Learn JUnit");
     assertThat(response.description()).isEqualTo("Write first unit test");
     assertThat(response.status()).isEqualTo(TaskStatus.TODO);
-    assertThat(response.assignedUser().id()).isEqualTo(assignedUserId);
+    assertThat(response.assignedUser().id()).isEqualTo(assigneeId);
 
   }
 
@@ -104,6 +113,7 @@ class TaskServiceTest {
     UUID taskId = UUID.randomUUID();
     UUID ownerId = UUID.randomUUID();
     UUID assigneeId = UUID.randomUUID();
+    UUID supportId = UUID.randomUUID();
 
     String ownerEmail = "owner@test.com";
     String assigneeEmail = "assignee@test.com";
@@ -139,14 +149,20 @@ class TaskServiceTest {
     when(taskRepository.save(any(TaskEntity.class)))
         .thenAnswer(invocation -> invocation.getArgument(0));
 
+    Instant startDate = Instant.now();
+    Instant dueDate = startDate.plus(1, ChronoUnit.DAYS);
+
     UpdateTaskRequest request = new UpdateTaskRequest(
         "Updated Title",
         "Updated Description",
-        TaskStatus.DONE,
-        assignee.getId());
+        TaskPriority.MEDIUM,
+        startDate,
+        dueDate,
+        assigneeId,
+        supportId);
 
     // Act
-    TaskResponse response = taskService.update(taskId, request, owner.getEmail());
+    TaskResponse response = taskService.updateTask(taskId, request, owner.getEmail());
 
     // Assert
     assertThat(response.title()).isEqualTo("Updated Title");

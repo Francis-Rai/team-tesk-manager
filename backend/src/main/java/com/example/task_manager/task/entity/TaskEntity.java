@@ -23,10 +23,8 @@ import lombok.Setter;
 @Table(name = "tasks", uniqueConstraints = {
     @UniqueConstraint(name = "uk_task_project_number", columnNames = { "project_id", "task_number" })
 }, indexes = {
-    @Index(name = "idx_task_project", columnList = "project_id"),
-    @Index(name = "idx_task_assignee", columnList = "assignee_id"),
-    @Index(name = "idx_task_status", columnList = "status"),
-    @Index(name = "idx_task_deleted_at", columnList = "deleted_at")
+    @Index(name = "idx_task_project_deleted", columnList = "project_id, deleted_at"),
+    @Index(name = "idx_task_assignee_deleted", columnList = "assignee_id, deleted_at")
 })
 @EntityListeners(AuditingEntityListener.class)
 public class TaskEntity {
@@ -42,7 +40,7 @@ public class TaskEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
-  private TaskStatus status;
+  private TaskStatus status = TaskStatus.TODO;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)

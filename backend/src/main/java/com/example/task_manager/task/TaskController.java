@@ -44,7 +44,7 @@ public class TaskController {
 
     return ResponseEntity.status(
         HttpStatus.CREATED.value())
-        .body(taskService.create(
+        .body(taskService.createTask(
             projectId,
             request,
             principal.getName()));
@@ -72,7 +72,7 @@ public class TaskController {
       Principal principal) {
 
     return ResponseEntity.ok(
-        taskService.update(
+        taskService.updateTask(
             taskId,
             request,
             principal.getName()));
@@ -88,7 +88,7 @@ public class TaskController {
       @PathVariable UUID taskId,
       Principal principal) {
 
-    taskService.delete(
+    taskService.deleteTask(
         taskId,
         principal.getName());
 
