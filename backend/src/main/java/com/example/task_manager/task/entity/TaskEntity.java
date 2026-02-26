@@ -49,9 +49,13 @@ public class TaskEntity {
   @Column(nullable = false)
   private Long taskNumber;
 
-  private Instant startDate;
+  private Instant plannedStartDate;
 
-  private Instant dueDate;
+  private Instant plannedDueDate;
+
+  private Instant actualStartDate;
+
+  private Instant actualCompletionDate;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "project_id", nullable = false)

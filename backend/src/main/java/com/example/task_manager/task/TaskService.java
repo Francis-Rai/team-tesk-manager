@@ -59,7 +59,7 @@ public class TaskService {
     UUID teamId = project.getTeam().getId();
 
     validateCanManageProjectTask(teamId, requester.getId());
-    validateDates(request.startDate(), request.dueDate());
+    validateDates(request.plannedStartDate(), request.plannedDueDate());
 
     TeamMemberEntity assigneeMember = getMembership(teamId, request.assigneeId());
 
@@ -81,8 +81,8 @@ public class TaskService {
     task.setDescription(request.description());
     task.setStatus(TaskStatus.TODO);
     task.setPriority(request.priority());
-    task.setStartDate(request.startDate());
-    task.setDueDate(request.dueDate());
+    task.setPlannedStartDate(request.plannedStartDate());
+    task.setPlannedDueDate(request.plannedDueDate());
 
     task.setAssignee(assigneeMember.getUser());
     task.setSupport(request.supportId() == null
@@ -108,7 +108,7 @@ public class TaskService {
 
     TaskEntity task = getActiveTask(taskId);
 
-    validateCanManageProjectTask(task.getProject().getId(), requester.getId());
+    validateCanManageProjectTask(task.getProject().getTeam().getId(), requester.getId());
 
     if (request.title() != null) {
       task.setTitle(request.title());
@@ -122,21 +122,18 @@ public class TaskService {
       task.setPriority(request.priority());
     }
 
-    if (request.startDate() != null && request.dueDate() != null) {
-      validateDates(request.startDate(), request.dueDate());
-      task.setStartDate(request.startDate());
-      task.setDueDate(request.dueDate());
-    }
+    Instant newPlannedStart = request.plannedStartDate() != null
+        ? request.plannedStartDate()
+        : task.getPlannedStartDate();
 
-    if (request.assigneeId() != null) {
-      TeamMemberEntity assignee = getMembership(task.getProject().getTeam().getId(), request.assigneeId());
-      task.setAssignee(assignee.getUser());
-    }
+    Instant newPlannedDue = request.plannedDueDate() != null
+        ? request.plannedDueDate()
+        : task.getPlannedDueDate();
 
-    if (request.supportId() != null) {
-      TeamMemberEntity support = getMembership(task.getProject().getTeam().getId(), request.assigneeId());
-      task.setAssignee(support.getUser());
-    }
+    validateDates(newPlannedStart, newPlannedDue);
+
+    task.setPlannedStartDate(newPlannedStart);
+    task.setPlannedDueDate(newPlannedDue);
 
     return mapToResponse(task);
   }
@@ -163,11 +160,26 @@ public class TaskService {
   public TaskResponse changeStatus(UUID taskId, TaskStatus newStatus, String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
-
     TaskEntity task = getActiveTask(taskId);
 
     validateCanChangeStatusAndUpdate(task, requester.getId());
     validateStatusTransition(task.getStatus(), newStatus);
+
+    TaskStatus current = task.getStatus();
+
+    // Transition effects
+    if (newStatus == TaskStatus.IN_PROGRESS && task.getActualStartDate() == null) {
+      task.setActualStartDate(Instant.now());
+    }
+
+    if (newStatus == TaskStatus.DONE) {
+      task.setActualCompletionDate(Instant.now());
+    }
+
+    // Reopen scenario
+    if (current == TaskStatus.DONE && newStatus == TaskStatus.IN_PROGRESS) {
+      task.setActualCompletionDate(null);
+    }
 
     task.setStatus(newStatus);
     return mapToResponse(task);
@@ -255,13 +267,17 @@ public class TaskService {
    * Maps TaskEntity to TaskResponse.
    */
   private TaskResponse mapToResponse(TaskEntity task) {
-    TaskResponse.TaskUser assignedTo = null;
+    TaskResponse.TaskUser assignedUser = new TaskResponse.TaskUser(task.getAssignee().getId(),
+        task.getAssignee().getFirstName(),
+        task.getAssignee().getLastName(),
+        task.getAssignee().getEmail());
 
-    if (task.getAssignee() != null) {
-      assignedTo = new TaskResponse.TaskUser(task.getAssignee().getId(),
-          task.getAssignee().getFirstName(),
-          task.getAssignee().getLastName(),
-          task.getAssignee().getEmail());
+    TaskResponse.TaskUser supportUser = null;
+    if (task.getSupport() != null) {
+      supportUser = new TaskResponse.TaskUser(task.getSupport().getId(),
+          task.getSupport().getFirstName(),
+          task.getSupport().getLastName(),
+          task.getSupport().getEmail());
     }
 
     return new TaskResponse(
@@ -269,7 +285,14 @@ public class TaskService {
         task.getTitle(),
         task.getDescription(),
         task.getStatus(),
-        assignedTo,
+        task.getPriority(),
+        assignedUser,
+        supportUser,
+        task.getTaskNumber(),
+        task.getPlannedStartDate(),
+        task.getPlannedDueDate(),
+        task.getActualStartDate(),
+        task.getActualCompletionDate(),
         task.getCreatedAt(),
         task.getUpdatedAt());
   }

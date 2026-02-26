@@ -20,9 +20,9 @@ public record CreateTaskRequest(
 
     @NotNull TaskPriority priority,
 
-    @NotNull Instant startDate,
+    @NotNull Instant plannedStartDate,
 
-    @NotNull Instant dueDate,
+    @NotNull Instant plannedDueDate,
 
     @NotNull UUID assigneeId,
 

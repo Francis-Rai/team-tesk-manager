@@ -113,7 +113,6 @@ class TaskServiceTest {
     UUID taskId = UUID.randomUUID();
     UUID ownerId = UUID.randomUUID();
     UUID assigneeId = UUID.randomUUID();
-    UUID supportId = UUID.randomUUID();
 
     String ownerEmail = "owner@test.com";
     String assigneeEmail = "assignee@test.com";
@@ -157,9 +156,7 @@ class TaskServiceTest {
         "Updated Description",
         TaskPriority.MEDIUM,
         startDate,
-        dueDate,
-        assigneeId,
-        supportId);
+        dueDate);
 
     // Act
     TaskResponse response = taskService.updateTask(taskId, request, owner.getEmail());

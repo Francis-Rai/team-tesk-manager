@@ -1,7 +1,6 @@
 package com.example.task_manager.task.dto;
 
 import java.time.Instant;
-import java.util.UUID;
 
 import com.example.task_manager.task.entity.TaskPriority;
 
@@ -17,12 +16,7 @@ public record UpdateTaskRequest(
 
     TaskPriority priority,
 
-    Instant startDate,
+    Instant plannedStartDate,
 
-    Instant dueDate,
-
-    UUID assigneeId,
-
-    UUID supportId) {
-
+    Instant plannedDueDate) {
 }
