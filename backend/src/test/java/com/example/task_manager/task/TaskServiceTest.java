@@ -19,7 +19,7 @@ import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.TaskResponse;
-import com.example.task_manager.task.dto.UpdateTaskRequest;
+import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
@@ -110,6 +110,7 @@ class TaskServiceTest {
     // Project owner updates task
 
     // Arrange
+    UUID teamId = UUID.randomUUID();
     UUID taskId = UUID.randomUUID();
     UUID ownerId = UUID.randomUUID();
     UUID assigneeId = UUID.randomUUID();
@@ -151,7 +152,7 @@ class TaskServiceTest {
     Instant startDate = Instant.now();
     Instant dueDate = startDate.plus(1, ChronoUnit.DAYS);
 
-    UpdateTaskRequest request = new UpdateTaskRequest(
+    UpdateTaskDetailsRequest request = new UpdateTaskDetailsRequest(
         "Updated Title",
         "Updated Description",
         TaskPriority.MEDIUM,
@@ -159,7 +160,7 @@ class TaskServiceTest {
         dueDate);
 
     // Act
-    TaskResponse response = taskService.updateTask(taskId, request, owner.getEmail());
+    TaskResponse response = taskService.updateTask(teamId, taskId, request, owner.getEmail());
 
     // Assert
     assertThat(response.title()).isEqualTo("Updated Title");

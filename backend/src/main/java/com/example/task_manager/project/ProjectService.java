@@ -16,7 +16,7 @@ import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
-import com.example.task_manager.project.dto.UpdateProjectRequest;
+import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
@@ -86,7 +86,7 @@ public class ProjectService {
   @Transactional
   public ProjectResponse updateProject(
       UUID projectId,
-      UpdateProjectRequest request,
+      UpdateProjectDetailsRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);

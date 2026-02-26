@@ -14,7 +14,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
-import com.example.task_manager.project.dto.UpdateProjectRequest;
+import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -49,7 +49,7 @@ public class ProjectController {
   @PatchMapping("/{projectId}")
   public ProjectResponse updateProject(
       @PathVariable UUID projectId,
-      @Valid @RequestBody UpdateProjectRequest request,
+      @Valid @RequestBody UpdateProjectDetailsRequest request,
       Authentication authentication) {
 
     return projectService.updateProject(projectId, request, authentication.getName());

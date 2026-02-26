@@ -14,10 +14,11 @@ import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.project.entity.ProjectEntity;
+import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.TaskResponse;
 import com.example.task_manager.task.dto.TaskUpdateResponse;
-import com.example.task_manager.task.dto.UpdateTaskRequest;
+import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.task.entity.TaskStatus;
 import com.example.task_manager.task.entity.TaskUpdateEntity;
@@ -100,15 +101,16 @@ public class TaskService {
    */
   @Transactional
   public TaskResponse updateTask(
+      UUID teamId,
       UUID taskId,
-      UpdateTaskRequest request,
+      UpdateTaskDetailsRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
     TaskEntity task = getActiveTask(taskId);
 
-    validateCanManageProjectTask(task.getProject().getTeam().getId(), requester.getId());
+    validateCanManageProjectTask(teamId, requester.getId());
 
     if (request.title() != null) {
       task.setTitle(request.title());
@@ -157,17 +159,20 @@ public class TaskService {
    * Change the status of a task
    */
   @Transactional
-  public TaskResponse changeStatus(UUID taskId, TaskStatus newStatus, String requesterEmail) {
+  public TaskResponse changeStatus(
+      UUID taskId,
+      ChangeStatusRequest request,
+      String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
     TaskEntity task = getActiveTask(taskId);
 
     validateCanChangeStatusAndUpdate(task, requester.getId());
-    validateStatusTransition(task.getStatus(), newStatus);
+    validateStatusTransition(task.getStatus(), request.status());
 
     TaskStatus current = task.getStatus();
+    TaskStatus newStatus = request.status();
 
-    // Transition effects
     if (newStatus == TaskStatus.IN_PROGRESS && task.getActualStartDate() == null) {
       task.setActualStartDate(Instant.now());
     }
@@ -176,12 +181,12 @@ public class TaskService {
       task.setActualCompletionDate(Instant.now());
     }
 
-    // Reopen scenario
-    if (current == TaskStatus.DONE && newStatus == TaskStatus.IN_PROGRESS) {
+    if (current == TaskStatus.DONE && newStatus != null) {
       task.setActualCompletionDate(null);
     }
 
     task.setStatus(newStatus);
+
     return mapToResponse(task);
   }
 
@@ -211,15 +216,16 @@ public class TaskService {
    * Returns all existing tasks of a project.
    */
   public PageResponse<TaskResponse> getAllExistingTaskByProjectId(
+      UUID teamId,
       UUID projectId,
-      Pageable pageable,
-      String requesterEmail) {
+      String requesterEmail,
+      Pageable pageable) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
     ProjectEntity project = getActiveProject(projectId);
 
-    validateMembership(project.getTeam().getId(), requester.getId());
+    validateMembership(teamId, requester.getId());
 
     Page<TaskEntity> page = taskRepository.findByProjectId(project.getId(), pageable);
 
@@ -238,6 +244,7 @@ public class TaskService {
    */
   @Transactional(readOnly = true)
   public PageResponse<TaskResponse> getAllActiveTasksByProjectId(
+      UUID teamId,
       UUID projectId,
       String requesterEmail,
       Pageable pageable) {
@@ -246,10 +253,10 @@ public class TaskService {
 
     ProjectEntity project = getActiveProject(projectId);
 
-    validateMembership(project.getTeam().getId(), requester.getId());
+    validateMembership(teamId, requester.getId());
 
     Page<TaskEntity> page = taskRepository
-        .findByProjectIdAndDeletedAtIsNull(projectId, pageable);
+        .findByProjectIdAndDeletedAtIsNull(project.getId(), pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
