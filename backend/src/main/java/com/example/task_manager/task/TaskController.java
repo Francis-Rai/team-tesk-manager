@@ -24,7 +24,7 @@ import lombok.RequiredArgsConstructor;
  * REST controller for managing tasks within projects.
  */
 @RestController
-@RequestMapping("/api/projects/{projectId}/tasks")
+@RequestMapping("/api/teams/{teamId}/projects/{projectId}/tasks")
 @RequiredArgsConstructor
 public class TaskController {
 
@@ -40,23 +40,9 @@ public class TaskController {
       @Valid @RequestBody CreateTaskRequest request,
       Principal principal) {
 
-    return ResponseEntity.status(
-        HttpStatus.CREATED.value())
-        .body(taskService.createTask(
-            projectId,
-            request,
-            principal.getName()));
+    return ResponseEntity.status(HttpStatus.CREATED.value())
+        .body(taskService.createTask(projectId, request, principal.getName()));
   }
-
-  /**
-   * Get all tasks for a project.
-   */
-  // @GetMapping
-  // public ResponseEntity<List<TaskResponse>> getProjectTasks(
-  //     @PathVariable UUID projectId) {
-
-  //   return ResponseEntity.ok(taskService.getByProject(projectId));
-  // }
 
   /**
    * Update task details (title, description, assignee).
@@ -69,11 +55,7 @@ public class TaskController {
       @Valid @RequestBody UpdateTaskRequest request,
       Principal principal) {
 
-    return ResponseEntity.ok(
-        taskService.updateTask(
-            taskId,
-            request,
-            principal.getName()));
+    return ResponseEntity.ok(taskService.updateTask(taskId, request, principal.getName()));
   }
 
   /**
@@ -86,9 +68,7 @@ public class TaskController {
       @PathVariable UUID taskId,
       Principal principal) {
 
-    taskService.deleteTask(
-        taskId,
-        principal.getName());
+    taskService.deleteTask(taskId, principal.getName());
 
     return ResponseEntity.noContent().build();
   }

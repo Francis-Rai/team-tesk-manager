@@ -50,7 +50,8 @@ public class ProjectEntity {
   @JoinColumn(name = "created_by", nullable = false)
   private UserEntity createdBy;
 
-  private Long nextTaskNumber;
+  @Column(name = "next_task_number", nullable = false)
+  private Long nextTaskNumber = 1L;
 
   @CreatedDate
   @Column(nullable = false, updatable = false)

@@ -62,21 +62,20 @@ public class TaskService {
     validateDates(request.startDate(), request.dueDate());
 
     TeamMemberEntity assigneeMember = getMembership(teamId, request.assigneeId());
-    getMembership(teamId, request.supportId());
 
-    TeamMemberEntity supportMember = getMembership(teamId, request.supportId());
-    getMembership(teamId, request.supportId());
-
-    Long taskNumber = project.getNextTaskNumber();
-    project.setNextTaskNumber(taskNumber + 1);
+    TeamMemberEntity supportMember = new TeamMemberEntity();
 
     if (request.supportId() != null) {
+      supportMember = getMembership(teamId, request.supportId());
       validateAssignment(project.getTeam().getId(),
           request.assigneeId(),
           request.supportId());
     }
 
+    Long taskNumber = project.getNextTaskNumber();
+
     TaskEntity task = new TaskEntity();
+    task.setProject(project);
     task.setTaskNumber(taskNumber);
     task.setTitle(request.title());
     task.setDescription(request.description());
@@ -91,6 +90,7 @@ public class TaskService {
         : supportMember.getUser());
 
     taskRepository.save(task);
+    project.setNextTaskNumber(taskNumber + 1);
 
     return mapToResponse(task);
   }
