@@ -254,6 +254,8 @@ public class TeamService {
       throw new ConflictException("You are already the OWNER");
     }
 
+    validateMembership(teamId, newOwnerUserId);
+
     TeamMemberEntity newOwner = getMembership(teamId, newOwnerUserId);
 
     requesterMember.setRole(TeamRole.ADMIN);
@@ -439,7 +441,7 @@ public class TeamService {
             teamId, userId);
 
     if (!isMember) {
-      throw new ResourceNotFoundException("Team not found");
+      throw new ResourceNotFoundException("User is not a member");
     }
   }
 

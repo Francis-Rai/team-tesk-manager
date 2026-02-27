@@ -91,6 +91,7 @@ public class TaskService {
         : supportMember.getUser());
 
     taskRepository.save(task);
+    createTaskUpdateEntry(task, "Created Task", requester);
     project.setNextTaskNumber(taskNumber + 1);
 
     return mapToResponse(task);
@@ -137,6 +138,8 @@ public class TaskService {
     task.setPlannedStartDate(newPlannedStart);
     task.setPlannedDueDate(newPlannedDue);
 
+    createTaskUpdateEntry(task, "Updated Task Details", requester);
+
     return mapToResponse(task);
   }
 
@@ -153,6 +156,8 @@ public class TaskService {
     validateCanManageProjectTask(taskId, requester.getId());
 
     task.setDeletedAt(Instant.now());
+    createTaskUpdateEntry(task, "Deleted Task", requester);
+
   }
 
   /**
@@ -185,10 +190,15 @@ public class TaskService {
       task.setActualCompletionDate(null);
     }
 
+    String message = "Change Status from " + current + " to " + newStatus;
+
     task.setStatus(newStatus);
+    createTaskUpdateEntry(task, message, requester);
 
     return mapToResponse(task);
   }
+
+  
 
   /**
    * Create an update for a task
@@ -454,6 +464,19 @@ public class TaskService {
     if (assigneeId.equals(supportId)) {
       throw new ConflictException("Assignee and support cannot be the same");
     }
+  }
+
+  private void createTaskUpdateEntry(
+      TaskEntity task,
+      String message,
+      UserEntity actor) {
+
+    TaskUpdateEntity update = new TaskUpdateEntity();
+    update.setTask(task);
+    update.setMessage(message);
+    update.setCreatedBy(actor);
+
+    taskUpdateRepository.save(update);
   }
 
 }
