@@ -16,6 +16,7 @@ import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
+import com.example.task_manager.task.dto.CreateTaskUpdateRequest;
 import com.example.task_manager.task.dto.TaskResponse;
 import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
@@ -167,6 +168,7 @@ public class TaskService {
    */
   @Transactional
   public TaskResponse changeStatus(
+      UUID teamId,
       UUID taskId,
       ChangeStatusRequest request,
       String requesterEmail) {
@@ -174,7 +176,7 @@ public class TaskService {
     UserEntity requester = getUserByEmail(requesterEmail);
     TaskEntity task = getActiveTask(taskId);
 
-    validateCanChangeStatusAndUpdate(task, requester.getId());
+    validateCanChangeStatusAndUpdate(teamId, task, requester.getId());
     validateStatusTransition(task.getStatus(), request.status());
 
     TaskStatus current = task.getStatus();
@@ -319,21 +321,24 @@ public class TaskService {
   }
 
   /**
-   * Create an update for a task
+   * Add a progress update to a Task
    */
   @Transactional
-  public TaskUpdateResponse addTaskUpdate(UUID taskId, String message, String requesterEmail) {
+  public TaskUpdateResponse addTaskUpdate(
+      UUID teamId,
+      UUID taskId,
+      CreateTaskUpdateRequest request,
+      String requesterEmail) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
-
+    UserEntity currentUser = getUserByEmail(requesterEmail);
     TaskEntity task = getActiveTask(taskId);
 
-    validateCanChangeStatusAndUpdate(task, requester.getId());
+    validateCanChangeStatusAndUpdate(teamId, task, currentUser.getId());
 
     TaskUpdateEntity update = new TaskUpdateEntity();
     update.setTask(task);
-    update.setMessage(message);
-    update.setCreatedBy(requester);
+    update.setMessage(request.message());
+    update.setCreatedBy(currentUser);
 
     taskUpdateRepository.save(update);
 
@@ -388,6 +393,36 @@ public class TaskService {
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
+   * Get all updates for a Task
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
+      UUID teamId,
+      UUID taskId,
+      Pageable pageable,
+      String requesterEmail) {
+
+    UserEntity currentUser = getUserByEmail(requesterEmail);
+    validateActiveTask(taskId);
+
+    // Validate team membership
+    validateMembership(teamId, currentUser.getId());
+
+    Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskIdAndTaskDeletedAtIsNull(
+        taskId,
+        pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToUpdateResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -507,15 +542,25 @@ public class TaskService {
   /**
    * Ensures:
    * - Task exists
-   * - Task not deleted
-   * - Membership exists
-   *
+   * - Task not deleted   *
    * Returns task entity.
    * Uses ResourceNotFound to prevent ID probing.
    */
   private TaskEntity getActiveTask(UUID taskId) {
     return taskRepository.findByIdAndDeletedAtIsNull(taskId)
         .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+  }
+
+  /**
+   * Ensures:
+   * - Task exists
+   * - Task not deleted
+   */
+  private void validateActiveTask(UUID taskId) {
+    boolean task = taskRepository.existsByIdAndDeletedAtIsNull(taskId);
+    if (!task) {
+      new ResourceNotFoundException("Task not found");
+    }
   }
 
   /**
@@ -545,9 +590,7 @@ public class TaskService {
    * Ensures:
    * - User is Owner, Admin, Assignee, or Support
    */
-  private void validateCanChangeStatusAndUpdate(TaskEntity task, UUID userId) {
-    UUID teamId = task.getProject().getTeam().getId();
-
+  private void validateCanChangeStatusAndUpdate(UUID teamId, TaskEntity task, UUID userId) {
     TeamMemberEntity member = getMembership(teamId, userId);
 
     boolean allowed = member.getRole() == TeamRole.OWNER ||

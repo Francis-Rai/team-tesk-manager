@@ -20,7 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
+import com.example.task_manager.task.dto.CreateTaskUpdateRequest;
 import com.example.task_manager.task.dto.TaskResponse;
+import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 
 import jakarta.validation.Valid;
@@ -90,7 +92,7 @@ public class TaskController {
       @Valid @RequestBody ChangeStatusRequest request,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.changeStatus(taskId, request, authentication.getName()));
+    return ResponseEntity.ok(taskService.changeStatus(teamId, taskId, request, authentication.getName()));
   }
 
   /**
@@ -120,6 +122,19 @@ public class TaskController {
   }
 
   /**
+   * Add an update for a Task
+   */
+  @PostMapping("/{taskId}/taskUpdate")
+  public ResponseEntity<TaskUpdateResponse> addTaskUpdate(
+      @PathVariable UUID teamId,
+      @PathVariable UUID taskId,
+      @Valid @RequestBody CreateTaskUpdateRequest request,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.addTaskUpdate(teamId, taskId, request, authentication.getName()));
+  }
+
+  /**
    * Get all active tasks for a project.
    */
   @GetMapping("/task-all")
@@ -143,5 +158,18 @@ public class TaskController {
       Authentication authentication) {
 
     return taskService.getAllActiveTasksByProjectId(teamId, projectId, authentication.getName(), pageable);
+  }
+
+  /**
+   * Get all updates a Task
+   */
+  @GetMapping("/{taskId}/taskUpdates")
+  public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
+      @PathVariable UUID teamId,
+      @PathVariable UUID taskId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    return taskService.getAllTaskUpdates(teamId, taskId, pageable, authentication.getName());
   }
 }

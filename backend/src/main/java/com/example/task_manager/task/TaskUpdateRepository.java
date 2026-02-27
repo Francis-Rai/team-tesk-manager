@@ -15,9 +15,7 @@ import com.example.task_manager.task.entity.TaskUpdateEntity;
  * Repository interface for TaskUpdate entities.
  */
 public interface TaskUpdateRepository extends JpaRepository<TaskUpdateEntity, UUID> {
-  Page<TaskUpdateEntity> findByTaskIdAndTaskDeletedAtIsNull(
-      UUID taskId,
-      Pageable pageable);
+  Page<TaskUpdateEntity> findByTaskIdAndTaskDeletedAtIsNull(UUID taskId, Pageable pageable);
 
   @Query("""
           SELECT tu

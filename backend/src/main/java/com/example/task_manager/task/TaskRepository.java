@@ -20,6 +20,8 @@ public interface TaskRepository extends JpaRepository<TaskEntity, UUID> {
 
   Optional<TaskEntity> findByIdAndDeletedAtIsNull(UUID id);
 
+  boolean existsByIdAndDeletedAtIsNull(UUID id);
+
   Page<TaskEntity> findByProjectIdAndDeletedAtIsNull(UUID projectId, Pageable pageable);
 
   @Modifying(clearAutomatically = true, flushAutomatically = true)
