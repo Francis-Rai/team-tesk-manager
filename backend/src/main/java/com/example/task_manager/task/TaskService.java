@@ -147,7 +147,9 @@ public class TaskService {
    * Deletes task.
    */
   @Transactional
-  public void deleteTask(UUID taskId, String requesterEmail) {
+  public void deleteTask(
+      UUID taskId,
+      String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
@@ -198,7 +200,123 @@ public class TaskService {
     return mapToResponse(task);
   }
 
-  
+  /**
+   * Change Task's Assignee
+   */
+  /**
+   * Change or Assign a Task's Assignee
+   */
+  @Transactional
+  public TaskResponse changeAssignee(
+      UUID teamId,
+      UUID taskId,
+      UUID newAssigneeId,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+    TaskEntity task = getActiveTask(taskId);
+
+    validateCanManageProjectTask(teamId, requester.getId());
+
+    UserEntity currentAssignee = task.getAssignee();
+    UserEntity currentSupport = task.getSupport();
+
+    // New Assignee is Current Assignee
+    if (newAssigneeId.equals(currentAssignee.getId())) {
+      return mapToResponse(task);
+    }
+
+    UserEntity newAssignee = getMembership(teamId, newAssigneeId).getUser();
+
+    // Promote Support to Assignee
+    if (currentSupport != null && newAssignee.getId().equals(currentSupport.getId())) {
+
+      task.setAssignee(newAssignee);
+      task.setSupport(null);
+
+      createTaskUpdateEntry(
+          task,
+          "Support promoted to assignee (" + newAssignee.getFullName() + ")",
+          requester);
+
+      return mapToResponse(task);
+    }
+
+    task.setAssignee(newAssignee);
+
+    createTaskUpdateEntry(
+        task,
+        "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName(),
+        requester);
+
+    return mapToResponse(task);
+  }
+
+  /**
+   * Change or Assign a Task's Support
+   */
+  @Transactional
+  public TaskResponse changeSupport(
+      UUID teamId,
+      UUID taskId,
+      UUID newSupportId,
+      String requesterEmail) {
+
+    UserEntity currentUser = getUserByEmail(requesterEmail);
+    TaskEntity task = getActiveTask(taskId);
+
+    validateCanManageProjectTask(teamId, currentUser.getId());
+
+    UserEntity currentAssignee = task.getAssignee();
+    UserEntity currentSupport = task.getSupport();
+
+    // Remove current support
+    if (newSupportId == null) {
+
+      if (currentSupport == null) {
+        return mapToResponse(task);
+      }
+
+      task.setSupport(null);
+
+      createTaskUpdateEntry(
+          task,
+          "Support removed (" + currentSupport.getFullName() + ")",
+          currentUser);
+
+      return mapToResponse(task);
+    }
+
+    // New Support is Assignee
+    if (newSupportId.equals(currentAssignee.getId())) {
+      throw new ConflictException("Support cannot be the same as assignee");
+    }
+
+    // New support is Current Support
+    if (currentSupport != null &&
+        newSupportId.equals(currentSupport.getId())) {
+      return mapToResponse(task);
+    }
+
+    UserEntity newSupport = getMembership(teamId, newSupportId).getUser();
+
+    task.setSupport(newSupport);
+
+    // Assign new Support
+    if (currentSupport == null) {
+      createTaskUpdateEntry(
+          task,
+          "Support assigned to " + newSupport.getFullName(),
+          currentUser);
+    } else {
+      createTaskUpdateEntry(
+          task,
+          "Support changed from " + currentSupport.getFullName() + " to " + newSupport.getFullName(),
+          currentUser);
+    }
+
+    return mapToResponse(task);
+  }
 
   /**
    * Create an update for a task

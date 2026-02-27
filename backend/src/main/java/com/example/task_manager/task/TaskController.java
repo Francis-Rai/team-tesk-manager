@@ -80,6 +80,9 @@ public class TaskController {
     return ResponseEntity.noContent().build();
   }
 
+  /**
+   * Change Status of a Task
+   */
   @PatchMapping("/{taskId}/status")
   public ResponseEntity<TaskResponse> changeStatus(
       @PathVariable UUID teamId,
@@ -88,6 +91,32 @@ public class TaskController {
       Authentication authentication) {
 
     return ResponseEntity.ok(taskService.changeStatus(taskId, request, authentication.getName()));
+  }
+
+  /**
+   * Change Assignee of a Task
+   */
+  @PatchMapping("/{taskId}/assignee/{userId}")
+  public ResponseEntity<TaskResponse> changeAssignee(
+      @PathVariable UUID teamId,
+      @PathVariable UUID taskId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.changeAssignee(teamId, taskId, userId, authentication.getName()));
+  }
+
+  /**
+   * Change Support of a Task
+   */
+  @PatchMapping("/{taskId}/support/{userId}")
+  public ResponseEntity<TaskResponse> changeSupport(
+      @PathVariable UUID teamId,
+      @PathVariable UUID taskId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.changeSupport(teamId, taskId, userId, authentication.getName()));
   }
 
   /**
