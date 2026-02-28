@@ -1,7 +1,5 @@
 package com.example.task_manager.project.dto;
 
-import com.example.task_manager.project.entity.ProjectStatus;
-
 import jakarta.validation.constraints.Size;
 
 /**
@@ -9,7 +7,6 @@ import jakarta.validation.constraints.Size;
  */
 public record UpdateProjectDetailsRequest(
     @Size(max = 100) String name,
-    @Size(max = 500) String description,
-    ProjectStatus status) {
+    @Size(max = 500) String description) {
 
 }
