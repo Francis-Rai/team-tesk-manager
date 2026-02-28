@@ -1,5 +1,6 @@
 package com.example.task_manager.team;
 
+import java.util.Optional;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
@@ -14,6 +15,12 @@ import com.example.task_manager.team.entity.TeamEntity;
  */
 public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
   boolean existsByOwnerIdAndNameAndDeletedAtIsNull(UUID teamId, String name);
+
+  boolean existsByIdAndDeletedAtIsNull(UUID id);
+
+  boolean existsByIdAndOwnerIdDeletedAtIsNull(UUID teamId, UUID ownerId);
+
+  Optional<TeamEntity> findByIdAndDeletedAtIsNull(UUID id);
 
   @Query("""
           SELECT t

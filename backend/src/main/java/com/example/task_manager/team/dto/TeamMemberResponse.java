@@ -10,6 +10,8 @@ import com.example.task_manager.team.entity.TeamRole;
  */
 public record TeamMemberResponse(
     UUID userId,
+    String firstName,
+    String lastName,
     String email,
     TeamRole role,
     LocalDateTime joinedAt) {
