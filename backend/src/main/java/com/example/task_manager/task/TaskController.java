@@ -1,10 +1,12 @@
 package com.example.task_manager.task;
 
-import java.security.Principal;
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,9 +17,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.task_manager.common.PageResponse;
+import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
+import com.example.task_manager.task.dto.CreateTaskUpdateRequest;
 import com.example.task_manager.task.dto.TaskResponse;
-import com.example.task_manager.task.dto.UpdateTaskRequest;
+import com.example.task_manager.task.dto.TaskUpdateResponse;
+import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +32,7 @@ import lombok.RequiredArgsConstructor;
  * REST controller for managing tasks within projects.
  */
 @RestController
-@RequestMapping("/api/projects/{projectId}/tasks")
+@RequestMapping("/api/teams/{teamId}/projects/{projectId}/tasks")
 @RequiredArgsConstructor
 public class TaskController {
 
@@ -38,26 +44,13 @@ public class TaskController {
    */
   @PostMapping
   public ResponseEntity<TaskResponse> createTask(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @Valid @RequestBody CreateTaskRequest request,
-      Principal principal) {
+      Authentication authentication) {
 
-    return ResponseEntity.status(
-        HttpStatus.CREATED.value())
-        .body(taskService.create(
-            projectId,
-            request,
-            principal.getName()));
-  }
-
-  /**
-   * Get all tasks for a project.
-   */
-  @GetMapping
-  public ResponseEntity<List<TaskResponse>> getProjectTasks(
-      @PathVariable UUID projectId) {
-
-    return ResponseEntity.ok(taskService.getByProject(projectId));
+    return ResponseEntity.status(HttpStatus.CREATED.value())
+        .body(taskService.createTask(teamId, projectId, request, authentication.getName()));
   }
 
   /**
@@ -66,16 +59,13 @@ public class TaskController {
    */
   @PatchMapping("/{taskId}")
   public ResponseEntity<TaskResponse> updateTask(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @PathVariable UUID taskId,
-      @Valid @RequestBody UpdateTaskRequest request,
-      Principal principal) {
+      @Valid @RequestBody UpdateTaskDetailsRequest request,
+      Authentication authentication) {
 
-    return ResponseEntity.ok(
-        taskService.update(
-            taskId,
-            request,
-            principal.getName()));
+    return ResponseEntity.ok(taskService.updateTask(teamId, projectId, taskId, request, authentication.getName()));
   }
 
   /**
@@ -84,14 +74,108 @@ public class TaskController {
    */
   @DeleteMapping("/{taskId}")
   public ResponseEntity<Void> deleteTask(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @PathVariable UUID taskId,
-      Principal principal) {
+      Authentication authentication) {
 
-    taskService.delete(
-        taskId,
-        principal.getName());
+    taskService.deleteTask(teamId, projectId, taskId, authentication.getName());
 
     return ResponseEntity.noContent().build();
+  }
+
+  /**
+   * Change Status of a Task
+   */
+  @PatchMapping("/{taskId}/status")
+  public ResponseEntity<TaskResponse> changeStatus(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PathVariable UUID taskId,
+      @Valid @RequestBody ChangeStatusRequest request,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.changeStatus(teamId, projectId, taskId, request, authentication.getName()));
+  }
+
+  /**
+   * Change Assignee of a Task
+   */
+  @PatchMapping("/{taskId}/assignee/{userId}")
+  public ResponseEntity<TaskResponse> changeAssignee(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PathVariable UUID taskId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.changeAssignee(teamId, projectId, taskId, userId, authentication.getName()));
+  }
+
+  /**
+   * Change Support of a Task
+   */
+  @PatchMapping("/{taskId}/support/{userId}")
+  public ResponseEntity<TaskResponse> changeSupport(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PathVariable UUID taskId,
+      @PathVariable UUID userId,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.changeSupport(teamId, projectId, taskId, userId, authentication.getName()));
+  }
+
+  /**
+   * Add an update for a Task
+   */
+  @PostMapping("/{taskId}/updates")
+  public ResponseEntity<TaskUpdateResponse> addTaskUpdate(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PathVariable UUID taskId,
+      @Valid @RequestBody CreateTaskUpdateRequest request,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(taskService.addTaskUpdate(teamId, projectId, taskId, request, authentication.getName()));
+  }
+
+  /**
+   * Get all active tasks for a project.
+   */
+  @GetMapping("/task-all")
+  public PageResponse<TaskResponse> getAllExistingTask(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    return taskService.getAllExistingTaskByProjectId(teamId, projectId, authentication.getName(), pageable);
+  }
+
+  /**
+   * Get all active tasks for a project.
+   */
+  @GetMapping
+  public PageResponse<TaskResponse> getAllActiveTask(
+      @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    return taskService.getAllActiveTasksByProjectId(teamId, projectId, authentication.getName(), pageable);
+  }
+
+  /**
+   * Get all updates a Task
+   */
+  @GetMapping("/{taskId}/updates")
+  public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
+      @PathVariable UUID teamId,
+      @PathVariable UUID taskId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    return taskService.getAllTaskUpdates(teamId, taskId, pageable, authentication.getName());
   }
 }

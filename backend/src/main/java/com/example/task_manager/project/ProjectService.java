@@ -16,7 +16,7 @@ import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
-import com.example.task_manager.project.dto.UpdateProjectRequest;
+import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
@@ -53,7 +53,7 @@ public class ProjectService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TeamMemberEntity requesterMembership = validateCanManageTeamProject(teamId, requester.getId());
+    TeamMemberEntity requesterMembership = canManageTeamProject(teamId, requester.getId());
 
     // Checks uniqueness of Project Name in Team
     if (projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(
@@ -85,15 +85,16 @@ public class ProjectService {
    */
   @Transactional
   public ProjectResponse updateProject(
+      UUID teamId,
       UUID projectId,
-      UpdateProjectRequest request,
+      UpdateProjectDetailsRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
+    ProjectEntity project = getActiveProject(projectId, teamId);
 
-    validateCanManageTeamProject(project.getTeam().getId(), requester.getId());
+    validateCanManageTeamProject(teamId, requester.getId());
 
     // Checks if name is blank
     if (request.name() != null) {
@@ -105,8 +106,7 @@ public class ProjectService {
 
       // Checks if name is unique for the team
       if (!trimmed.equals(project.getName()) &&
-          projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(
-              project.getTeam().getId(), trimmed)) {
+          projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(teamId, trimmed)) {
         throw new ConflictException("Project name already exists in this team");
       }
 
@@ -130,14 +130,15 @@ public class ProjectService {
    */
   @Transactional
   public void deleteProject(
+      UUID teamId,
       UUID projectId,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
+    ProjectEntity project = getActiveProject(projectId, teamId);
 
-    validateCanManageTeamProject(project.getTeam().getId(), requester.getId());
+    validateCanManageTeamProject(teamId, requester.getId());
 
     Instant now = Instant.now();
     project.setDeletedAt(now);
@@ -160,9 +161,7 @@ public class ProjectService {
 
     validateMembership(teamId, requester.getId());
 
-    Page<ProjectEntity> page = projectRepository.findByTeamIdAndDeletedAtIsNull(
-        teamId,
-        pageable);
+    Page<ProjectEntity> page = projectRepository.findByTeamIdAndDeletedAtIsNull(teamId, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -187,9 +186,7 @@ public class ProjectService {
 
     validateMembership(teamId, requester.getId());
 
-    Page<ProjectEntity> page = projectRepository.findByTeamId(
-        teamId,
-        pageable);
+    Page<ProjectEntity> page = projectRepository.findByTeamId(teamId, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -206,14 +203,15 @@ public class ProjectService {
    */
   @Transactional(readOnly = true)
   public ProjectResponse getActiveProjectById(
+      UUID teamId,
       UUID projectId,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
+    ProjectEntity project = getActiveProject(projectId, teamId);
 
-    validateMembership(project.getTeam().getId(), requester.getId());
+    validateMembership(teamId, requester.getId());
 
     return mapToResponse(project);
   }
@@ -223,14 +221,15 @@ public class ProjectService {
    */
   @Transactional(readOnly = true)
   public ProjectResponse getExistingProjectById(
+      UUID teamId,
       UUID projectId,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getExistingProject(projectId);
+    ProjectEntity project = getExistingProject(projectId, teamId);
 
-    validateMembership(project.getTeam().getId(), requester.getId());
+    validateMembership(teamId, requester.getId());
 
     return mapToResponse(project);
   }
@@ -241,15 +240,16 @@ public class ProjectService {
    */
   @Transactional
   public ProjectResponse changeProjectStatus(
+      UUID teamId,
       UUID projectId,
       ChangeProjectStatusRequest newStatus,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getExistingProject(projectId);
+    ProjectEntity project = getExistingProject(projectId, teamId);
 
-    validateCanManageTeamProject(project.getTeam().getId(), requester.getId());
+    validateCanManageTeamProject(teamId, requester.getId());
 
     validateStatusChange(project, newStatus.status());
 
@@ -323,9 +323,9 @@ public class ProjectService {
    * Ensures:
    * - Project is active
    */
-  private ProjectEntity getActiveProject(UUID projectId) {
+  private ProjectEntity getActiveProject(UUID projectId, UUID teamId) {
     return projectRepository
-        .findByIdAndDeletedAtIsNull(projectId)
+        .findByIdAndTeamIdAndDeletedAtIsNull(projectId, teamId)
         .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
   }
 
@@ -333,9 +333,8 @@ public class ProjectService {
    * Ensures:
    * - Project is existing
    */
-  private ProjectEntity getExistingProject(UUID projectId) {
-    return projectRepository
-        .findById(projectId)
+  private ProjectEntity getExistingProject(UUID projectId, UUID teamId) {
+    return projectRepository.findByIdAndTeamId(projectId, teamId)
         .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
   }
 
@@ -344,7 +343,7 @@ public class ProjectService {
    * - User is Team member
    * - Role is Team OWNER or ADMIN
    */
-  private TeamMemberEntity validateCanManageTeamProject(UUID teamId, UUID userId) {
+  private TeamMemberEntity canManageTeamProject(UUID teamId, UUID userId) {
     TeamMemberEntity member = getMembership(teamId, userId);
 
     if (member.getRole() != TeamRole.OWNER &&
@@ -353,6 +352,20 @@ public class ProjectService {
     }
 
     return member;
+  }
+
+  /**
+   * Ensures:
+   * - User is Team member
+   * - Role is Team OWNER or ADMIN
+   */
+  private void validateCanManageTeamProject(UUID teamId, UUID userId) {
+    TeamMemberEntity member = getMembership(teamId, userId);
+
+    if (member.getRole() != TeamRole.OWNER &&
+        member.getRole() != TeamRole.ADMIN) {
+      throw new ForbiddenException("Insufficient permissions");
+    }
   }
 
   /**

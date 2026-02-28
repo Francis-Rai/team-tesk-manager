@@ -14,7 +14,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
-import com.example.task_manager.project.dto.UpdateProjectRequest;
+import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -48,11 +48,12 @@ public class ProjectController {
    */
   @PatchMapping("/{projectId}")
   public ProjectResponse updateProject(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
-      @Valid @RequestBody UpdateProjectRequest request,
+      @Valid @RequestBody UpdateProjectDetailsRequest request,
       Authentication authentication) {
 
-    return projectService.updateProject(projectId, request, authentication.getName());
+    return projectService.updateProject(teamId, projectId, request, authentication.getName());
   }
 
   /**
@@ -61,10 +62,11 @@ public class ProjectController {
   @DeleteMapping("/{projectId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void deleteProject(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
 
-    projectService.deleteProject(projectId, authentication.getName());
+    projectService.deleteProject(teamId, projectId, authentication.getName());
   }
 
   /**
@@ -96,9 +98,10 @@ public class ProjectController {
    */
   @GetMapping("/{projectId}")
   public ProjectResponse getActiveProjectById(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
-    return projectService.getActiveProjectById(projectId, authentication.getName());
+    return projectService.getActiveProjectById(teamId, projectId, authentication.getName());
   }
 
   /**
@@ -106,9 +109,10 @@ public class ProjectController {
    */
   @GetMapping("/{projectId}/existing")
   public ProjectResponse getExistingProjectById(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
-    return projectService.getExistingProjectById(projectId, authentication.getName());
+    return projectService.getExistingProjectById(teamId, projectId, authentication.getName());
   }
 
   /**
@@ -116,9 +120,10 @@ public class ProjectController {
    */
   @PatchMapping("/{projectId}/status")
   public ProjectResponse changeStatus(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @Valid @RequestBody ChangeProjectStatusRequest request,
       Authentication authentication) {
-    return projectService.changeProjectStatus(projectId, request, authentication.getName());
+    return projectService.changeProjectStatus(teamId, projectId, request, authentication.getName());
   }
 }
