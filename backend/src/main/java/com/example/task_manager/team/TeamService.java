@@ -454,7 +454,7 @@ public class TeamService {
    * Checks if a User is member of a team
    */
   private void validateOwner(UUID teamId, UUID userId) {
-    boolean isMember = teamRepository.existsByIdAndOwnerIdDeletedAtIsNull(teamId, userId);
+    boolean isMember = teamRepository.existsByIdAndOwnerIdAndDeletedAtIsNull(teamId, userId);
 
     if (!isMember) {
       throw new ResourceNotFoundException("User is not a member");

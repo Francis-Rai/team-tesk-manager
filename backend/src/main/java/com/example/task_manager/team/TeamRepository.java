@@ -18,7 +18,7 @@ public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
 
   boolean existsByIdAndDeletedAtIsNull(UUID id);
 
-  boolean existsByIdAndOwnerIdDeletedAtIsNull(UUID teamId, UUID ownerId);
+  boolean existsByIdAndOwnerIdAndDeletedAtIsNull(UUID teamId, UUID ownerId);
 
   Optional<TeamEntity> findByIdAndDeletedAtIsNull(UUID id);
 

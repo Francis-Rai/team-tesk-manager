@@ -55,7 +55,6 @@ public class TaskService {
       CreateTaskRequest request,
       String requesterEmail) {
 
-    // Get user
     UserEntity requester = getUserByEmail(requesterEmail);
 
     ProjectEntity project = getActiveProject(projectId, teamId);
@@ -204,9 +203,6 @@ public class TaskService {
   }
 
   /**
-   * Change Task's Assignee
-   */
-  /**
    * Change or Assign a Task's Assignee
    */
   @Transactional
@@ -225,14 +221,12 @@ public class TaskService {
     UserEntity currentAssignee = task.getAssignee();
     UserEntity currentSupport = task.getSupport();
 
-    // New Assignee is Current Assignee
     if (newAssigneeId.equals(currentAssignee.getId())) {
       return mapToResponse(task);
     }
 
     UserEntity newAssignee = getMembership(teamId, newAssigneeId).getUser();
 
-    // Promote Support to Assignee
     if (currentSupport != null && newAssignee.getId().equals(currentSupport.getId())) {
 
       task.setAssignee(newAssignee);
@@ -275,7 +269,6 @@ public class TaskService {
     UserEntity currentAssignee = task.getAssignee();
     UserEntity currentSupport = task.getSupport();
 
-    // Remove current support
     if (newSupportId == null) {
 
       if (currentSupport == null) {
@@ -406,6 +399,30 @@ public class TaskService {
   }
 
   /**
+   * Returns all user's task.
+   * Assignee and Support
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TaskResponse> getMyTasks(
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    Page<TaskEntity> page = taskRepository.findMyTasks(requester.getId(),
+        pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
    * Get all updates for a Task
    */
   @Transactional(readOnly = true)
@@ -418,7 +435,6 @@ public class TaskService {
     UserEntity currentUser = getUserByEmail(requesterEmail);
     validateActiveTask(taskId);
 
-    // Validate team membership
     validateMembership(teamId, currentUser.getId());
 
     Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskIdAndTaskDeletedAtIsNull(
@@ -543,15 +559,24 @@ public class TaskService {
         .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
   }
 
+  /**
+   * Ensures:
+   * - Task exists
+   * - Task not deleted
+   */
   private void validateActiveProject(UUID projectId, UUID teamId) {
-    boolean project = projectRepository.existsByIdAndTeamIdAndDeletedAtIsNull(teamId, projectId);
+    boolean project = projectRepository.existsByIdAndTeamIdAndDeletedAtIsNull(projectId, teamId);
     if (!project) {
       throw new ResourceNotFoundException("Project not found");
     }
   }
 
+  /**
+   * Ensures:
+   * - Task exists
+   */
   private void validateExistingProject(UUID projectId, UUID teamId) {
-    boolean project = projectRepository.existsByIdAndTeamId(teamId, projectId);
+    boolean project = projectRepository.existsByIdAndTeamId(projectId, teamId);
     if (!project) {
       throw new ResourceNotFoundException("Project not found");
     }
@@ -645,6 +670,10 @@ public class TaskService {
     }
   }
 
+  /**
+   * Creates a log for a task
+   * Logs changes for a task
+   */
   private void createTaskUpdateEntry(
       TaskEntity task,
       String message,

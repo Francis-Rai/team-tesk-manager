@@ -47,13 +47,13 @@ public class ProjectController {
    * Update project.
    */
   @PatchMapping("/{projectId}")
-  public ProjectResponse updateProject(
+  public ResponseEntity<ProjectResponse> updateProject(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @Valid @RequestBody UpdateProjectDetailsRequest request,
       Authentication authentication) {
 
-    return projectService.updateProject(teamId, projectId, request, authentication.getName());
+    return ResponseEntity.ok(projectService.updateProject(teamId, projectId, request, authentication.getName()));
   }
 
   /**
@@ -61,69 +61,71 @@ public class ProjectController {
    */
   @DeleteMapping("/{projectId}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  public void deleteProject(
+  public ResponseEntity<Void> deleteProject(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
 
     projectService.deleteProject(teamId, projectId, authentication.getName());
+
+    return ResponseEntity.noContent().build();
   }
 
   /**
    * Get all existing projects for authenticated user.
    */
   @GetMapping("/projects-all")
-  public PageResponse<ProjectResponse> getAllExistingProjects(
+  public ResponseEntity<PageResponse<ProjectResponse>> getAllExistingProjects(
       @PathVariable UUID teamId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return projectService.getAllExistingProjects(teamId, pageable, authentication.getName());
+    return ResponseEntity.ok(projectService.getAllExistingProjects(teamId, pageable, authentication.getName()));
   }
 
   /**
    * Get all active projects for authenticated user.
    */
   @GetMapping
-  public PageResponse<ProjectResponse> getAllActiveProjects(
+  public ResponseEntity<PageResponse<ProjectResponse>> getAllActiveProjects(
       @PathVariable UUID teamId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return projectService.getAllActiveProjects(teamId, pageable, authentication.getName());
+    return ResponseEntity.ok(projectService.getAllActiveProjects(teamId, pageable, authentication.getName()));
   }
 
   /**
    * Get project by ID.
    */
   @GetMapping("/{projectId}")
-  public ProjectResponse getActiveProjectById(
+  public ResponseEntity<ProjectResponse> getActiveProjectById(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
-    return projectService.getActiveProjectById(teamId, projectId, authentication.getName());
+    return ResponseEntity.ok(projectService.getActiveProjectById(teamId, projectId, authentication.getName()));
   }
 
   /**
    * Get project by ID.
    */
   @GetMapping("/{projectId}/existing")
-  public ProjectResponse getExistingProjectById(
+  public ResponseEntity<ProjectResponse> getExistingProjectById(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       Authentication authentication) {
-    return projectService.getExistingProjectById(teamId, projectId, authentication.getName());
+    return ResponseEntity.ok(projectService.getExistingProjectById(teamId, projectId, authentication.getName()));
   }
 
   /**
    * Change project's status
    */
   @PatchMapping("/{projectId}/status")
-  public ProjectResponse changeStatus(
+  public ResponseEntity<ProjectResponse> changeStatus(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @Valid @RequestBody ChangeProjectStatusRequest request,
       Authentication authentication) {
-    return projectService.changeProjectStatus(teamId, projectId, request, authentication.getName());
+    return ResponseEntity.ok(projectService.changeProjectStatus(teamId, projectId, request, authentication.getName()));
   }
 }
