@@ -44,12 +44,13 @@ public class TaskController {
    */
   @PostMapping
   public ResponseEntity<TaskResponse> createTask(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @Valid @RequestBody CreateTaskRequest request,
       Authentication authentication) {
 
     return ResponseEntity.status(HttpStatus.CREATED.value())
-        .body(taskService.createTask(projectId, request, authentication.getName()));
+        .body(taskService.createTask(teamId, projectId, request, authentication.getName()));
   }
 
   /**
@@ -64,7 +65,7 @@ public class TaskController {
       @Valid @RequestBody UpdateTaskDetailsRequest request,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.updateTask(teamId, taskId, request, authentication.getName()));
+    return ResponseEntity.ok(taskService.updateTask(teamId, projectId, taskId, request, authentication.getName()));
   }
 
   /**
@@ -73,11 +74,12 @@ public class TaskController {
    */
   @DeleteMapping("/{taskId}")
   public ResponseEntity<Void> deleteTask(
+      @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @PathVariable UUID taskId,
       Authentication authentication) {
 
-    taskService.deleteTask(taskId, authentication.getName());
+    taskService.deleteTask(teamId, projectId, taskId, authentication.getName());
 
     return ResponseEntity.noContent().build();
   }
@@ -88,11 +90,12 @@ public class TaskController {
   @PatchMapping("/{taskId}/status")
   public ResponseEntity<TaskResponse> changeStatus(
       @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
       @PathVariable UUID taskId,
       @Valid @RequestBody ChangeStatusRequest request,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.changeStatus(teamId, taskId, request, authentication.getName()));
+    return ResponseEntity.ok(taskService.changeStatus(teamId, projectId, taskId, request, authentication.getName()));
   }
 
   /**
@@ -101,11 +104,12 @@ public class TaskController {
   @PatchMapping("/{taskId}/assignee/{userId}")
   public ResponseEntity<TaskResponse> changeAssignee(
       @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
       @PathVariable UUID taskId,
       @PathVariable UUID userId,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.changeAssignee(teamId, taskId, userId, authentication.getName()));
+    return ResponseEntity.ok(taskService.changeAssignee(teamId, projectId, taskId, userId, authentication.getName()));
   }
 
   /**
@@ -114,24 +118,26 @@ public class TaskController {
   @PatchMapping("/{taskId}/support/{userId}")
   public ResponseEntity<TaskResponse> changeSupport(
       @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
       @PathVariable UUID taskId,
       @PathVariable UUID userId,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.changeSupport(teamId, taskId, userId, authentication.getName()));
+    return ResponseEntity.ok(taskService.changeSupport(teamId, projectId, taskId, userId, authentication.getName()));
   }
 
   /**
    * Add an update for a Task
    */
-  @PostMapping("/{taskId}/taskUpdate")
+  @PostMapping("/{taskId}/updates")
   public ResponseEntity<TaskUpdateResponse> addTaskUpdate(
       @PathVariable UUID teamId,
+      @PathVariable UUID projectId,
       @PathVariable UUID taskId,
       @Valid @RequestBody CreateTaskUpdateRequest request,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.addTaskUpdate(teamId, taskId, request, authentication.getName()));
+    return ResponseEntity.ok(taskService.addTaskUpdate(teamId, projectId, taskId, request, authentication.getName()));
   }
 
   /**
@@ -163,7 +169,7 @@ public class TaskController {
   /**
    * Get all updates a Task
    */
-  @GetMapping("/{taskId}/taskUpdates")
+  @GetMapping("/{taskId}/updates")
   public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
       @PathVariable UUID teamId,
       @PathVariable UUID taskId,

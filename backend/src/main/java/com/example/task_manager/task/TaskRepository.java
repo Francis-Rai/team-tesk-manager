@@ -18,7 +18,7 @@ import com.example.task_manager.task.entity.TaskEntity;
 public interface TaskRepository extends JpaRepository<TaskEntity, UUID> {
   Page<TaskEntity> findByProjectId(UUID projectId, Pageable pageable);
 
-  Optional<TaskEntity> findByIdAndDeletedAtIsNull(UUID id);
+  Optional<TaskEntity> findByIdAndProjectIdAndProjectTeamIdAndDeletedAtIsNull(UUID taskId, UUID projectID, UUID teamID);
 
   boolean existsByIdAndDeletedAtIsNull(UUID id);
 

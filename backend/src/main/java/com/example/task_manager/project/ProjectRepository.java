@@ -17,17 +17,19 @@ import com.example.task_manager.project.entity.ProjectEntity;
  */
 public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
 
-  Optional<ProjectEntity> findById(UUID id);
+  Optional<ProjectEntity> findByIdAndTeamId(UUID projectId, UUID teamId);
 
-  Optional<ProjectEntity> findByIdAndDeletedAtIsNull(UUID id);
-
-  // All Active Project
-  Page<ProjectEntity> findByTeamIdAndDeletedAtIsNull(UUID id, Pageable pageable);
+  Optional<ProjectEntity> findByIdAndTeamIdAndDeletedAtIsNull(UUID projectId, UUID teamId);
 
   // All Existing Project
   Page<ProjectEntity> findByTeamId(UUID id, Pageable pageable);
 
-  // Page<ProjectEntity> findActiveProjectsByTeam(UUID teamId, Pageable pageable);
+  // All Active Project
+  Page<ProjectEntity> findByTeamIdAndDeletedAtIsNull(UUID id, Pageable pageable);
+
+  boolean existsByIdAndTeamIdAndDeletedAtIsNull(UUID projectId, UUID teamId);
+
+  boolean existsByIdAndTeamId(UUID projectId, UUID teamId);
 
   boolean existsByTeamIdAndNameAndDeletedAtIsNull(UUID teamId, String name);
 

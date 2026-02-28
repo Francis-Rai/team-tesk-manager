@@ -46,19 +46,19 @@ public class TaskService {
   private final TaskUpdateRepository taskUpdateRepository;
 
   /**
-   * Creates task under project and optionally add a support user.
+   * Creates task under a project and optionally add a support user.
    */
   @Transactional
   public TaskResponse createTask(
+      UUID teamId,
       UUID projectId,
       CreateTaskRequest request,
       String requesterEmail) {
 
+    // Get user
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
-
-    UUID teamId = project.getTeam().getId();
+    ProjectEntity project = getActiveProject(projectId, teamId);
 
     validateCanManageProjectTask(teamId, requester.getId());
     validateDates(request.plannedStartDate(), request.plannedDueDate());
@@ -69,9 +69,7 @@ public class TaskService {
 
     if (request.supportId() != null) {
       supportMember = getMembership(teamId, request.supportId());
-      validateAssignment(project.getTeam().getId(),
-          request.assigneeId(),
-          request.supportId());
+      validateAssignment(teamId, request.assigneeId(), request.supportId());
     }
 
     Long taskNumber = project.getNextTaskNumber();
@@ -104,13 +102,14 @@ public class TaskService {
   @Transactional
   public TaskResponse updateTask(
       UUID teamId,
+      UUID projectId,
       UUID taskId,
       UpdateTaskDetailsRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanManageProjectTask(teamId, requester.getId());
 
@@ -149,18 +148,19 @@ public class TaskService {
    */
   @Transactional
   public void deleteTask(
+      UUID teamId,
+      UUID projectId,
       UUID taskId,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanManageProjectTask(taskId, requester.getId());
 
     task.setDeletedAt(Instant.now());
     createTaskUpdateEntry(task, "Deleted Task", requester);
-
   }
 
   /**
@@ -169,12 +169,13 @@ public class TaskService {
   @Transactional
   public TaskResponse changeStatus(
       UUID teamId,
+      UUID projectId,
       UUID taskId,
       ChangeStatusRequest request,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanChangeStatusAndUpdate(teamId, task, requester.getId());
     validateStatusTransition(task.getStatus(), request.status());
@@ -211,12 +212,13 @@ public class TaskService {
   @Transactional
   public TaskResponse changeAssignee(
       UUID teamId,
+      UUID projectId,
       UUID taskId,
       UUID newAssigneeId,
       String requesterEmail) {
 
     UserEntity requester = getUserByEmail(requesterEmail);
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanManageProjectTask(teamId, requester.getId());
 
@@ -260,12 +262,13 @@ public class TaskService {
   @Transactional
   public TaskResponse changeSupport(
       UUID teamId,
+      UUID projectId,
       UUID taskId,
       UUID newSupportId,
       String requesterEmail) {
 
     UserEntity currentUser = getUserByEmail(requesterEmail);
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanManageProjectTask(teamId, currentUser.getId());
 
@@ -326,12 +329,13 @@ public class TaskService {
   @Transactional
   public TaskUpdateResponse addTaskUpdate(
       UUID teamId,
+      UUID projectId,
       UUID taskId,
       CreateTaskUpdateRequest request,
       String requesterEmail) {
 
     UserEntity currentUser = getUserByEmail(requesterEmail);
-    TaskEntity task = getActiveTask(taskId);
+    TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanChangeStatusAndUpdate(teamId, task, currentUser.getId());
 
@@ -356,11 +360,11 @@ public class TaskService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
+    validateExistingProject(projectId, teamId);
 
     validateMembership(teamId, requester.getId());
 
-    Page<TaskEntity> page = taskRepository.findByProjectId(project.getId(), pageable);
+    Page<TaskEntity> page = taskRepository.findByProjectId(projectId, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -384,12 +388,12 @@ public class TaskService {
 
     UserEntity requester = getUserByEmail(requesterEmail);
 
-    ProjectEntity project = getActiveProject(projectId);
+    validateActiveProject(projectId, teamId);
 
     validateMembership(teamId, requester.getId());
 
     Page<TaskEntity> page = taskRepository
-        .findByProjectIdAndDeletedAtIsNull(project.getId(), pageable);
+        .findByProjectIdAndDeletedAtIsNull(projectId, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -534,20 +538,34 @@ public class TaskService {
    * Returns project entity.
    * Uses ResourceNotFound to prevent ID probing.
    */
-  private ProjectEntity getActiveProject(UUID projectId) {
-    return projectRepository.findByIdAndDeletedAtIsNull(projectId)
+  private ProjectEntity getActiveProject(UUID projectId, UUID teamId) {
+    return projectRepository.findByIdAndTeamIdAndDeletedAtIsNull(projectId, teamId)
         .orElseThrow(() -> new ResourceNotFoundException("Project not found"));
+  }
+
+  private void validateActiveProject(UUID projectId, UUID teamId) {
+    boolean project = projectRepository.existsByIdAndTeamIdAndDeletedAtIsNull(teamId, projectId);
+    if (!project) {
+      throw new ResourceNotFoundException("Project not found");
+    }
+  }
+
+  private void validateExistingProject(UUID projectId, UUID teamId) {
+    boolean project = projectRepository.existsByIdAndTeamId(teamId, projectId);
+    if (!project) {
+      throw new ResourceNotFoundException("Project not found");
+    }
   }
 
   /**
    * Ensures:
    * - Task exists
-   * - Task not deleted   *
+   * - Task not deleted *
    * Returns task entity.
    * Uses ResourceNotFound to prevent ID probing.
    */
-  private TaskEntity getActiveTask(UUID taskId) {
-    return taskRepository.findByIdAndDeletedAtIsNull(taskId)
+  private TaskEntity getActiveTask(UUID taskId, UUID projectId, UUID teamId) {
+    return taskRepository.findByIdAndProjectIdAndProjectTeamIdAndDeletedAtIsNull(taskId, projectId, teamId)
         .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
   }
 

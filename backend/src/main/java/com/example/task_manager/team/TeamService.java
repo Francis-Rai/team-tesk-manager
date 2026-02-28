@@ -56,7 +56,7 @@ public class TeamService {
       CreateTeamRequest request,
       String userEmail) {
 
-    UserEntity owner = getUserByEmail(userEmail);
+    UserEntity owner = getUserByEmail(userEmail);  
 
     // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
 
