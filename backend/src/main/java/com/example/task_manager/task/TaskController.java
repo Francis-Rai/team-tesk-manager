@@ -144,38 +144,55 @@ public class TaskController {
    * Get all active tasks for a project.
    */
   @GetMapping("/task-all")
-  public PageResponse<TaskResponse> getAllExistingTask(
+  public ResponseEntity<PageResponse<TaskResponse>> getAllExistingTask(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return taskService.getAllExistingTaskByProjectId(teamId, projectId, authentication.getName(), pageable);
+    return ResponseEntity.ok(taskService.getAllExistingTaskByProjectId(teamId, projectId,
+        authentication.getName(), pageable));
   }
 
   /**
    * Get all active tasks for a project.
    */
   @GetMapping
-  public PageResponse<TaskResponse> getAllActiveTask(
+  public ResponseEntity<PageResponse<TaskResponse>> getAllActiveTask(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return taskService.getAllActiveTasksByProjectId(teamId, projectId, authentication.getName(), pageable);
+    PageResponse<TaskResponse> response = taskService.getAllActiveTasksByProjectId(teamId, projectId,
+        authentication.getName(), pageable);
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * Get all authenticated user's assignments.
+   */
+  @GetMapping("/my-task")
+  public ResponseEntity<PageResponse<TaskResponse>> getMyTasks(
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    PageResponse<TaskResponse> response = taskService.getMyTasks(authentication.getName(), pageable);
+
+    return ResponseEntity.ok(response);
   }
 
   /**
    * Get all updates a Task
    */
   @GetMapping("/{taskId}/updates")
-  public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
+  public ResponseEntity<PageResponse<TaskUpdateResponse>> getAllTaskUpdates(
       @PathVariable UUID teamId,
       @PathVariable UUID taskId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return taskService.getAllTaskUpdates(teamId, taskId, pageable, authentication.getName());
+    return ResponseEntity.ok(taskService.getAllTaskUpdates(teamId, taskId, pageable, authentication.getName()));
   }
 }

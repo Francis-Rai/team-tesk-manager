@@ -32,7 +32,6 @@ public class AuthService {
    */
   public AuthResponse register(RegisterRequest request) {
 
-    // Check if email is already in use
     if (userRepository.existsByEmail(request.email())) {
       throw new EmailAlreadyInUseException();
     }
@@ -45,7 +44,6 @@ public class AuthService {
     user.setPassword(
         passwordEncoder.encode(request.password()));
 
-    // Save user and handle potential email uniqueness violation
     try {
       user = userRepository.save(user);
     } catch (DataIntegrityViolationException ex) {
@@ -60,12 +58,9 @@ public class AuthService {
    */
   public AuthResponse login(LoginRequest request) {
 
-    // Find user by email for authentication
     UserEntity user = userRepository.findByEmail(request.email())
         .orElseThrow(() -> new AuthException());
 
-    // Password validation is performed here to keep
-    // credential verification centralized and auditable
     if (!passwordEncoder.matches(
         request.password(),
         user.getPassword())) {

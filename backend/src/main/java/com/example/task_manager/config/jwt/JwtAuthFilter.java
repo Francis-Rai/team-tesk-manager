@@ -33,6 +33,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
   /**
    * Processes incoming requests and validates JWT tokens.
+   * Validate the token and set authentication in the security context
+   * 
    */
   @Override
   protected void doFilterInternal(HttpServletRequest request,
@@ -42,13 +44,11 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     final String authHeader = request.getHeader("Authorization");
 
-    // Check if the Authorization header is present
     if (authHeader == null || !authHeader.startsWith("Bearer ")) {
       filterChain.doFilter(request, response);
       return;
     }
 
-    // Extract the token and email
     final String token = authHeader.substring(7);
     String email;
 
@@ -59,11 +59,9 @@ public class JwtAuthFilter extends OncePerRequestFilter {
       return;
     }
 
-    // Validate the token and set authentication in the security context
     if (email != null && SecurityContextHolder.getContext().getAuthentication() == null) {
       UserDetails userDetails = userDetailsService.loadUserByUsername(email);
 
-      // Validate the token
       if (jwtService.isTokenValid(token, userDetails)) {
         UsernamePasswordAuthenticationToken authToken = new UsernamePasswordAuthenticationToken(
             userDetails, null, userDetails.getAuthorities());

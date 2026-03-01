@@ -44,6 +44,7 @@ public class ProjectService {
   /**
    * Creates a new project for the authenticated user.
    * User must be Team Owner or Admin
+   * Project name must be unique for Team
    */
   @Transactional
   public ProjectResponse createProject(
@@ -55,7 +56,6 @@ public class ProjectService {
 
     TeamMemberEntity requesterMembership = canManageTeamProject(teamId, requester.getId());
 
-    // Checks uniqueness of Project Name in Team
     if (projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(
         teamId, request.name().trim())) {
       throw new ConflictException("Project name already exists in this team");
@@ -96,7 +96,6 @@ public class ProjectService {
 
     validateCanManageTeamProject(teamId, requester.getId());
 
-    // Checks if name is blank
     if (request.name() != null) {
       String trimmed = request.name().trim();
 
@@ -104,7 +103,6 @@ public class ProjectService {
         throw new BadRequestInputException("Project name cannot be blank");
       }
 
-      // Checks if name is unique for the team
       if (!trimmed.equals(project.getName()) &&
           projectRepository.existsByTeamIdAndNameAndDeletedAtIsNull(teamId, trimmed)) {
         throw new ConflictException("Project name already exists in this team");
@@ -115,10 +113,6 @@ public class ProjectService {
 
     if (request.description() != null) {
       project.setDescription(request.description().trim());
-    }
-
-    if (request.status() != null) {
-      project.setStatus(request.status());
     }
 
     return mapToResponse(project);
@@ -146,6 +140,30 @@ public class ProjectService {
     // cascade soft delete tasks
     taskRepository.softDeleteByProjectId(projectId, now);
 
+  }
+
+  /**
+   * Change the status of a project
+   * Only admin and owner can change status
+   */
+  @Transactional
+  public ProjectResponse changeProjectStatus(
+      UUID teamId,
+      UUID projectId,
+      ChangeProjectStatusRequest newStatus,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    ProjectEntity project = getExistingProject(projectId, teamId);
+
+    validateCanManageTeamProject(teamId, requester.getId());
+
+    validateStatusChange(project, newStatus.status());
+
+    project.setStatus(newStatus.status());
+
+    return mapToResponse(project);
   }
 
   /**
@@ -234,30 +252,6 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
-  /**
-   * Change the status of a project
-   * Only admin and owner can change status
-   */
-  @Transactional
-  public ProjectResponse changeProjectStatus(
-      UUID teamId,
-      UUID projectId,
-      ChangeProjectStatusRequest newStatus,
-      String requesterEmail) {
-
-    UserEntity requester = getUserByEmail(requesterEmail);
-
-    ProjectEntity project = getExistingProject(projectId, teamId);
-
-    validateCanManageTeamProject(teamId, requester.getId());
-
-    validateStatusChange(project, newStatus.status());
-
-    project.setStatus(newStatus.status());
-
-    return mapToResponse(project);
-  }
-
   // HELPERS
 
   /**
@@ -320,8 +314,7 @@ public class ProjectService {
   }
 
   /**
-   * Ensures:
-   * - Project is active
+   * Get an active project
    */
   private ProjectEntity getActiveProject(UUID projectId, UUID teamId) {
     return projectRepository
@@ -330,8 +323,7 @@ public class ProjectService {
   }
 
   /**
-   * Ensures:
-   * - Project is existing
+   * Get an existing project
    */
   private ProjectEntity getExistingProject(UUID projectId, UUID teamId) {
     return projectRepository.findByIdAndTeamId(projectId, teamId)
@@ -355,7 +347,7 @@ public class ProjectService {
   }
 
   /**
-   * Ensures:
+   * Checks :
    * - User is Team member
    * - Role is Team OWNER or ADMIN
    */
@@ -370,18 +362,12 @@ public class ProjectService {
 
   /**
    * Ensures:
-   * - Project is active
    * - Project status cannot be changed to its current value
    * All transitions between ACTIVE, ON_HOLD, COMPLETED are allowed
    */
   private void validateStatusChange(
       ProjectEntity project,
       ProjectStatus newStatus) {
-
-    if (project.getDeletedAt() != null) {
-      throw new ConflictException(
-          "Archived projects cannot change status");
-    }
 
     if (project.getStatus() == newStatus) {
       throw new ConflictException(

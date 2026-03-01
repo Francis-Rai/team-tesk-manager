@@ -43,9 +43,12 @@ public interface TaskRepository extends JpaRepository<TaskEntity, UUID> {
   int softDeleteByTeamId(UUID teamId, Instant deletedAt);
 
   @Query("""
-          SELECT COALESCE(MAX(t.taskNumber), 0)
-          FROM TaskEntity t
-          WHERE t.project.id = :projectId
+          SELECT t FROM TaskEntity t
+          WHERE t.deletedAt IS NULL
+          AND (
+              t.assignee.id = :userId
+              OR t.support.id = :userId
+          )
       """)
-  Long findMaxTaskNumberByProject(UUID projectId);
+  Page<TaskEntity> findMyTasks(UUID userId, Pageable pageable);
 }

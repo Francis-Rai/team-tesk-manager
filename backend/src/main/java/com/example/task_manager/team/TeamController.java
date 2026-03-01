@@ -112,9 +112,8 @@ public class TeamController {
   public ResponseEntity<TeamResponse> getActiveTeamById(
       @PathVariable UUID teamId,
       Authentication authentication) {
-    TeamResponse response = teamService.getActiveTeamById(teamId, authentication.getName());
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(teamService.getActiveTeamById(teamId, authentication.getName()));
   }
 
   /**
@@ -124,9 +123,8 @@ public class TeamController {
   public ResponseEntity<TeamResponse> getExistingTeamById(
       @PathVariable UUID teamId,
       Authentication authentication) {
-    TeamResponse response = teamService.getExistingTeamById(teamId, authentication.getName());
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(teamService.getExistingTeamById(teamId, authentication.getName()));
   }
 
   @GetMapping("/{teamId}/members")
@@ -143,9 +141,8 @@ public class TeamController {
   public ResponseEntity<PageResponse<TeamResponse>> getAllActiveTeams(
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    PageResponse<TeamResponse> response = teamService.getAllActiveTeams(authentication.getName(), pageable);
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(teamService.getAllActiveTeams(authentication.getName(), pageable));
   }
 
   /**
@@ -155,9 +152,8 @@ public class TeamController {
   public ResponseEntity<PageResponse<TeamResponse>> getAllExistingTeams(
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    PageResponse<TeamResponse> response = teamService.getAllExistingTeams(authentication.getName(), pageable);
 
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(teamService.getAllExistingTeams(authentication.getName(), pageable));
   }
 
 }

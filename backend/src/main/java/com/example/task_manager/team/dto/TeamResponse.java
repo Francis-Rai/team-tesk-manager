@@ -4,13 +4,21 @@ import java.time.Instant;
 import java.util.UUID;
 
 /**
- * DTO for returning team information.
+ * DTO for returning team and owner information.
  */
 public record TeamResponse(
     UUID id,
     String name,
     String description,
-    UUID ownerId,
+    User owner,
     Instant createdAt,
     Instant updatedAt) {
+
+  // Owner Info
+  public record User(
+      UUID userId,
+      String firstName,
+      String lastName,
+      String email) {
+  }
 }

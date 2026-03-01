@@ -2,6 +2,9 @@ package com.example.task_manager.task.entity;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 
+/**
+ * Enum representing the priority of a task.
+ */
 public enum TaskPriority {
   LOW,
   MEDIUM,
