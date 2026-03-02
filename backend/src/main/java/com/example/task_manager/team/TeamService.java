@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -26,6 +27,7 @@ import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
 import com.example.task_manager.user.entity.UserEntity;
+import com.example.task_manager.user.entity.UserRole;
 
 import jakarta.persistence.EntityManager;
 
@@ -51,14 +53,13 @@ public class TeamService {
    * Creates a new team for the authenticated user.
    * Sets user as the owner
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
   @Transactional
   public TeamResponse createTeam(
       CreateTeamRequest request,
       String userEmail) {
 
     UserEntity owner = getUserByEmail(userEmail);
-
-    // (TODO)ADD USER SHOULD BE GLOBAL ADMIN OR SUPER ADMIN
 
     String trimmedName = request.name().trim();
 
@@ -91,6 +92,7 @@ public class TeamService {
    * Updates team information.
    * Only Owner can update the team
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
   @Transactional
   public TeamResponse updateTeam(
       UUID teamId,
@@ -101,7 +103,6 @@ public class TeamService {
 
     TeamEntity team = getActiveTeam(teamId);
 
-    // Check if user is owner
     validateOwner(teamId, requester.getId());
 
     if (request.name() != null) {
@@ -128,6 +129,7 @@ public class TeamService {
    * Soft-deletes a team and cascades soft-delete to all dependent data.
    * Only Owner can soft-delete team
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
   @Transactional
   public void deleteTeam(
       UUID teamId,
@@ -195,7 +197,7 @@ public class TeamService {
 
   /**
    * Removes a member in a team
-   * Only Admin and Owner can remove member
+   * Only Team Admin and Owner can remove member
    * Only Owner can remove an Admin and can't remove themselves
    */
   @Transactional
@@ -223,8 +225,10 @@ public class TeamService {
   }
 
   /**
-   * Transfers Team Ownership to another member
+   * Transfers Team Ownership to another Global Admin or Super Admin
+   * New Owner must be a member
    */
+  @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
   @Transactional
   public TeamMemberResponse transferOwnership(
       UUID teamId,
@@ -235,19 +239,21 @@ public class TeamService {
 
     validateActiveTeam(teamId);
 
-    TeamMemberEntity requesterMember = getMembership(teamId, requester.getId());
+    TeamMemberEntity owner = getMembership(teamId, requester.getId());
 
-    if (requesterMember.getRole() != TeamRole.OWNER) {
+    if (owner.getRole() != TeamRole.OWNER) {
       throw new ForbiddenException("Insufficient permissions");
     }
 
-    if (requesterMember.getId().equals(newOwnerUserId)) {
+    if (owner.getId().equals(newOwnerUserId)) {
       throw new ConflictException("You are already the OWNER");
     }
 
     TeamMemberEntity newOwner = getMembership(teamId, newOwnerUserId);
 
-    requesterMember.setRole(TeamRole.ADMIN);
+    validateGlobalAdminAndSuperAdmin(newOwner.getUser().getRole());
+
+    owner.setRole(TeamRole.ADMIN);
     newOwner.setRole(TeamRole.OWNER);
 
     return mapToMemberResponse(newOwner);
@@ -273,33 +279,27 @@ public class TeamService {
   /**
    * Returns an existing team by id.
    */
+  @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
   @Transactional(readOnly = true)
   public TeamResponse getExistingTeamById(
       UUID teamId,
       String requesterEmail) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
-
     TeamEntity team = getExistingTeam(teamId);
-
-    validateMembership(teamId, requester.getId());
 
     return mapToResponse(team);
   }
 
   /**
-   * Returns all existing team of authenticated user.
+   * Returns all existing team
    */
+  @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
   @Transactional(readOnly = true)
   public PageResponse<TeamResponse> getAllExistingTeams(
       String requesterEmail,
       Pageable pageable) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
-
-    Page<TeamEntity> page = teamRepository.findExistingTeamsByUser(
-        requester.getId(),
-        pageable);
+    Page<TeamEntity> page = teamRepository.findAll(pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -425,7 +425,7 @@ public class TeamService {
 
     return teamMemberRepository
         .findByTeamIdAndUserIdAndTeamDeletedAtIsNull(teamId, userId)
-        .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
+        .orElseThrow(() -> new ResourceNotFoundException("User is not a member"));
   }
 
   /**
@@ -445,7 +445,7 @@ public class TeamService {
   private void validateExistByOwnerAndName(UUID ownerId, String name) {
     boolean team = teamRepository.existsByOwnerIdAndNameAndDeletedAtIsNull(ownerId, name);
 
-    if (!team) {
+    if (team) {
       throw new ConflictException("Team name already exists for User");
     }
   }
@@ -478,6 +478,15 @@ public class TeamService {
     return membership;
   }
 
+  private void validateGlobalAdminAndSuperAdmin(UserRole role) {
+    if (role != UserRole.ADMIN
+        && role != UserRole.SUPER_ADMIN) {
+
+      throw new ForbiddenException(
+          "You are not allowed to perform this action");
+    }
+  }
+
   /**
    * Get an Active Team
    */
@@ -492,7 +501,7 @@ public class TeamService {
   private void validateActiveTeam(UUID teamId) {
     boolean team = teamRepository.existsByIdAndDeletedAtIsNull(teamId);
     if (!team) {
-      new ResourceNotFoundException("Task not found");
+      new ResourceNotFoundException("Team not found");
     }
   }
 

@@ -31,11 +31,5 @@ public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
       """)
   Page<TeamEntity> findActiveTeamsByUser(UUID userId, Pageable pageable);
 
-  @Query("""
-          SELECT t
-          FROM TeamEntity t
-          JOIN TeamMemberEntity tm ON tm.team.id = t.id
-          WHERE tm.user.id = :userId
-      """)
-  Page<TeamEntity> findExistingTeamsByUser(UUID userId, Pageable pageable);
+  Page<TeamEntity> findAll(Pageable pageable);
 }
