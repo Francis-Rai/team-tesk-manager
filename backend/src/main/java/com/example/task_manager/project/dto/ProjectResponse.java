@@ -16,7 +16,8 @@ public record ProjectResponse(
     UUID teamId,
     ProjectUserSummary createdBy,
     Instant createdAt,
-    Instant updatedAt) {
+    Instant updatedAt,
+    boolean deleted) {
 
   /**
    * DTO for project owner information.

@@ -1,12 +1,17 @@
 package com.example.task_manager.project;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -168,45 +173,46 @@ public class ProjectService {
   }
 
   /**
-   * Returns all non-archived projects by authenticated user.
+   * Retrieves projects for a team with support for:
+   * - Search (name, description, owner)
+   * - Filtering (status, ownerId, date range)
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
    */
   @Transactional(readOnly = true)
-  public PageResponse<ProjectResponse> getAllActiveProjects(
+  public PageResponse<ProjectResponse> getProjects(
       UUID teamId,
+      String search,
+      ProjectStatus status,
+      UUID ownerId,
+      LocalDate startDateFrom,
+      LocalDate startDateTo,
+      Boolean includeDeleted,
       Pageable pageable,
-      String requesterEmail) {
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
-
+    UserEntity requester = getUserByEmail(authentication.getName());
     validateMembership(teamId, requester.getId());
 
-    Page<ProjectEntity> page = projectRepository.findByTeamIdAndDeletedAtIsNull(teamId, pageable);
+    boolean isSuperAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
 
-    return new PageResponse<>(
-        page.map(this::mapToResponse).getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages(),
-        page.isFirst(),
-        page.isLast());
-  }
+    boolean allowDeleted = Boolean.TRUE.equals(includeDeleted) && isSuperAdmin;
 
-  /**
-   * Returns all existing projects by authenticated user.
-   */
-  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-  @Transactional(readOnly = true)
-  public PageResponse<ProjectResponse> getAllExistingProjects(
-      UUID teamId,
-      Pageable pageable,
-      String requesterEmail) {
+    pageable = validateSorting(pageable);
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    Specification<ProjectEntity> spec = ProjectSpecification.build(
+        teamId,
+        search,
+        status,
+        ownerId,
+        startDateFrom,
+        startDateTo,
+        allowDeleted);
 
-    validateMembership(teamId, requester.getId());
-
-    Page<ProjectEntity> page = projectRepository.findByTeamId(teamId, pageable);
+    Page<ProjectEntity> page = projectRepository.findAll(spec, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -255,7 +261,9 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
+  // ********************
   // HELPERS
+  // ********************
 
   /**
    * Maps a ProjectEntity to a Project Response.
@@ -267,6 +275,8 @@ public class ProjectService {
         project.getCreatedBy().getLastName(),
         project.getCreatedBy().getEmail());
 
+    Boolean isDeleted = project.getDeletedAt() != null ? true : false;
+
     return new ProjectResponse(
         project.getId(),
         project.getName(),
@@ -275,7 +285,8 @@ public class ProjectService {
         project.getTeam().getId(),
         createdBy,
         project.getCreatedAt(),
-        project.getUpdatedAt());
+        project.getUpdatedAt(),
+        isDeleted);
   }
 
   /**
@@ -376,6 +387,30 @@ public class ProjectService {
       throw new ConflictException(
           "Project is already in this status");
     }
+  }
+
+  /*
+   * Allowed Sorting Fields
+   */
+  private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+      "name",
+      "status",
+      "createdBy",
+      "createdAt");
+
+  /*
+   * Check sort request
+   */
+  private Pageable validateSorting(Pageable pageable) {
+
+    for (Sort.Order order : pageable.getSort()) {
+      if (!ALLOWED_SORT_FIELDS.contains(order.getProperty())) {
+        throw new BadRequestInputException(
+            "Invalid sort field: " + order.getProperty());
+      }
+    }
+
+    return pageable;
   }
 
 }

@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,16 +16,14 @@ import com.example.task_manager.project.entity.ProjectEntity;
 /**
  * Repository interface for Project entities.
  */
-public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID> {
+public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID>, JpaSpecificationExecutor<ProjectEntity> {
 
   Optional<ProjectEntity> findByIdAndTeamId(UUID projectId, UUID teamId);
 
   Optional<ProjectEntity> findByIdAndTeamIdAndDeletedAtIsNull(UUID projectId, UUID teamId);
 
-  // All Existing Project
   Page<ProjectEntity> findByTeamId(UUID id, Pageable pageable);
 
-  // All Active Project
   Page<ProjectEntity> findByTeamIdAndDeletedAtIsNull(UUID id, Pageable pageable);
 
   boolean existsByIdAndTeamIdAndDeletedAtIsNull(UUID projectId, UUID teamId);

@@ -260,6 +260,42 @@ public class TeamService {
   }
 
   /**
+   * Change User's Role
+   * Only Owner and Admin can change
+   */
+  @Transactional
+  public TeamMemberResponse changeTeamRole(
+      UUID teamId,
+      UUID targetUserId,
+      TeamRole newRole,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    validateActiveTeam(teamId);
+
+    validateCanManageTeam(teamId, requester.getId());
+
+    TeamMemberEntity targetMember = getMembership(teamId, targetUserId);
+
+    if (targetMember.getRole() == TeamRole.OWNER) {
+      throw new ConflictException("Owner role cannot be modified.");
+    }
+
+    if (requester.getId().equals(targetUserId)) {
+      throw new ConflictException("You cannot change your own role.");
+    }
+
+    if (newRole == TeamRole.OWNER) {
+      throw new ConflictException("Use ownership transfer endpoint.");
+    }
+
+    targetMember.setRole(newRole);
+
+    return mapToMemberResponse(targetMember);
+  }
+
+  /**
    * Returns an non-archived team by id.
    */
   @Transactional(readOnly = true)

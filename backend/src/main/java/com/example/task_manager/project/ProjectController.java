@@ -1,10 +1,11 @@
 package com.example.task_manager.project;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
@@ -15,6 +16,7 @@ import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
+import com.example.task_manager.project.entity.ProjectStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -72,27 +74,43 @@ public class ProjectController {
   }
 
   /**
-   * Get all existing projects for authenticated user.
-   */
-  @GetMapping("/projects-all")
-  public ResponseEntity<PageResponse<ProjectResponse>> getAllExistingProjects(
-      @PathVariable UUID teamId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(projectService.getAllExistingProjects(teamId, pageable, authentication.getName()));
-  }
-
-  /**
-   * Get all active projects for authenticated user.
+   * GET /api/teams/{teamId}/projects
+   *
+   * Retrieves projects for a team with support for:
+   * - Search (name, description, owner)
+   * - Filtering (status, ownerId, date range)
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
+   *
+   * Default behavior:
+   * - Returns only active (non-deleted) projects.
+   *
+   * SUPER_ADMIN users may include deleted records using:
+   * ?includeDeleted=true
    */
   @GetMapping
-  public ResponseEntity<PageResponse<ProjectResponse>> getAllActiveProjects(
+  public PageResponse<ProjectResponse> getProjects(
       @PathVariable UUID teamId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      @RequestParam(required = false) String search,
+      @RequestParam(required = false) ProjectStatus status,
+      @RequestParam(required = false) UUID ownerId,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDateFrom,
+      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDateTo,
+      @RequestParam(defaultValue = "false") Boolean includeDeleted,
+      @PageableDefault(size = 10) Pageable pageable,
       Authentication authentication) {
 
-    return ResponseEntity.ok(projectService.getAllActiveProjects(teamId, pageable, authentication.getName()));
+    return projectService.getProjects(
+        teamId,
+        search,
+        status,
+        ownerId,
+        startDateFrom,
+        startDateTo,
+        includeDeleted,
+        pageable,
+        authentication);
   }
 
   /**

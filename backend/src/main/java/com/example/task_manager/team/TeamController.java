@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
+import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
@@ -46,6 +47,28 @@ public class TeamController {
       @Valid @RequestBody CreateTeamRequest request,
       Authentication authentication) {
     return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(request, authentication.getName()));
+  }
+
+  /**
+   * Update team info.
+   */
+  @PatchMapping("/{teamId}")
+  public ResponseEntity<TeamResponse> updateTeam(
+      @PathVariable UUID teamId,
+      @Valid @RequestBody UpdateTeamRequest request,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
+  }
+
+  /**
+   * Soft delete a team.
+   */
+  @DeleteMapping("/{teamId}")
+  public ResponseEntity<Void> deleteTeam(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    teamService.deleteTeam(teamId, authentication.getName());
+    return ResponseEntity.noContent().build();
   }
 
   /**
@@ -84,25 +107,15 @@ public class TeamController {
   }
 
   /**
-   * Update team info.
+   * Change role of user
    */
-  @PatchMapping("/{teamId}")
-  public ResponseEntity<TeamResponse> updateTeam(
+  @PatchMapping("/{teamId}/members/{userId}/role")
+  public ResponseEntity<TeamMemberResponse> changeTeamRole(
       @PathVariable UUID teamId,
-      @Valid @RequestBody UpdateTeamRequest request,
+      @PathVariable UUID userId,
+      @Valid @RequestBody ChangeTeamRoleRequest request,
       Authentication authentication) {
-    return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
-  }
-
-  /**
-   * Soft delete a team.
-   */
-  @DeleteMapping("/{teamId}")
-  public ResponseEntity<Void> deleteTeam(
-      @PathVariable UUID teamId,
-      Authentication authentication) {
-    teamService.deleteTeam(teamId, authentication.getName());
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(teamService.changeTeamRole(teamId, userId, request.role(), authentication.getName()));
   }
 
   /**
