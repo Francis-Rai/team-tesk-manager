@@ -29,7 +29,10 @@ public class SecurityConfig {
    * Configures the security filter chain.
    */
   @Bean
-  public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+  public SecurityFilterChain securityFilterChain(
+      HttpSecurity http,
+      CustomAccessDeniedHandler deniedHandler)
+      throws Exception {
 
     http
         // Disable CSRF for stateless session management
@@ -51,7 +54,11 @@ public class SecurityConfig {
             .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
 
         // Add JWT authentication filter
-        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
+        .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
+
+        // Exception Handling for global role
+        .exceptionHandling(ex -> ex
+            .accessDeniedHandler(deniedHandler));
 
     return http.build();
   }

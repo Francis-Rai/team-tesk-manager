@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -156,7 +157,7 @@ public class TaskService {
 
     TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
-    validateCanManageProjectTask(taskId, requester.getId());
+    validateCanManageProjectTask(teamId, requester.getId());
 
     task.setDeletedAt(Instant.now());
     createTaskUpdateEntry(task, "Deleted Task", requester);
@@ -343,8 +344,49 @@ public class TaskService {
   }
 
   /**
+   * Returns an existing task by id.
+   */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+  @Transactional(readOnly = true)
+  public TaskResponse getExistingTaskById(
+      UUID teamId,
+      UUID projectId,
+      UUID taskId,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TaskEntity team = getExistingTask(taskId, projectId, teamId);
+
+    validateMembership(teamId, requester.getId());
+
+    return mapToResponse(team);
+  }
+
+  /**
+   * Returns an non-archived task by id.
+   */
+  @Transactional(readOnly = true)
+  public TaskResponse getActiveTaskById(
+      UUID teamId,
+      UUID projectId,
+      UUID taskId,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    TaskEntity team = getActiveTask(taskId, projectId, teamId);
+
+    validateMembership(teamId, requester.getId());
+
+    return mapToResponse(team);
+  }
+
+  /**
    * Returns all existing tasks of a project.
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+  @Transactional(readOnly = true)
   public PageResponse<TaskResponse> getAllExistingTaskByProjectId(
       UUID teamId,
       UUID projectId,
@@ -423,10 +465,10 @@ public class TaskService {
   }
 
   /**
-   * Get all updates for a Task
+   * Get all task update for an Active Task
    */
   @Transactional(readOnly = true)
-  public PageResponse<TaskUpdateResponse> getAllTaskUpdates(
+  public PageResponse<TaskUpdateResponse> getAllActiveTaskUpdates(
       UUID teamId,
       UUID taskId,
       Pageable pageable,
@@ -438,6 +480,36 @@ public class TaskService {
     validateMembership(teamId, currentUser.getId());
 
     Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskIdAndTaskDeletedAtIsNull(
+        taskId,
+        pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToUpdateResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
+   * Get all task update for an Existing Task
+   */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+  @Transactional(readOnly = true)
+  public PageResponse<TaskUpdateResponse> getAllExistingTaskUpdates(
+      UUID teamId,
+      UUID taskId,
+      Pageable pageable,
+      String requesterEmail) {
+
+    UserEntity currentUser = getUserByEmail(requesterEmail);
+    validateExistingTask(taskId);
+
+    validateMembership(teamId, currentUser.getId());
+
+    Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskId(
         taskId,
         pageable);
 
@@ -601,6 +673,28 @@ public class TaskService {
    */
   private void validateActiveTask(UUID taskId) {
     boolean task = taskRepository.existsByIdAndDeletedAtIsNull(taskId);
+    if (!task) {
+      new ResourceNotFoundException("Task not found");
+    }
+  }
+
+  /**
+   * Ensures:
+   * - Task exists
+   * Returns task entity.
+   * Uses ResourceNotFound to prevent ID probing.
+   */
+  private TaskEntity getExistingTask(UUID taskId, UUID projectId, UUID teamId) {
+    return taskRepository.findByIdAndProjectIdAndProjectTeamId(taskId, projectId, teamId)
+        .orElseThrow(() -> new ResourceNotFoundException("Task not found"));
+  }
+
+  /**
+   * Ensures:
+   * - Task exists
+   */
+  private void validateExistingTask(UUID taskId) {
+    boolean task = taskRepository.existsById(taskId);
     if (!task) {
       new ResourceNotFoundException("Task not found");
     }

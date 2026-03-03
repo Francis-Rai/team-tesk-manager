@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -194,6 +195,7 @@ public class ProjectService {
   /**
    * Returns all existing projects by authenticated user.
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
   @Transactional(readOnly = true)
   public PageResponse<ProjectResponse> getAllExistingProjects(
       UUID teamId,
@@ -237,6 +239,7 @@ public class ProjectService {
   /**
    * Returns an existing projects by id.
    */
+  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
   @Transactional(readOnly = true)
   public ProjectResponse getExistingProjectById(
       UUID teamId,
