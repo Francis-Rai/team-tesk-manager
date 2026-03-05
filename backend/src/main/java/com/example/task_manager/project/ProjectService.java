@@ -1,7 +1,6 @@
 package com.example.task_manager.project;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.util.Set;
 import java.util.UUID;
 
@@ -22,6 +21,7 @@ import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
+import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
@@ -174,8 +174,8 @@ public class ProjectService {
 
   /**
    * Retrieves projects for a team with support for:
-   * - Search (name, description, owner)
-   * - Filtering (status, ownerId, date range)
+   * - Search
+   * - Filtering
    * - Sorting
    * - Pagination
    * - Role-based soft-delete visibility
@@ -183,9 +183,7 @@ public class ProjectService {
   @Transactional(readOnly = true)
   public PageResponse<ProjectResponse> getProjects(
       UUID teamId,
-      String search,
-      ProjectStatus status,
-      UUID ownerId,
+      ProjectSearchRequest request,
       Pageable pageable,
       Authentication authentication) {
 
@@ -199,14 +197,15 @@ public class ProjectService {
       validateMembership(teamId, requester.getId());
     }
 
-
     pageable = validateSorting(pageable);
 
     Specification<ProjectEntity> spec = ProjectSpecification.build(
         teamId,
-        search,
-        status,
-        ownerId,
+        request.search(),
+        request.statuses(),
+        request.createdBy(),
+        request.includeDeleted(),
+        request.onlyDeleted(),
         isGlobalAdmin);
 
     Page<ProjectEntity> page = projectRepository.findAll(spec, pageable);
@@ -320,7 +319,7 @@ public class ProjectService {
             teamId, userId);
 
     if (!isMember) {
-      throw new ResourceNotFoundException("Team not found");
+      throw new ResourceNotFoundException("Team not found or User is not a team member");
     }
   }
 
@@ -393,7 +392,8 @@ public class ProjectService {
       "name",
       "status",
       "createdBy",
-      "createdAt");
+      "createdAt",
+      "updatedAt");
 
   /*
    * Check sort request

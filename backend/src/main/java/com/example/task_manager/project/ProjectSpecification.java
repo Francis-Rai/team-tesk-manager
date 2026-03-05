@@ -1,5 +1,6 @@
 package com.example.task_manager.project;
 
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -19,16 +20,18 @@ public class ProjectSpecification {
   public static Specification<ProjectEntity> build(
       UUID teamId,
       String search,
-      ProjectStatus status,
-      UUID ownerId,
+      List<ProjectStatus> status,
+      UUID createdBy,
+      Boolean includeDeleted,
+      Boolean onlyDeleted,
       boolean isGlobalAdmin) {
 
     return Specification
         .where(belongsToTeam(teamId))
         .and(search(search))
-        .and(hasStatus(status))
-        .and(hasCreatedBy(ownerId))
-        .and(isGlobalAdmin ? null : isNotDeleted());
+        .and(hasStatuses(status))
+        .and(hasCreatedBy(createdBy))
+        .and(deletedFilter(includeDeleted, onlyDeleted, isGlobalAdmin));
   }
 
   private static Specification<ProjectEntity> belongsToTeam(UUID teamId) {
@@ -36,6 +39,7 @@ public class ProjectSpecification {
   }
 
   private static Specification<ProjectEntity> search(String keyword) {
+
     return (root, query, cb) -> {
 
       if (keyword == null || keyword.isBlank()) {
@@ -54,19 +58,45 @@ public class ProjectSpecification {
     };
   }
 
-  private static Specification<ProjectEntity> hasStatus(ProjectStatus status) {
-    return (root, query, cb) -> status == null
-        ? cb.conjunction()
-        : cb.equal(root.get("status"), status);
+  private static Specification<ProjectEntity> hasStatuses(List<ProjectStatus> statuses) {
+
+    return (root, query, cb) -> {
+
+      if (statuses == null || statuses.isEmpty()) {
+        return cb.conjunction();
+      }
+
+      return root.get("status").in(statuses);
+    };
   }
 
   private static Specification<ProjectEntity> hasCreatedBy(UUID ownerId) {
+
     return (root, query, cb) -> ownerId == null
         ? cb.conjunction()
         : cb.equal(root.get("createdBy").get("id"), ownerId);
   }
 
-  private static Specification<ProjectEntity> isNotDeleted() {
-    return (root, query, cb) -> cb.isNull(root.get("deletedAt"));
+  private static Specification<ProjectEntity> deletedFilter(
+      Boolean includeDeleted,
+      Boolean onlyDeleted,
+      boolean isGlobalAdmin) {
+
+    return (root, query, cb) -> {
+
+      if (!isGlobalAdmin) {
+        return cb.isNull(root.get("deletedAt"));
+      }
+
+      if (Boolean.TRUE.equals(onlyDeleted)) {
+        return cb.isNotNull(root.get("deletedAt"));
+      }
+
+      if (Boolean.TRUE.equals(includeDeleted)) {
+        return cb.conjunction();
+      }
+
+      return cb.isNull(root.get("deletedAt"));
+    };
   }
 }

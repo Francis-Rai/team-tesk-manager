@@ -4,8 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -24,6 +22,7 @@ import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
+import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
 
 import jakarta.validation.Valid;
@@ -119,6 +118,31 @@ public class TeamController {
   }
 
   /**
+   * GET /api/teams
+   *
+   * Retrieves teams with support for:
+   * - Search (name, description, owner)
+   * - Filtering (status, ownerId, date range)
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
+   *
+   * Default behavior:
+   * - Returns only active (non-deleted) teams.
+   *
+   * Global Admins users may include deleted records using:
+   * ?includeDeleted=true
+   */
+  @GetMapping
+  public ResponseEntity<PageResponse<TeamResponse>> getTeams(
+      TeamSearchRequest request,
+      Pageable pageable,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(teamService.getTeams(request, pageable, authentication));
+  }
+
+  /**
    * Get Active team by ID.
    */
   @GetMapping("/{teamId}")
@@ -146,27 +170,4 @@ public class TeamController {
       Authentication authentication) {
     return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
   }
-
-  /**
-   * Get all user's active teams
-   */
-  @GetMapping
-  public ResponseEntity<PageResponse<TeamResponse>> getAllActiveTeams(
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getAllActiveTeams(authentication.getName(), pageable));
-  }
-
-  /**
-   * Get all user's existing teams
-   */
-  @GetMapping("/teams-all")
-  public ResponseEntity<PageResponse<TeamResponse>> getAllExistingTeams(
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getAllExistingTeams(authentication.getName(), pageable));
-  }
-
 }

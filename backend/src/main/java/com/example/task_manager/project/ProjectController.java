@@ -1,11 +1,8 @@
 package com.example.task_manager.project;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
@@ -15,8 +12,8 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
+import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
-import com.example.task_manager.project.entity.ProjectStatus;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -86,25 +83,17 @@ public class ProjectController {
    * Default behavior:
    * - Returns only active (non-deleted) projects.
    *
-   * SUPER_ADMIN users may include deleted records using:
+   * Global Admins users may include deleted records using:
    * ?includeDeleted=true
    */
   @GetMapping
   public PageResponse<ProjectResponse> getProjects(
       @PathVariable UUID teamId,
-      @RequestParam(required = false) String search,
-      @RequestParam(required = false) ProjectStatus status,
-      @RequestParam(required = false) UUID ownerId,
-      @PageableDefault(size = 10) Pageable pageable,
+      ProjectSearchRequest request,
+      Pageable pageable,
       Authentication authentication) {
 
-    return projectService.getProjects(
-        teamId,
-        search,
-        status,
-        ownerId,
-        pageable,
-        authentication);
+    return projectService.getProjects(teamId, request, pageable, authentication);
   }
 
   /**

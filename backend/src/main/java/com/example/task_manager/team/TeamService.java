@@ -2,12 +2,16 @@ package com.example.task_manager.team;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -21,6 +25,7 @@ import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
+import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
 import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -327,39 +332,46 @@ public class TeamService {
   }
 
   /**
-   * Returns all existing team
-   */
-  @PreAuthorize("hasAnyRole('SUPER_ADMIN','ADMIN')")
-  @Transactional(readOnly = true)
-  public PageResponse<TeamResponse> getAllExistingTeams(
-      String requesterEmail,
-      Pageable pageable) {
-
-    Page<TeamEntity> page = teamRepository.findAll(pageable);
-
-    return new PageResponse<>(
-        page.map(this::mapToResponse).getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages(),
-        page.isFirst(),
-        page.isLast());
-  }
-
-  /**
-   * Returns all non-archived team of authenticated user.
+   * Retrieves teams with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
    */
   @Transactional(readOnly = true)
-  public PageResponse<TeamResponse> getAllActiveTeams(
-      String requesterEmail,
-      Pageable pageable) {
+  public PageResponse<TeamResponse> getTeams(
+      TeamSearchRequest request,
+      Pageable pageable,
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity requester = getUserByEmail(authentication.getName());
 
-    Page<TeamEntity> page = teamRepository.findActiveTeamsByUser(
+    boolean isGlobalAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
+
+    UUID ownerId = null, memberId = null;
+
+    if (isGlobalAdmin) {
+
+      ownerId = request.ownerId();
+      memberId = request.memberId();
+
+    }
+
+    Specification<TeamEntity> spec = TeamSpecification.build(
         requester.getId(),
-        pageable);
+        request.search(),
+        ownerId,
+        memberId,
+        request.includeDeleted(),
+        request.onlyDeleted(),
+        isGlobalAdmin);
+
+    pageable = validateSorting(pageable);
+
+    Page<TeamEntity> page = teamRepository.findAll(spec, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -408,13 +420,16 @@ public class TeamService {
         team.getOwner().getLastName(),
         team.getOwner().getEmail());
 
+    Boolean isDeleted = team.getDeletedAt() != null ? true : false;
+
     return new TeamResponse(
         team.getId(),
         team.getName(),
         team.getDescription(),
         user,
         team.getCreatedAt(),
-        team.getUpdatedAt());
+        team.getUpdatedAt(),
+        isDeleted);
   }
 
   /**
@@ -549,4 +564,27 @@ public class TeamService {
         .orElseThrow(() -> new ResourceNotFoundException("Team not found"));
   }
 
+  /*
+   * Allowed Sorting Fields
+   */
+  private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+      "name",
+      "ownerId",
+      "createdAt",
+      "updatedAt");
+
+  /*
+   * Check sort request
+   */
+  private Pageable validateSorting(Pageable pageable) {
+
+    for (Sort.Order order : pageable.getSort()) {
+      if (!ALLOWED_SORT_FIELDS.contains(order.getProperty())) {
+        throw new BadRequestInputException(
+            "Invalid sort field: " + order.getProperty());
+      }
+    }
+
+    return pageable;
+  }
 }
