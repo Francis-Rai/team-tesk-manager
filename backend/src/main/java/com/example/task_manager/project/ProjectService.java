@@ -190,11 +190,15 @@ public class ProjectService {
       Authentication authentication) {
 
     UserEntity requester = getUserByEmail(authentication.getName());
-    validateMembership(teamId, requester.getId());
 
     boolean isGlobalAdmin = authentication.getAuthorities()
         .stream()
-        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
+
+    if (!isGlobalAdmin) {
+      validateMembership(teamId, requester.getId());
+    }
+
 
     pageable = validateSorting(pageable);
 
