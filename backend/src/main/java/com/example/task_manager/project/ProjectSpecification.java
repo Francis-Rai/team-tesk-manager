@@ -1,6 +1,5 @@
 package com.example.task_manager.project;
 
-import java.time.LocalDate;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
@@ -22,16 +21,14 @@ public class ProjectSpecification {
       String search,
       ProjectStatus status,
       UUID ownerId,
-      LocalDate startDateFrom,
-      LocalDate startDateTo,
-      boolean includeDeleted) {
+      boolean isGlobalAdmin) {
 
     return Specification
         .where(belongsToTeam(teamId))
         .and(search(search))
         .and(hasStatus(status))
         .and(hasCreatedBy(ownerId))
-        .and(includeDeleted ? null : isNotDeleted());
+        .and(isGlobalAdmin ? null : isNotDeleted());
   }
 
   private static Specification<ProjectEntity> belongsToTeam(UUID teamId) {

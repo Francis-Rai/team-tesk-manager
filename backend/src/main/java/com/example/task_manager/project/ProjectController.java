@@ -95,9 +95,6 @@ public class ProjectController {
       @RequestParam(required = false) String search,
       @RequestParam(required = false) ProjectStatus status,
       @RequestParam(required = false) UUID ownerId,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDateFrom,
-      @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDateTo,
-      @RequestParam(defaultValue = "false") Boolean includeDeleted,
       @PageableDefault(size = 10) Pageable pageable,
       Authentication authentication) {
 
@@ -106,9 +103,6 @@ public class ProjectController {
         search,
         status,
         ownerId,
-        startDateFrom,
-        startDateTo,
-        includeDeleted,
         pageable,
         authentication);
   }

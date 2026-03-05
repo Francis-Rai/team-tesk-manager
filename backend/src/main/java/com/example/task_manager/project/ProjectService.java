@@ -186,20 +186,15 @@ public class ProjectService {
       String search,
       ProjectStatus status,
       UUID ownerId,
-      LocalDate startDateFrom,
-      LocalDate startDateTo,
-      Boolean includeDeleted,
       Pageable pageable,
       Authentication authentication) {
 
     UserEntity requester = getUserByEmail(authentication.getName());
     validateMembership(teamId, requester.getId());
 
-    boolean isSuperAdmin = authentication.getAuthorities()
+    boolean isGlobalAdmin = authentication.getAuthorities()
         .stream()
         .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN"));
-
-    boolean allowDeleted = Boolean.TRUE.equals(includeDeleted) && isSuperAdmin;
 
     pageable = validateSorting(pageable);
 
@@ -208,9 +203,7 @@ public class ProjectService {
         search,
         status,
         ownerId,
-        startDateFrom,
-        startDateTo,
-        allowDeleted);
+        isGlobalAdmin);
 
     Page<ProjectEntity> page = projectRepository.findAll(spec, pageable);
 
