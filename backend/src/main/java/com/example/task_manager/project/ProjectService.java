@@ -1,12 +1,16 @@
 package com.example.task_manager.project;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -17,11 +21,13 @@ import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
+import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
 import com.example.task_manager.team.TeamMemberRepository;
+import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
@@ -38,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 public class ProjectService {
 
   private final ProjectRepository projectRepository;
+  private final TeamRepository teamRepository;
   private final TeamMemberRepository teamMemberRepository;
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
@@ -168,45 +175,44 @@ public class ProjectService {
   }
 
   /**
-   * Returns all non-archived projects by authenticated user.
+   * Retrieves projects for a team with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
    */
   @Transactional(readOnly = true)
-  public PageResponse<ProjectResponse> getAllActiveProjects(
+  public PageResponse<ProjectResponse> getProjects(
       UUID teamId,
+      ProjectSearchRequest request,
       Pageable pageable,
-      String requesterEmail) {
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity requester = getUserByEmail(authentication.getName());
 
-    validateMembership(teamId, requester.getId());
+    validateTeam(teamId);
 
-    Page<ProjectEntity> page = projectRepository.findByTeamIdAndDeletedAtIsNull(teamId, pageable);
+    boolean isGlobalAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
 
-    return new PageResponse<>(
-        page.map(this::mapToResponse).getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages(),
-        page.isFirst(),
-        page.isLast());
-  }
+    if (!isGlobalAdmin) {
+      validateMembership(teamId, requester.getId());
+    }
 
-  /**
-   * Returns all existing projects by authenticated user.
-   */
-  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-  @Transactional(readOnly = true)
-  public PageResponse<ProjectResponse> getAllExistingProjects(
-      UUID teamId,
-      Pageable pageable,
-      String requesterEmail) {
+    pageable = validateSorting(pageable);
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    Specification<ProjectEntity> spec = ProjectSpecification.build(
+        teamId,
+        request.search(),
+        request.statuses(),
+        request.createdBy(),
+        request.includeDeleted(),
+        request.onlyDeleted(),
+        isGlobalAdmin);
 
-    validateMembership(teamId, requester.getId());
-
-    Page<ProjectEntity> page = projectRepository.findByTeamId(teamId, pageable);
+    Page<ProjectEntity> page = projectRepository.findAll(spec, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -255,7 +261,9 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
+  // ********************
   // HELPERS
+  // ********************
 
   /**
    * Maps a ProjectEntity to a Project Response.
@@ -267,6 +275,8 @@ public class ProjectService {
         project.getCreatedBy().getLastName(),
         project.getCreatedBy().getEmail());
 
+    Boolean isDeleted = project.getDeletedAt() != null ? true : false;
+
     return new ProjectResponse(
         project.getId(),
         project.getName(),
@@ -275,7 +285,8 @@ public class ProjectService {
         project.getTeam().getId(),
         createdBy,
         project.getCreatedAt(),
-        project.getUpdatedAt());
+        project.getUpdatedAt(),
+        isDeleted);
   }
 
   /**
@@ -312,7 +323,7 @@ public class ProjectService {
             teamId, userId);
 
     if (!isMember) {
-      throw new ResourceNotFoundException("Team not found");
+      throw new ResourceNotFoundException("Team not found or User is not a team member");
     }
   }
 
@@ -376,6 +387,42 @@ public class ProjectService {
       throw new ConflictException(
           "Project is already in this status");
     }
+  }
+
+  /**
+   * Get an existing team
+   */
+  private void validateTeam(UUID teamId) {
+    boolean team = teamRepository.existsById(teamId);
+
+    if (!team) {
+      throw new ResourceNotFoundException("Team not found");
+    }
+  }
+
+  /*
+   * Allowed Sorting Fields
+   */
+  private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+      "name",
+      "status",
+      "createdBy",
+      "createdAt",
+      "updatedAt");
+
+  /*
+   * Check sort request
+   */
+  private Pageable validateSorting(Pageable pageable) {
+
+    for (Sort.Order order : pageable.getSort()) {
+      if (!ALLOWED_SORT_FIELDS.contains(order.getProperty())) {
+        throw new BadRequestInputException(
+            "Invalid sort field: " + order.getProperty());
+      }
+    }
+
+    return pageable;
   }
 
 }

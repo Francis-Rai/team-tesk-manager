@@ -12,7 +12,8 @@ public record TeamResponse(
     String description,
     User owner,
     Instant createdAt,
-    Instant updatedAt) {
+    Instant updatedAt,
+    Boolean isDeleted) {
 
   // Owner Info
   public record User(

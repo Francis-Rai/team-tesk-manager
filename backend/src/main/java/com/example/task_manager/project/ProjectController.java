@@ -3,8 +3,9 @@ package com.example.task_manager.project;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
@@ -14,6 +15,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
 import com.example.task_manager.project.dto.ProjectResponse;
+import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 
 import jakarta.validation.Valid;
@@ -72,27 +74,27 @@ public class ProjectController {
   }
 
   /**
-   * Get all existing projects for authenticated user.
-   */
-  @GetMapping("/projects-all")
-  public ResponseEntity<PageResponse<ProjectResponse>> getAllExistingProjects(
-      @PathVariable UUID teamId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(projectService.getAllExistingProjects(teamId, pageable, authentication.getName()));
-  }
-
-  /**
-   * Get all active projects for authenticated user.
+   * Retrieves projects for a team with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
+   *
+   * Default behavior:
+   * - Returns only active (non-deleted) projects.
+   *
+   * Global Admins users may include deleted records using:
+   * ?includeDeleted=true
    */
   @GetMapping
-  public ResponseEntity<PageResponse<ProjectResponse>> getAllActiveProjects(
+  public PageResponse<ProjectResponse> getProjects(
       @PathVariable UUID teamId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      ProjectSearchRequest request,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return ResponseEntity.ok(projectService.getAllActiveProjects(teamId, pageable, authentication.getName()));
+    return projectService.getProjects(teamId, request, pageable, authentication);
   }
 
   /**

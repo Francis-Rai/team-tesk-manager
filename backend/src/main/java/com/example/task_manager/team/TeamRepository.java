@@ -6,6 +6,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 
 import com.example.task_manager.team.entity.TeamEntity;
@@ -13,7 +14,7 @@ import com.example.task_manager.team.entity.TeamEntity;
 /**
  * Repository interface for Team entities.
  */
-public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
+public interface TeamRepository extends JpaRepository<TeamEntity, UUID>, JpaSpecificationExecutor<TeamEntity> {
   boolean existsByOwnerIdAndNameAndDeletedAtIsNull(UUID teamId, String name);
 
   boolean existsByIdAndDeletedAtIsNull(UUID id);
@@ -30,6 +31,4 @@ public interface TeamRepository extends JpaRepository<TeamEntity, UUID> {
             AND t.deletedAt IS NULL
       """)
   Page<TeamEntity> findActiveTeamsByUser(UUID userId, Pageable pageable);
-
-  Page<TeamEntity> findAll(Pageable pageable);
 }

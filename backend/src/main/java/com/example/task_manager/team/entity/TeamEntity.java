@@ -39,7 +39,9 @@ import lombok.Setter;
 @Table(name = "teams", uniqueConstraints = {
     @UniqueConstraint(name = "uk_team_owner_name", columnNames = { "owner_id", "name" })
 }, indexes = {
-    @Index(name = "idx_team_owner_id_deleted", columnList = "owner_id, deleted_at")
+    @Index(name = "idx_team_owner_id_deleted", columnList = "owner_id, deleted_at"),
+    @Index(name = "idx_team_name", columnList = "name"),
+    @Index(name = "idx_team_deleted", columnList = "deleted_at")
 })
 public class TeamEntity {
 

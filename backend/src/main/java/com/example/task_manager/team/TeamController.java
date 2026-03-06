@@ -4,8 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -20,9 +20,11 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
+import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
+import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
 
 import jakarta.validation.Valid;
@@ -46,6 +48,28 @@ public class TeamController {
       @Valid @RequestBody CreateTeamRequest request,
       Authentication authentication) {
     return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(request, authentication.getName()));
+  }
+
+  /**
+   * Update team info.
+   */
+  @PatchMapping("/{teamId}")
+  public ResponseEntity<TeamResponse> updateTeam(
+      @PathVariable UUID teamId,
+      @Valid @RequestBody UpdateTeamRequest request,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
+  }
+
+  /**
+   * Soft delete a team.
+   */
+  @DeleteMapping("/{teamId}")
+  public ResponseEntity<Void> deleteTeam(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    teamService.deleteTeam(teamId, authentication.getName());
+    return ResponseEntity.noContent().build();
   }
 
   /**
@@ -84,25 +108,38 @@ public class TeamController {
   }
 
   /**
-   * Update team info.
+   * Change role of user
    */
-  @PatchMapping("/{teamId}")
-  public ResponseEntity<TeamResponse> updateTeam(
+  @PatchMapping("/{teamId}/members/{userId}/role")
+  public ResponseEntity<TeamMemberResponse> changeTeamRole(
       @PathVariable UUID teamId,
-      @Valid @RequestBody UpdateTeamRequest request,
+      @PathVariable UUID userId,
+      @Valid @RequestBody ChangeTeamRoleRequest request,
       Authentication authentication) {
-    return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
+    return ResponseEntity.ok(teamService.changeTeamRole(teamId, userId, request.role(), authentication.getName()));
   }
 
   /**
-   * Soft delete a team.
+   * Retrieves teams with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
+   *
+   * Default behavior:
+   * - Returns only active (non-deleted) teams.
+   *
+   * Global Admins users may include deleted records using:
+   * ?includeDeleted=true
    */
-  @DeleteMapping("/{teamId}")
-  public ResponseEntity<Void> deleteTeam(
-      @PathVariable UUID teamId,
+  @GetMapping
+  public ResponseEntity<PageResponse<TeamResponse>> getTeams(
+      TeamSearchRequest request,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    teamService.deleteTeam(teamId, authentication.getName());
-    return ResponseEntity.noContent().build();
+
+    return ResponseEntity.ok(teamService.getTeams(request, pageable, authentication));
   }
 
   /**
@@ -133,27 +170,4 @@ public class TeamController {
       Authentication authentication) {
     return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
   }
-
-  /**
-   * Get all user's active teams
-   */
-  @GetMapping
-  public ResponseEntity<PageResponse<TeamResponse>> getAllActiveTeams(
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getAllActiveTeams(authentication.getName(), pageable));
-  }
-
-  /**
-   * Get all user's existing teams
-   */
-  @GetMapping("/teams-all")
-  public ResponseEntity<PageResponse<TeamResponse>> getAllExistingTeams(
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getAllExistingTeams(authentication.getName(), pageable));
-  }
-
 }
