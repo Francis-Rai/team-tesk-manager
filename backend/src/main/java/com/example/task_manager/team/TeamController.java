@@ -4,6 +4,8 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -118,11 +120,9 @@ public class TeamController {
   }
 
   /**
-   * GET /api/teams
-   *
    * Retrieves teams with support for:
-   * - Search (name, description, owner)
-   * - Filtering (status, ownerId, date range)
+   * - Search
+   * - Filtering
    * - Sorting
    * - Pagination
    * - Role-based soft-delete visibility
@@ -136,7 +136,7 @@ public class TeamController {
   @GetMapping
   public ResponseEntity<PageResponse<TeamResponse>> getTeams(
       TeamSearchRequest request,
-      Pageable pageable,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
     return ResponseEntity.ok(teamService.getTeams(request, pageable, authentication));

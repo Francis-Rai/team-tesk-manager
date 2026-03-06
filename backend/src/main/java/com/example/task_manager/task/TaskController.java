@@ -5,8 +5,8 @@ import java.util.UUID;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +22,7 @@ import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.CreateTaskUpdateRequest;
 import com.example.task_manager.task.dto.TaskResponse;
+import com.example.task_manager.task.dto.TaskSearchRequest;
 import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 
@@ -167,33 +168,28 @@ public class TaskController {
   }
 
   /**
-   * Get all active tasks for a project.
+   * Retrieves task for a project and team with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
+   *
+   * Default behavior:
+   * - Returns only active (non-deleted) projects.
+   *
+   * Global Admins users may include deleted records using:
+   * ?includeDeleted=true
    */
-  @GetMapping("/task-all")
-  public ResponseEntity<PageResponse<TaskResponse>> getAllExistingTask(
+  @GetMapping()
+  public ResponseEntity<PageResponse<TaskResponse>> getTasks(
       @PathVariable UUID teamId,
       @PathVariable UUID projectId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      TaskSearchRequest request,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return ResponseEntity.ok(taskService.getAllExistingTaskByProjectId(teamId, projectId,
-        authentication.getName(), pageable));
-  }
-
-  /**
-   * Get all active tasks for a project.
-   */
-  @GetMapping
-  public ResponseEntity<PageResponse<TaskResponse>> getAllActiveTask(
-      @PathVariable UUID teamId,
-      @PathVariable UUID projectId,
-      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    PageResponse<TaskResponse> response = taskService.getAllActiveTasksByProjectId(teamId, projectId,
-        authentication.getName(), pageable);
-
-    return ResponseEntity.ok(response);
+    return ResponseEntity.ok(taskService.getTasks(teamId, projectId, request, pageable, authentication));
   }
 
   /**

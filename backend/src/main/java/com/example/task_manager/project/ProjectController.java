@@ -3,6 +3,9 @@ package com.example.task_manager.project;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.data.domain.Sort;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.http.HttpStatus;
@@ -71,11 +74,9 @@ public class ProjectController {
   }
 
   /**
-   * GET /api/teams/{teamId}/projects
-   *
    * Retrieves projects for a team with support for:
-   * - Search (name, description, owner)
-   * - Filtering (status, ownerId, date range)
+   * - Search
+   * - Filtering
    * - Sorting
    * - Pagination
    * - Role-based soft-delete visibility
@@ -90,7 +91,7 @@ public class ProjectController {
   public PageResponse<ProjectResponse> getProjects(
       @PathVariable UUID teamId,
       ProjectSearchRequest request,
-      Pageable pageable,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
     return projectService.getProjects(teamId, request, pageable, authentication);

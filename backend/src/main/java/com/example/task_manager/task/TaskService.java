@@ -1,11 +1,15 @@
 package com.example.task_manager.task;
 
 import java.time.Instant;
+import java.util.Set;
 import java.util.UUID;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import com.example.task_manager.common.PageResponse;
@@ -19,6 +23,7 @@ import com.example.task_manager.task.dto.ChangeStatusRequest;
 import com.example.task_manager.task.dto.CreateTaskRequest;
 import com.example.task_manager.task.dto.CreateTaskUpdateRequest;
 import com.example.task_manager.task.dto.TaskResponse;
+import com.example.task_manager.task.dto.TaskSearchRequest;
 import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 import com.example.task_manager.task.entity.TaskEntity;
@@ -383,52 +388,48 @@ public class TaskService {
   }
 
   /**
-   * Returns all existing tasks of a project.
-   */
-  @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
-  @Transactional(readOnly = true)
-  public PageResponse<TaskResponse> getAllExistingTaskByProjectId(
-      UUID teamId,
-      UUID projectId,
-      String requesterEmail,
-      Pageable pageable) {
-
-    UserEntity requester = getUserByEmail(requesterEmail);
-
-    validateExistingProject(projectId, teamId);
-
-    validateMembership(teamId, requester.getId());
-
-    Page<TaskEntity> page = taskRepository.findByProjectId(projectId, pageable);
-
-    return new PageResponse<>(
-        page.map(this::mapToResponse).getContent(),
-        page.getNumber(),
-        page.getSize(),
-        page.getTotalElements(),
-        page.getTotalPages(),
-        page.isFirst(),
-        page.isLast());
-  }
-
-  /**
-   * Returns all active tasks of a project.
+   * Retrieves tasks for a projects and team with support for:
+   * - Search
+   * - Filtering
+   * - Sorting
+   * - Pagination
+   * - Role-based soft-delete visibility
    */
   @Transactional(readOnly = true)
-  public PageResponse<TaskResponse> getAllActiveTasksByProjectId(
+  public PageResponse<TaskResponse> getTasks(
       UUID teamId,
       UUID projectId,
-      String requesterEmail,
-      Pageable pageable) {
+      TaskSearchRequest request,
+      Pageable pageable,
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity requester = getUserByEmail(authentication.getName());
 
-    validateActiveProject(projectId, teamId);
+    validateProject(projectId, teamId);
 
-    validateMembership(teamId, requester.getId());
+    boolean isGlobalAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
 
-    Page<TaskEntity> page = taskRepository
-        .findByProjectIdAndDeletedAtIsNull(projectId, pageable);
+    if (!isGlobalAdmin) {
+      validateMembership(teamId, requester.getId());
+    }
+
+    pageable = validateSorting(pageable);
+
+    Specification<TaskEntity> spec = TaskSpecification.build(
+        projectId,
+        request.search(),
+        request.status(),
+        request.priority(),
+        request.assigneeId(),
+        request.supportId(),
+        request.overdue(),
+        request.includeDeleted(),
+        request.onlyDeleted(),
+        isGlobalAdmin);
+
+    Page<TaskEntity> page = taskRepository.findAll(spec, pageable);
 
     return new PageResponse<>(
         page.map(this::mapToResponse).getContent(),
@@ -634,29 +635,6 @@ public class TaskService {
   /**
    * Ensures:
    * - Task exists
-   * - Task not deleted
-   */
-  private void validateActiveProject(UUID projectId, UUID teamId) {
-    boolean project = projectRepository.existsByIdAndTeamIdAndDeletedAtIsNull(projectId, teamId);
-    if (!project) {
-      throw new ResourceNotFoundException("Project not found");
-    }
-  }
-
-  /**
-   * Ensures:
-   * - Task exists
-   */
-  private void validateExistingProject(UUID projectId, UUID teamId) {
-    boolean project = projectRepository.existsByIdAndTeamId(projectId, teamId);
-    if (!project) {
-      throw new ResourceNotFoundException("Project not found");
-    }
-  }
-
-  /**
-   * Ensures:
-   * - Task exists
    * - Task not deleted *
    * Returns task entity.
    * Uses ResourceNotFound to prevent ID probing.
@@ -779,6 +757,40 @@ public class TaskService {
     update.setCreatedBy(actor);
 
     taskUpdateRepository.save(update);
+  }
+
+  /**
+   * Get an active project
+   */
+  private void validateProject(UUID projectId, UUID teamId) {
+    boolean project = projectRepository.existsByIdAndTeamId(projectId, teamId);
+
+    if (!project) {
+      throw new ResourceNotFoundException("Project not found");
+    }
+  }
+
+  /*
+   * Allowed Sorting Fields
+   */
+  private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
+      "name",
+      "createdAt",
+      "updatedAt");
+
+  /*
+   * Check sort request
+   */
+  private Pageable validateSorting(Pageable pageable) {
+
+    for (Sort.Order order : pageable.getSort()) {
+      if (!ALLOWED_SORT_FIELDS.contains(order.getProperty())) {
+        throw new BadRequestInputException(
+            "Invalid sort field: " + order.getProperty());
+      }
+    }
+
+    return pageable;
   }
 
 }

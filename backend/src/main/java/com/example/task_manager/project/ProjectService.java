@@ -27,6 +27,7 @@ import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
 import com.example.task_manager.team.TeamMemberRepository;
+import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
@@ -43,6 +44,7 @@ import lombok.RequiredArgsConstructor;
 public class ProjectService {
 
   private final ProjectRepository projectRepository;
+  private final TeamRepository teamRepository;
   private final TeamMemberRepository teamMemberRepository;
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
@@ -188,6 +190,8 @@ public class ProjectService {
       Authentication authentication) {
 
     UserEntity requester = getUserByEmail(authentication.getName());
+
+    validateTeam(teamId);
 
     boolean isGlobalAdmin = authentication.getAuthorities()
         .stream()
@@ -382,6 +386,17 @@ public class ProjectService {
     if (project.getStatus() == newStatus) {
       throw new ConflictException(
           "Project is already in this status");
+    }
+  }
+
+  /**
+   * Get an existing team
+   */
+  private void validateTeam(UUID teamId) {
+    boolean team = teamRepository.existsById(teamId);
+
+    if (!team) {
+      throw new ResourceNotFoundException("Team not found");
     }
   }
 

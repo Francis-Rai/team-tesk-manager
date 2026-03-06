@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 
@@ -15,7 +16,7 @@ import com.example.task_manager.task.entity.TaskEntity;
 /**
  * Repository interface for Task entities.
  */
-public interface TaskRepository extends JpaRepository<TaskEntity, UUID> {
+public interface TaskRepository extends JpaRepository<TaskEntity, UUID>, JpaSpecificationExecutor<TaskEntity> {
   Page<TaskEntity> findByProjectId(UUID projectId, Pageable pageable);
 
   Optional<TaskEntity> findByIdAndProjectIdAndProjectTeamIdAndDeletedAtIsNull(UUID taskId, UUID projectID, UUID teamID);
