@@ -1,4 +1,4 @@
-import type { Project } from "./project.types";
+import type { Project } from "./types/projectTypes";
 
 type Props = {
   projects: Project[];

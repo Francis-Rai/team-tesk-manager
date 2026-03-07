@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteProject } from "./project.service";
+import { deleteProject } from "./api/projectApi";
 
 /*
  * Custom hook to delete a project.

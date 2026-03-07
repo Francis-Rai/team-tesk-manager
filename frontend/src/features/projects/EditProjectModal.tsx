@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "../components/Modal";
-import type { Project } from "./project.types";
+import type { Project } from "./types/projectTypes";
 import { useUpdateProject } from "./useUpdateProject";
 import Button from "../components/Button";
 

@@ -1,18 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createProject } from "./project.service";
+import { createProject } from "../api/projectApi";
 
 /*
  * Custom hook to create a project.
  */
-export const useCreateProject = () => {
+export const useCreateProject = (teamId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createProject,
+    mutationFn: (data: { name: string; description?: string }) =>
+      createProject(teamId, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["projects"],
+        queryKey: ["projects", teamId],
       });
     },
   });

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateProject } from "./project.service";
+import { updateProject } from "./api/projectApi";
 
 /*
  * Custom hook to update a project.
