@@ -1,6 +1,6 @@
 import { useState } from "react";
-import { useLogin, useRegister } from "../auth/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useLogin, useRegister } from "../features/auth/useAuth";
 
 /*
  * Authentication page component
@@ -104,7 +104,7 @@ export default function Auth() {
           // On successful login, store token and navigate to home page
           onSuccess: (data) => {
             localStorage.setItem("token", data.token);
-            navigate("/projects");
+            navigate("/teams");
           },
           // Set server error message on login failure
           onError: (error: unknown) => {

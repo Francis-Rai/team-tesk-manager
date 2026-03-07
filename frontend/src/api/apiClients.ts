@@ -3,22 +3,15 @@ import axios from "axios";
 /*
  * Create an Axios instance with a base URL
  */
-export const api = axios.create({
+export const apiClient = axios.create({
   baseURL: "http://localhost:8080/api",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Add a response interceptor to handle errors globally
-api.interceptors.response.use(
-  (response) => response,
-  (error) => {
-    console.error("API Error:", error);
-
-    return Promise.reject(error);
-  },
-);
-
 // Attach token on every request
-api.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("token");
 
   if (token) {
@@ -27,3 +20,13 @@ api.interceptors.request.use((config) => {
 
   return config;
 });
+
+// Add a response interceptor to handle errors globally
+apiClient.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    console.error("API Error:", error);
+
+    return Promise.reject(error);
+  },
+);

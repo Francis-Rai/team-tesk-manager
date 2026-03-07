@@ -1,4 +1,4 @@
-import { api } from "../api/apiClients";
+import { apiClient } from "../../api/apiClients";
 
 /*
  * Define the structure of the authentication response
@@ -14,12 +14,15 @@ export const register = async (payload: {
   email: string;
   password: string;
 }) => {
-  const { data } = await api.post<AuthResponse>("/auth/register", payload);
+  const { data } = await apiClient.post<AuthResponse>(
+    "/auth/register",
+    payload,
+  );
   return data;
 };
 
 // Function to log in an existing user
 export const login = async (payload: { email: string; password: string }) => {
-  const { data } = await api.post<AuthResponse>("/auth/login", payload);
+  const { data } = await apiClient.post<AuthResponse>("/auth/login", payload);
   return data;
 };

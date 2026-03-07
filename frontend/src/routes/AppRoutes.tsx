@@ -1,18 +1,19 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 
 import AuthPage from "../pages/AuthPage";
-import DashboardPage from "../pages/DashboardPage";
-import ProjectsPage from "../pages/ProjectsPage";
 import ErrorPage from "../pages/ErrorPage";
 
 import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
+import TeamSelectionPage from "../pages/TeamSelectionPage";
+import TeamLayout from "../layout/TeamLayout";
+
 export default function AppRoutes() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* LOGIN (PUBLIC) */}
+        {/* LOGIN */}
         <Route
           path="/login"
           element={
@@ -22,38 +23,35 @@ export default function AppRoutes() {
           }
         />
 
-        {/* PROJECTS */}
+        {/* TEAM LIST */}
         <Route
-          path="/projects"
+          path="/teams"
           element={
             <ProtectedRoute>
-              <ProjectsPage />
+              <TeamSelectionPage />
             </ProtectedRoute>
           }
         />
 
-        {/* PROJECT DASHBOARD */}
+        {/* TEAM WORKSPACE */}
         <Route
-          path="/projects/:id"
+          path="/teams/:teamId"
           element={
             <ProtectedRoute>
-              <DashboardPage />
+              <TeamLayout />
             </ProtectedRoute>
           }
-        />
+        >
+          <Route index element={<div>Team Dashboard</div>} />
+          <Route path="projects" element={<div>Projects Page</div>} />
+          <Route path="members" element={<div>Members Page</div>} />{" "}
+        </Route>
 
         {/* ROOT */}
-        <Route path="/" element={<Navigate to="/projects" replace />} />
+        <Route path="/" element={<Navigate to="/teams" replace />} />
 
-        {/* EVERYTHING ELSE */}
-        <Route
-          path="*"
-          element={
-            <ProtectedRoute>
-              <ErrorPage />
-            </ProtectedRoute>
-          }
-        />
+        {/* ERROR */}
+        <Route path="*" element={<ErrorPage />} />
       </Routes>
     </BrowserRouter>
   );
