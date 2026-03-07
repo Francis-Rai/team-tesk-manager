@@ -1,3 +1,4 @@
+import PriorityBadge from "../../../common/components/PriorityBadge";
 import type { Task } from "../types/taskTypes";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -13,25 +14,28 @@ export default function TaskCard({ task }: Props) {
       onClick={() =>
         navigate(`/teams/${teamId}/projects/${projectId}/tasks/${task.id}`)
       }
-      className="border p-4 rounded hover:bg-gray-50 cursor-pointer"
+      className="border p-4 rounded hover:bg-gray-50 cursor-pointer space-y-2"
     >
-      {" "}
       <div className="flex justify-between items-center">
         <h3 className="font-semibold">
           #{task.taskNumber} {task.title}
         </h3>
 
-        <span className="text-xs bg-gray-200 px-2 py-1 rounded">
-          {task.status}
-        </span>
+        <PriorityBadge priority={task.priority} />
       </div>
+
       {task.description && (
-        <p className="text-sm text-gray-500 mt-2">{task.description}</p>
+        <p className="text-sm text-gray-500">{task.description}</p>
       )}
-      <div className="text-xs text-gray-400 mt-2">
-        {task.assignedUser
-          ? `Assigned to ${task.assignedUser.firstName} ${task.assignedUser.lastName}`
-          : "Unassigned"}
+
+      <div className="flex justify-between text-xs text-gray-400">
+        <span>{task.status}</span>
+
+        <span>
+          {task.assignedUser
+            ? `${task.assignedUser.firstName} ${task.assignedUser.lastName}`
+            : "Unassigned"}
+        </span>
       </div>
     </div>
   );

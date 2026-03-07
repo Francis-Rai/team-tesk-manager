@@ -1,13 +1,19 @@
 import { apiClient } from "../../../api/apiClients";
-import type { PageResponse } from "../../../common/types/pageResponse";
-import type { Task } from "../types/taskTypes";
 
 export const getTasks = async (
   teamId: string,
   projectId: string,
-): Promise<PageResponse<Task>> => {
+  params: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: string;
+    assigneeId?: string;
+  },
+) => {
   const response = await apiClient.get(
     `/teams/${teamId}/projects/${projectId}/tasks`,
+    { params },
   );
 
   return response.data;
@@ -48,6 +54,46 @@ export const getTaskUpdates = async (
 ) => {
   const response = await apiClient.get(
     `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/updates`,
+  );
+
+  return response.data;
+};
+
+export const updateTaskStatus = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+  status: string,
+) => {
+  const response = await apiClient.patch(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/status`,
+    { status },
+  );
+
+  return response.data;
+};
+
+export const assignUser = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+  userId: string,
+) => {
+  const response = await apiClient.patch(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/assignee/${userId}`,
+  );
+
+  return response.data;
+};
+
+export const assignSupportUser = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+  userId: string,
+) => {
+  const response = await apiClient.patch(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/support/${userId}`,
   );
 
   return response.data;

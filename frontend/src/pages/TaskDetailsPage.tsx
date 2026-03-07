@@ -2,6 +2,11 @@ import { useParams } from "react-router-dom";
 import TaskTimeline from "../features/tasks/components/TaskTimeline";
 import { useTask } from "../features/tasks/hooks/useTask";
 import { useTaskUpdates } from "../features/tasks/hooks/useTaskUpdates";
+import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
+import PriorityBadge from "../common/components/PriorityBadge";
+import { useAssignUser } from "../features/tasks/hooks/useAssignUser";
+import { useTeamMembers } from "../features/teams/hooks/useTeamMembers";
+import UserSelector from "../common/components/UserSelector";
 
 export default function TaskDetailsPage() {
   const { teamId, projectId, taskId } = useParams();
@@ -10,7 +15,17 @@ export default function TaskDetailsPage() {
 
   const { data: updatesData } = useTaskUpdates(teamId!, projectId!, taskId!);
 
+  const { data: members = [] } = useTeamMembers(teamId!);
+
+  const handleAssignUser = (userId: string) => {
+    assignUserMutation.mutate(userId);
+  };
+
   const updates = updatesData?.content ?? [];
+
+  const updateStatus = useUpdateTaskStatus(teamId!, projectId!, taskId!);
+
+  const assignUserMutation = useAssignUser(teamId!, projectId!, taskId!);
 
   if (isLoading) return <div>Loading task...</div>;
 
@@ -23,19 +38,30 @@ export default function TaskDetailsPage() {
       <p className="text-gray-500">{task?.description}</p>
 
       <div className="border rounded p-6 space-y-4">
-        <div>
-          <strong>Status:</strong> {task?.status}
+        <div className="space-y-1">
+          <strong>Status</strong>
+
+          <select
+            value={task?.status}
+            onChange={(e) => updateStatus.mutate(e.target.value)}
+            className="border p-2 rounded"
+          >
+            <option value="TODO">TODO</option>
+            <option value="IN_PROGRESS">IN_PROGRESS</option>
+            <option value="DONE">DONE</option>
+          </select>
         </div>
 
-        <div>
-          <strong>Priority:</strong> {task?.priority}
+        <div className="flex items-center gap-2">
+          <strong>Priority</strong>
+
+          <PriorityBadge priority={task?.priority ?? "LOW"} />
         </div>
 
-        <div>
-          <strong>Assigned:</strong>{" "}
-          {task?.assignedUser
-            ? `${task.assignedUser.firstName} ${task.assignedUser.lastName}`
-            : "Unassigned"}
+        <div className="space-y-2">
+          <strong>Assign User</strong>
+
+          <UserSelector users={members} onSelect={handleAssignUser} />
         </div>
       </div>
 
