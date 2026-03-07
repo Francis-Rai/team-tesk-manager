@@ -14,7 +14,7 @@ import EditProjectModal from "../projects/EditProjectModal";
 import { useDeleteProject } from "../projects/useDeleteProject";
 import ConfirmDeleteProjectModal from "../projects/ConfirmDeleteProjectModal";
 import { useNavigate } from "react-router-dom";
-import Button from "../components/Button";
+import Button from "../common/components/Button";
 
 /*
  * Dashboard page showing project tasks.

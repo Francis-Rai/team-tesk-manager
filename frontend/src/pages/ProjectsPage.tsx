@@ -3,7 +3,7 @@ import ProjectList from "../projects/ProjectList";
 import { useNavigate } from "react-router-dom";
 import CreateProjectModal from "../projects/CreateProjectModal";
 import { useState } from "react";
-import Button from "../components/Button";
+import Button from "../common/components/Button";
 
 /*
  * Project page showing projects.

@@ -1,4 +1,4 @@
-import { api } from "../api/axios";
+import { api } from "../api/apiClients";
 import type { Project } from "./project.types";
 
 //  * Fetch all projects.

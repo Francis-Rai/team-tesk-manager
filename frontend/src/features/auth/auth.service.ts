@@ -1,4 +1,4 @@
-import { api } from "../api/axios";
+import { api } from "../api/apiClients";
 
 /*
  * Define the structure of the authentication response
