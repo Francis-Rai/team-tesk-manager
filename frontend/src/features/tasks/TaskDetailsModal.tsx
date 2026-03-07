@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import Button from "../components/Button";
 import Modal from "../components/Modal";
-import type { Task } from "./task.types";
+import type { Task } from "./types/taskTypes";
 
 type Props = {
   task: Task | null;

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateTask } from "./task.service";
+import { updateTask } from "./api/taskApi";
 
 /*
  * Custom hook for update task

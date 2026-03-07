@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import Modal from "../components/Modal";
-import type { Task } from "./task.types";
+import type { Task } from "./types/taskTypes";
 import { useUsers } from "../users/useUsers";
 import { useUpdateTask } from "./useUpdateTask";
 import Button from "../components/Button";

@@ -1,6 +1,6 @@
 import { useTasks } from "./useTasks";
 import TaskItem from "./TaskItem";
-import type { Task } from "./task.types";
+import type { Task } from "./types/taskTypes";
 
 type Props = {
   projectId: number;
