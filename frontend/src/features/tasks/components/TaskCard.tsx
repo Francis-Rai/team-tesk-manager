@@ -1,42 +1,34 @@
-import PriorityBadge from "../../../common/components/PriorityBadge";
+import { Card } from "../../../components/ui/card";
 import type { Task } from "../types/taskTypes";
-import { useNavigate, useParams } from "react-router-dom";
 
 interface Props {
   task: Task;
+  onOpen: (task: Task) => void;
 }
 
-export default function TaskCard({ task }: Props) {
-  const navigate = useNavigate();
-  const { teamId, projectId } = useParams();
+export default function TaskCard({ task, onOpen }: Props) {
   return (
-    <div
-      onClick={() =>
-        navigate(`/teams/${teamId}/projects/${projectId}/tasks/${task.id}`)
-      }
-      className="border p-4 rounded hover:bg-gray-50 cursor-pointer space-y-2"
+    <Card
+      onClick={() => onOpen(task)}
+      className="p-3 cursor-pointer hover:shadow-md transition"
     >
-      <div className="flex justify-between items-center">
-        <h3 className="font-semibold">
+      <div className="space-y-2">
+        <div className="text-sm font-semibold">
           #{task.taskNumber} {task.title}
-        </h3>
+        </div>
 
-        <PriorityBadge priority={task.priority} />
+        <div className="flex items-center justify-between text-xs text-muted-foreground">
+          <span>{task.priority}</span>
+
+          {task.assignedUser && <span>{task.assignedUser.firstName}</span>}
+        </div>
+
+        {task.plannedDueDate && (
+          <div className="text-xs text-muted-foreground">
+            📅 {new Date(task.plannedDueDate).toLocaleDateString()}
+          </div>
+        )}
       </div>
-
-      {task.description && (
-        <p className="text-sm text-gray-500">{task.description}</p>
-      )}
-
-      <div className="flex justify-between text-xs text-gray-400">
-        <span>{task.status}</span>
-
-        <span>
-          {task.assignedUser
-            ? `${task.assignedUser.firstName} ${task.assignedUser.lastName}`
-            : "Unassigned"}
-        </span>
-      </div>
-    </div>
+    </Card>
   );
 }

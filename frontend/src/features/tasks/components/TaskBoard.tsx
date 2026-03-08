@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import type { Task } from "../types/taskTypes";
 import TaskCard from "./TaskCard";
+
 import {
   DndContext,
   type DragEndEvent,
@@ -13,6 +14,7 @@ import {
   DragOverlay,
   useDroppable,
 } from "@dnd-kit/core";
+
 import {
   SortableContext,
   useSortable,
@@ -29,21 +31,26 @@ import {
 
 interface Props {
   tasks: Task[];
-  onStatusChange: (taskId: string, status: string) => void;
+  onStatusChange: (taskId: string, status: TaskStatus) => void;
+  onOpenTask: (task: Task) => void;
 }
 
-export default function TaskBoard({ tasks, onStatusChange }: Props) {
+export default function TaskBoard({
+  tasks,
+  onStatusChange,
+  onOpenTask,
+}: Props) {
   const [activeTask, setActiveTask] = useState<Task | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 2,
+        distance: 3,
       },
     }),
   );
 
-  const columns = {
+  const columns: Record<TaskStatus, Task[]> = {
     TODO: tasks.filter((t) => t.status === "TODO"),
     IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS"),
     DONE: tasks.filter((t) => t.status === "DONE"),
@@ -71,7 +78,6 @@ export default function TaskBoard({ tasks, onStatusChange }: Props) {
 
     if (!activeTask) return;
 
-    // If dropped on a column → change status
     if (isTaskStatus(overId)) {
       const newStatus = overId;
 
@@ -85,29 +91,43 @@ export default function TaskBoard({ tasks, onStatusChange }: Props) {
   }
 
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={closestCenter}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <div className="grid grid-cols-3 gap-4">
-        <BoardColumn id="TODO" title="TODO" tasks={columns.TODO} />
+    <div className="w-full overflow-x-auto">
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragStart={handleDragStart}
+        onDragEnd={handleDragEnd}
+      >
+        <div className="flex gap-6 min-w-[900px] items-start p-4">
+          <BoardColumn
+            id="TODO"
+            title="Todo"
+            tasks={columns.TODO}
+            onOpenTask={onOpenTask}
+          />
 
-        <BoardColumn
-          id="IN_PROGRESS"
-          title="IN PROGRESS"
-          tasks={columns.IN_PROGRESS}
-        />
+          <BoardColumn
+            id="IN_PROGRESS"
+            title="In Progress"
+            tasks={columns.IN_PROGRESS}
+            onOpenTask={onOpenTask}
+          />
 
-        <BoardColumn id="DONE" title="DONE" tasks={columns.DONE} />
-      </div>
+          <BoardColumn
+            id="DONE"
+            title="Done"
+            tasks={columns.DONE}
+            onOpenTask={onOpenTask}
+          />
+        </div>
 
-      {/* Floating Drag Preview */}
-      <DragOverlay>
-        {activeTask ? <TaskCard task={activeTask} /> : null}
-      </DragOverlay>
-    </DndContext>
+        <DragOverlay>
+          {activeTask ? (
+            <TaskCard task={activeTask} onOpen={onOpenTask} />
+          ) : null}
+        </DragOverlay>
+      </DndContext>
+    </div>
   );
 }
 
@@ -115,30 +135,54 @@ function BoardColumn({
   id,
   title,
   tasks,
+  onOpenTask,
 }: {
   id: TaskStatus;
   title: string;
   tasks: Task[];
+  onOpenTask: (task: Task) => void;
 }) {
   const { setNodeRef } = useDroppable({ id });
 
   return (
-    <div ref={setNodeRef} className="bg-gray-50 p-4 rounded space-y-3 min-h-75">
-      <h3 className="font-semibold text-sm text-gray-600">{title}</h3>
+    <div
+      ref={setNodeRef}
+      className="flex flex-col w-[300px] shrink-0 bg-muted/40 rounded-xl border p-4 shadow-sm"
+    >
+      {/* Column Header */}
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold tracking-tight">
+          {title}
+          <span className="ml-2 text-muted-foreground">({tasks.length})</span>
+        </h3>
 
-      <SortableContext
-        items={tasks.map((t) => t.id)}
-        strategy={verticalListSortingStrategy}
-      >
-        {tasks.map((task) => (
-          <SortableTask key={task.id} task={task} />
-        ))}
-      </SortableContext>
+        <button className="text-xs text-muted-foreground hover:text-foreground transition">
+          + Add
+        </button>
+      </div>
+
+      {/* Tasks */}
+      <div className="flex flex-col gap-3">
+        <SortableContext
+          items={tasks.map((t) => t.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          {tasks.map((task) => (
+            <SortableTask key={task.id} task={task} onOpenTask={onOpenTask} />
+          ))}
+        </SortableContext>
+      </div>
     </div>
   );
 }
 
-function SortableTask({ task }: { task: Task }) {
+function SortableTask({
+  task,
+  onOpenTask,
+}: {
+  task: Task;
+  onOpenTask: (task: Task) => void;
+}) {
   const { attributes, listeners, setNodeRef, transform } = useSortable({
     id: task.id,
     animateLayoutChanges: () => false,
@@ -153,7 +197,7 @@ function SortableTask({ task }: { task: Task }) {
 
   return (
     <div ref={setNodeRef} style={style} {...attributes} {...listeners}>
-      <TaskCard task={task} />
+      <TaskCard task={task} onOpen={onOpenTask} />
     </div>
   );
 }

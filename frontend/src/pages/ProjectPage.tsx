@@ -2,11 +2,13 @@ import { useParams } from "react-router-dom";
 import { useProject } from "../features/projects/hooks/useProject";
 import { useTasks } from "../features/tasks/hooks/useTask";
 import TaskCard from "../features/tasks/components/TaskCard";
-import CreateTaskForm from "../features/tasks/components/CreateTaskForm";
 import Pagination from "../common/components/Pagination";
 import { useState } from "react";
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
+import type { Task } from "../features/tasks/types/taskTypes";
+import TaskModal from "../features/tasks/components/TaskModal";
+import CreateTaskForm from "../features/tasks/components/createTaskForm";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams();
@@ -20,6 +22,8 @@ export default function ProjectPage() {
     assigneeId,
     // , setAssigneeId
   ] = useState("");
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
 
   const updateStatus = useUpdateTaskStatus(teamId!, projectId!);
 
@@ -90,11 +94,15 @@ export default function ProjectPage() {
         {view === "list" ? (
           <div className="grid gap-4">
             {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} />
+              <TaskCard key={task.id} task={task} onOpen={setSelectedTask} />
             ))}
           </div>
         ) : (
-          <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} />
+          <TaskBoard
+            tasks={tasks}
+            onStatusChange={handleStatusChange}
+            onOpenTask={setSelectedTask}
+          />
         )}
 
         <Pagination
@@ -103,6 +111,11 @@ export default function ProjectPage() {
           onPageChange={setPage}
         />
       </div>{" "}
+      <TaskModal
+        task={selectedTask}
+        open={!!selectedTask}
+        onClose={() => setSelectedTask(null)}
+      />
     </div>
   );
 }
