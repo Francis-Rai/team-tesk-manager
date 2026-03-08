@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTaskStatus } from "../api/taskApi";
+
 import type { PageResponse } from "../../../common/types/pageResponse";
 import type { Task } from "../types/taskTypes";
 import type { TaskStatus } from "../utils/taskStatus";
@@ -9,8 +10,14 @@ interface Params {
   status: TaskStatus;
 }
 
+interface MutationContext {
+  previousTasks?: PageResponse<Task>;
+}
+
 export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
   const queryClient = useQueryClient();
+
+  const tasksQueryKey = ["tasks", teamId, projectId];
 
   return useMutation({
     mutationFn: ({ taskId, status }: Params) =>
@@ -19,42 +26,35 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
     // ------------------------------
     // OPTIMISTIC UPDATE
     // ------------------------------
-    onMutate: async ({ taskId, status }) => {
+    onMutate: async ({ taskId, status }): Promise<MutationContext> => {
       await queryClient.cancelQueries({
-        queryKey: ["tasks", teamId, projectId],
+        queryKey: tasksQueryKey,
       });
 
-      const previousTasks = queryClient.getQueryData<PageResponse<Task>>([
-        "tasks",
-        teamId,
-        projectId,
-      ]);
+      const previousTasks =
+        queryClient.getQueryData<PageResponse<Task>>(tasksQueryKey);
 
-      queryClient.setQueryData<PageResponse<Task>>(
-        ["tasks", teamId, projectId],
-        (old) => {
-          if (!old) return old;
+      queryClient.setQueryData<PageResponse<Task>>(tasksQueryKey, (old) => {
+        if (!old) return old;
 
-          return {
-            ...old,
-            content: old.content.map((task) =>
-              task.id === taskId ? { ...task, status } : task,
-            ),
-          };
-        },
-      );
+        return {
+          ...old,
+          content: old.content.map((task) =>
+            task.id === taskId ? { ...task, status } : task,
+          ),
+        };
+      });
 
       return { previousTasks };
     },
 
     // ------------------------------
-    // REVERT IF ERROR
+    // ROLLBACK IF ERROR
     // ------------------------------
     onError: (_err, _variables, context) => {
-      queryClient.setQueryData(
-        ["tasks", teamId, projectId],
-        context?.previousTasks,
-      );
+      if (context?.previousTasks) {
+        queryClient.setQueryData(tasksQueryKey, context.previousTasks);
+      }
     },
 
     // ------------------------------
@@ -64,7 +64,7 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
       const { taskId } = variables;
 
       queryClient.invalidateQueries({
-        queryKey: ["tasks", teamId, projectId],
+        queryKey: tasksQueryKey,
       });
 
       queryClient.invalidateQueries({

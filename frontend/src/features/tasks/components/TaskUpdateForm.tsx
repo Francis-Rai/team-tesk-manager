@@ -1,37 +1,18 @@
-import { useState } from "react";
-import { useParams } from "react-router-dom";
-import { useCreateTaskUpdate } from "../hooks/useCreateTaskUpdate";
-
 export default function TaskUpdateForm() {
-  const { teamId, projectId, taskId } = useParams();
-
-  const [message, setMessage] = useState("");
-
-  const createComment = useCreateTaskUpdate(teamId!, projectId!, taskId!);
-
-  const handleSubmit = () => {
-    if (!message.trim()) return;
-
-    createComment.mutate(message);
-
-    setMessage("");
-  };
-
   return (
-    <div className="space-y-2">
-      <textarea
-        placeholder="Add comment..."
-        value={message}
-        onChange={(e) => setMessage(e.target.value)}
-        className="border p-2 w-full rounded"
-      />
+    <div className="space-y-3">
+      <div className="border rounded-lg p-4 bg-background space-y-3">
+        <textarea
+          placeholder="Write an update or comment..."
+          className="w-full resize-none text-sm outline-none"
+        />
 
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded"
-      >
-        Post Comment
-      </button>
+        <div className="flex justify-end">
+          <button className="px-4 py-2 text-sm bg-primary text-white rounded-md">
+            Post Update
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

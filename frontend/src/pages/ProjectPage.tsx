@@ -134,11 +134,15 @@ export default function ProjectPage() {
 
       {/* Task Modal */}
 
-      <TaskModal
-        task={selectedTask}
-        open={!!selectedTask}
-        onClose={() => setSelectedTask(null)}
-      />
+      {selectedTask && (
+        <TaskModal
+          open={!!selectedTask}
+          onClose={() => setSelectedTask(null)}
+          teamId={safeTeamId}
+          projectId={safeProjectId}
+          taskId={selectedTask.id}
+        />
+      )}
     </div>
   );
 }
