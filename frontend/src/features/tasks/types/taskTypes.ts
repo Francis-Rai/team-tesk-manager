@@ -1,4 +1,4 @@
-export type TaskStatus = "TODO" | "IN_PROGRESS" | "DONE";
+import type { TaskStatus } from "../utils/taskStatus";
 
 /*
  * Represents a task within a project.
@@ -11,7 +11,7 @@ export type Task = {
   title: string;
   description?: string;
 
-  status: string;
+  status: TaskStatus;
   priority: string;
 
   assignedUser?: TaskUser;

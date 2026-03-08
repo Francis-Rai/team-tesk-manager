@@ -10,6 +10,10 @@ import UserSelector from "../common/components/UserSelector";
 import TaskUpdateForm from "../features/tasks/components/TaskUpdateForm";
 import { useState } from "react";
 import EditTaskForm from "../features/tasks/components/EditTaskForm";
+import {
+  allowedTransitions,
+  type TaskStatus,
+} from "../features/tasks/utils/taskStatus";
 
 export default function TaskDetailsPage() {
   const { teamId, projectId, taskId } = useParams();
@@ -24,9 +28,13 @@ export default function TaskDetailsPage() {
     assignUserMutation.mutate(userId);
   };
 
+  const currentStatus = task?.status as TaskStatus;
+
+  const nextStatuses = allowedTransitions[currentStatus] ?? [];
+
   const updates = updatesData?.content ?? [];
   const [editing, setEditing] = useState(false);
-  const updateStatus = useUpdateTaskStatus(teamId!, projectId!, taskId!);
+  const updateStatus = useUpdateTaskStatus(teamId!, projectId!);
 
   const assignUserMutation = useAssignUser(teamId!, projectId!, taskId!);
 
@@ -59,13 +67,22 @@ export default function TaskDetailsPage() {
           <strong>Status</strong>
 
           <select
-            value={task?.status}
-            onChange={(e) => updateStatus.mutate(e.target.value)}
+            value={currentStatus}
+            onChange={(e) =>
+              updateStatus.mutate({
+                taskId: task!.id,
+                status: e.target.value,
+              })
+            }
             className="border p-2 rounded"
           >
-            <option value="TODO">TODO</option>
-            <option value="IN_PROGRESS">IN_PROGRESS</option>
-            <option value="DONE">DONE</option>
+            <option value={currentStatus}>{currentStatus}</option>
+
+            {nextStatuses.map((status) => (
+              <option key={status} value={status}>
+                {status}
+              </option>
+            ))}
           </select>
         </div>
 

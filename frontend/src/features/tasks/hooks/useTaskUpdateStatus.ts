@@ -1,18 +1,21 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTaskStatus } from "../api/taskApi";
 
-export const useUpdateTaskStatus = (
-  teamId: string,
-  projectId: string,
-  taskId: string,
-) => {
+interface Params {
+  taskId: string;
+  status: string;
+}
+
+export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (status: string) =>
+    mutationFn: ({ taskId, status }: Params) =>
       updateTaskStatus(teamId, projectId, taskId, status),
 
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const { taskId } = variables;
+
       queryClient.invalidateQueries({
         queryKey: ["task", teamId, projectId, taskId],
       });

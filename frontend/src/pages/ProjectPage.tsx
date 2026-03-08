@@ -5,12 +5,14 @@ import TaskCard from "../features/tasks/components/TaskCard";
 import CreateTaskForm from "../features/tasks/components/CreateTaskForm";
 import Pagination from "../common/components/Pagination";
 import { useState } from "react";
+import TaskBoard from "../features/tasks/components/TaskBoard";
+import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams();
 
   const { data: project } = useProject(teamId!, projectId!);
-
+  const [view, setView] = useState<"list" | "board">("list");
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
@@ -18,6 +20,12 @@ export default function ProjectPage() {
     assigneeId,
     // , setAssigneeId
   ] = useState("");
+
+  const updateStatus = useUpdateTaskStatus(teamId!, projectId!);
+
+  function handleStatusChange(taskId: string, status: string) {
+    updateStatus.mutate({ taskId, status });
+  }
 
   const { data: tasksData, isLoading } = useTasks(teamId!, projectId!, {
     page,
@@ -60,12 +68,34 @@ export default function ProjectPage() {
           <option value="IN_PROGRESS">IN_PROGRESS</option>
           <option value="DONE">DONE</option>
         </select>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setView("list")}
+            className={`px-3 py-1 border rounded ${
+              view === "list" ? "bg-blue-600 text-white" : ""
+            }`}
+          >
+            List
+          </button>
 
-        <div className="grid gap-4">
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} />
-          ))}
+          <button
+            onClick={() => setView("board")}
+            className={`px-3 py-1 border rounded ${
+              view === "board" ? "bg-blue-600 text-white" : ""
+            }`}
+          >
+            Board
+          </button>
         </div>
+        {view === "list" ? (
+          <div className="grid gap-4">
+            {tasks.map((task) => (
+              <TaskCard key={task.id} task={task} />
+            ))}
+          </div>
+        ) : (
+          <TaskBoard tasks={tasks} onStatusChange={handleStatusChange} />
+        )}
 
         <Pagination
           page={page}
