@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import { useProject } from "../features/projects/hooks/useProject";
 import { useTasks } from "../features/tasks/hooks/useTask";
 import TaskCard from "../features/tasks/components/TaskCard";
-import CreateTaskForm from "../features/tasks/components/createTaskForm";
+import CreateTaskForm from "../features/tasks/components/CreateTaskForm";
 import Pagination from "../common/components/Pagination";
 import { useState } from "react";
 

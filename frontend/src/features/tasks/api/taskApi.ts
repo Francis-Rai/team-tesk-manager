@@ -47,6 +47,26 @@ export const createTask = async (
   return response.data;
 };
 
+export const updateTask = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+  data: {
+    title?: string;
+    description?: string;
+    priority?: string;
+    plannedStartDate?: string;
+    plannedDueDate?: string;
+  },
+) => {
+  const response = await apiClient.patch(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}`,
+    data,
+  );
+
+  return response.data;
+};
+
 export const getTaskUpdates = async (
   teamId: string,
   projectId: string,
@@ -94,6 +114,20 @@ export const assignSupportUser = async (
 ) => {
   const response = await apiClient.patch(
     `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/support/${userId}`,
+  );
+
+  return response.data;
+};
+
+export const createTaskUpdate = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+  message: string,
+) => {
+  const response = await apiClient.post(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/updates`,
+    { message },
   );
 
   return response.data;

@@ -7,6 +7,9 @@ import PriorityBadge from "../common/components/PriorityBadge";
 import { useAssignUser } from "../features/tasks/hooks/useAssignUser";
 import { useTeamMembers } from "../features/teams/hooks/useTeamMembers";
 import UserSelector from "../common/components/UserSelector";
+import TaskUpdateForm from "../features/tasks/components/TaskUpdateForm";
+import { useState } from "react";
+import EditTaskForm from "../features/tasks/components/EditTaskForm";
 
 export default function TaskDetailsPage() {
   const { teamId, projectId, taskId } = useParams();
@@ -22,7 +25,7 @@ export default function TaskDetailsPage() {
   };
 
   const updates = updatesData?.content ?? [];
-
+  const [editing, setEditing] = useState(false);
   const updateStatus = useUpdateTaskStatus(teamId!, projectId!, taskId!);
 
   const assignUserMutation = useAssignUser(teamId!, projectId!, taskId!);
@@ -31,11 +34,25 @@ export default function TaskDetailsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">
-        #{task?.taskNumber} {task?.title}
-      </h1>
+      <TaskUpdateForm />
+      {editing ? (
+        <EditTaskForm task={task} onClose={() => setEditing(false)} />
+      ) : (
+        <>
+          <h1 className="text-2xl font-bold">
+            #{task?.taskNumber} {task?.title}
+          </h1>
 
-      <p className="text-gray-500">{task?.description}</p>
+          <p className="text-gray-500">{task?.description}</p>
+
+          <button
+            onClick={() => setEditing(true)}
+            className="border px-3 py-1 rounded"
+          >
+            Edit Task
+          </button>
+        </>
+      )}
 
       <div className="border rounded p-6 space-y-4">
         <div className="space-y-1">
