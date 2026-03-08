@@ -1,116 +1,139 @@
 import { useParams } from "react-router-dom";
+import { useState } from "react";
+
 import { useProject } from "../features/projects/hooks/useProject";
 import { useTasks } from "../features/tasks/hooks/useTask";
-import TaskCard from "../features/tasks/components/TaskCard";
-import Pagination from "../common/components/Pagination";
-import { useState } from "react";
-import TaskBoard from "../features/tasks/components/TaskBoard";
 import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
-import type { Task } from "../features/tasks/types/taskTypes";
+
+import TaskCard from "../features/tasks/components/TaskCard";
+import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
-import CreateTaskForm from "../features/tasks/components/createTaskForm";
+
+import Pagination from "../common/components/Pagination";
+
+import type { Task } from "../features/tasks/types/taskTypes";
+import type { TaskStatus } from "../features/tasks/utils/taskStatus";
+
+import { CreateTaskModal } from "../features/tasks/components/createTaskModal";
+import TaskFilters from "../features/tasks/components/taskFilters";
+import ProjectHeader from "../features/projects/components/ProjectHeader";
+import { useDebounce } from "../common/hooks/useDebounce";
 
 export default function ProjectPage() {
-  const { teamId, projectId } = useParams();
+  const { teamId, projectId } = useParams<{
+    teamId: string;
+    projectId: string;
+  }>();
 
-  const { data: project } = useProject(teamId!, projectId!);
+  /* -------------------------
+     UI State
+  -------------------------- */
+
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [createOpen, setCreateOpen] = useState(false);
+
   const [view, setView] = useState<"list" | "board">("list");
+
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
-  const [
-    assigneeId,
-    // , setAssigneeId
-  ] = useState("");
+  const debouncedSearch = useDebounce(search, 400);
 
-  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  /* -------------------------
+     Safe fallback values
+  -------------------------- */
 
-  const updateStatus = useUpdateTaskStatus(teamId!, projectId!);
+  const safeTeamId = teamId ?? "";
+  const safeProjectId = projectId ?? "";
 
-  function handleStatusChange(taskId: string, status: string) {
-    updateStatus.mutate({ taskId, status });
-  }
+  /* -------------------------
+     Queries
+  -------------------------- */
 
-  const { data: tasksData, isLoading } = useTasks(teamId!, projectId!, {
+  const { data: project } = useProject(safeTeamId, safeProjectId);
+
+  const { data: tasksData, isLoading } = useTasks(safeTeamId, safeProjectId, {
     page,
-    search,
+    search: debouncedSearch,
     status,
-    assigneeId,
   });
+
   const tasks = tasksData?.content ?? [];
   const totalPages = tasksData?.totalPages ?? 0;
 
-  if (isLoading) return <div>Loading tasks...</div>;
+  /* -------------------------
+     Mutations
+  -------------------------- */
+
+  const updateStatus = useUpdateTaskStatus(safeTeamId, safeProjectId);
+
+  function handleStatusChange(taskId: string, status: TaskStatus) {
+    updateStatus.mutate({
+      taskId,
+      status,
+    });
+  }
+
+  /* -------------------------
+     Invalid param guard
+  -------------------------- */
+
+  if (!teamId || !projectId) {
+    return <div className="p-6">Invalid project</div>;
+  }
+
+  /* -------------------------
+     Render
+  -------------------------- */
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">{project?.name}</h1>
-      <p className="text-gray-500">{project?.description}</p>
-      <div className="grid gap-4">
-        <CreateTaskForm />
+    <div className="flex flex-col gap-6 p-6">
+      <ProjectHeader
+        name={project?.name}
+        description={project?.description}
+        onCreateTask={() => setCreateOpen(true)}
+      />
 
-        <input
-          placeholder="Search tasks..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value);
-            setPage(0);
-          }}
-          className="border p-2 rounded w-full"
-        />
+      <CreateTaskModal
+        projectId={safeProjectId}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+      />
 
-        <select
-          value={status}
-          onChange={(e) => {
-            setStatus(e.target.value);
-            setPage(0);
-          }}
-          className="border p-2 rounded"
-        >
-          <option value="">All Status</option>
-          <option value="TODO">TODO</option>
-          <option value="IN_PROGRESS">IN_PROGRESS</option>
-          <option value="DONE">DONE</option>
-        </select>
-        <div className="flex gap-2">
-          <button
-            onClick={() => setView("list")}
-            className={`px-3 py-1 border rounded ${
-              view === "list" ? "bg-blue-600 text-white" : ""
-            }`}
-          >
-            List
-          </button>
+      <TaskFilters
+        search={search}
+        status={status}
+        view={view}
+        setSearch={setSearch}
+        setStatus={setStatus}
+        setPage={setPage}
+        setView={setView}
+      />
 
-          <button
-            onClick={() => setView("board")}
-            className={`px-3 py-1 border rounded ${
-              view === "board" ? "bg-blue-600 text-white" : ""
-            }`}
-          >
-            Board
-          </button>
+      {/* Content */}
+
+      {isLoading ? (
+        <div className="text-sm text-muted-foreground">Loading tasks...</div>
+      ) : view === "list" ? (
+        <div className="grid gap-4">
+          {tasks.map((task) => (
+            <TaskCard key={task.id} task={task} onOpen={setSelectedTask} />
+          ))}
         </div>
-        {view === "list" ? (
-          <div className="grid gap-4">
-            {tasks.map((task) => (
-              <TaskCard key={task.id} task={task} onOpen={setSelectedTask} />
-            ))}
-          </div>
-        ) : (
-          <TaskBoard
-            tasks={tasks}
-            onStatusChange={handleStatusChange}
-            onOpenTask={setSelectedTask}
-          />
-        )}
-
-        <Pagination
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
+      ) : (
+        <TaskBoard
+          tasks={tasks}
+          onStatusChange={handleStatusChange}
+          onOpenTask={setSelectedTask}
         />
-      </div>{" "}
+      )}
+
+      {/*  */}
+
+      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
+
+      {/* Task Modal */}
+
       <TaskModal
         task={selectedTask}
         open={!!selectedTask}

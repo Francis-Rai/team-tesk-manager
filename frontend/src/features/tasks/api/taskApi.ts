@@ -1,4 +1,5 @@
 import { apiClient } from "../../../api/apiClients";
+import type { CreateTaskInput } from "../types/createTaskSchema";
 
 export const getTasks = async (
   teamId: string,
@@ -31,21 +32,21 @@ export const getTask = async (
   return response.data;
 };
 
-export const createTask = async (
-  teamId: string,
-  projectId: string,
-  data: {
-    title: string;
-    description?: string;
-  },
-) => {
-  const response = await apiClient.post(
-    `/teams/${teamId}/projects/${projectId}/tasks`,
-    data,
-  );
+export async function createTask(projectId: string, data: CreateTaskInput) {
+  const res = await fetch(`/api/projects/${projectId}/tasks`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
 
-  return response.data;
-};
+  if (!res.ok) {
+    throw new Error("Failed to create task");
+  }
+
+  return res.json();
+}
 
 export const updateTask = async (
   teamId: string,

@@ -155,10 +155,6 @@ function BoardColumn({
           {title}
           <span className="ml-2 text-muted-foreground">({tasks.length})</span>
         </h3>
-
-        <button className="text-xs text-muted-foreground hover:text-foreground transition">
-          + Add
-        </button>
       </div>
 
       {/* Tasks */}
