@@ -1,8 +1,8 @@
 import { useTask } from "../hooks/useTask";
 
 import TaskHeader from "./TaskHeader";
-import TaskContent from "./TaskContent";
-import TaskSidebar from "./TaskSidebar";
+import TaskTimeline from "./TaskTimeline";
+import TaskUpdateForm from "./TaskUpdateForm";
 
 interface Props {
   teamId: string;
@@ -10,7 +10,7 @@ interface Props {
   taskId: string;
 }
 
-export default function TaskWorkSpace({ teamId, projectId, taskId }: Props) {
+export default function TaskWorkspace({ teamId, projectId, taskId }: Props) {
   const { data: task, isLoading } = useTask(teamId, projectId, taskId);
 
   if (isLoading || !task) {
@@ -18,26 +18,24 @@ export default function TaskWorkSpace({ teamId, projectId, taskId }: Props) {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0">
-      {/* HEADER */}
+    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto px-8 py-6 space-y-8">
       <TaskHeader
         teamId={teamId}
         projectId={projectId}
         taskId={taskId}
-        taskNumber={task.taskNumber}
+        task={task}
       />
+      <div className="space-y-2">
+        <h2 className="text-sm font-medium text-muted-foreground">
+          Description
+        </h2>
 
-      {/* WORKSPACE */}
-      <div className="flex flex-1 min-h-0">
-        <TaskContent
-          teamId={teamId}
-          projectId={projectId}
-          taskId={taskId}
-          task={task}
-        />
-
-        <TaskSidebar teamId={teamId} projectId={projectId} taskId={taskId} />
+        <p className="text-sm leading-relaxed text-muted-foreground">
+          {task.description || "No description"}
+        </p>
       </div>
+      <TaskUpdateForm teamId={teamId} projectId={projectId} taskId={taskId} />
+      <TaskTimeline teamId={teamId} projectId={projectId} taskId={taskId} />
     </div>
   );
 }

@@ -13,38 +13,63 @@ export default function TaskTimeline({ teamId, projectId, taskId }: Props) {
 
   const { data } = useTaskUpdates(teamId, projectId, taskId, {
     page,
-    size: 10,
+    size: 5,
   });
 
   const updates = data?.content ?? [];
   const totalPages = data?.totalPages ?? 0;
 
+  const isFirstPage = page === 0;
+  const isLastPage = page + 1 >= totalPages;
+
   return (
-    <div className="space-y-6">
-      {updates.map((update) => (
-        <div key={update.id} className="flex gap-3">
-          <Avatar name={update.createdByName} />
+    <div className="space-y-4">
+      <h2 className="text-sm font-medium text-muted-foreground">Activity</h2>
 
-          <div className="flex-1 text-sm space-y-1">
-            <div className="font-medium">{update.createdByName}</div>
+      <div className="space-y-6">
+        {updates.map((update) => (
+          <div key={update.id} className="flex gap-3">
+            <Avatar name={update.createdByName} />
 
-            <div className="text-muted-foreground">{update.message}</div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 text-sm">
+                <span className="font-medium">{update.createdByName}</span>
 
-            <div className="text-xs text-muted-foreground">
-              {new Date(update.createdAt).toLocaleString()}
+                <span className="text-xs text-muted-foreground">
+                  {new Date(update.createdAt).toLocaleString()}
+                </span>
+              </div>
+
+              <p className="text-sm text-muted-foreground">{update.message}</p>
             </div>
           </div>
-        </div>
-      ))}
+        ))}
 
-      {page + 1 < totalPages && (
-        <button
-          onClick={() => setPage((p) => p + 1)}
-          className="w-full text-sm border rounded-md py-2 hover:bg-muted"
-        >
-          Load more
-        </button>
-      )}
+        {/* Pagination Controls */}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t pt-4">
+            <button
+              onClick={() => setPage((p) => Math.max(p - 1, 0))}
+              disabled={isFirstPage}
+              className="px-3 py-1.5 text-sm border rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted"
+            >
+              Previous
+            </button>
+
+            <span className="text-xs text-muted-foreground">
+              Page {page + 1} of {totalPages}
+            </span>
+
+            <button
+              onClick={() => setPage((p) => (isLastPage ? p : p + 1))}
+              disabled={isLastPage}
+              className="px-3 py-1.5 text-sm border rounded-md disabled:opacity-40 disabled:cursor-not-allowed hover:bg-muted"
+            >
+              Next
+            </button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

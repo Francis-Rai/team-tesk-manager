@@ -18,15 +18,8 @@ export default function TaskModal({
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="!max-w-[1200px] w-[95vw] h-[90vh] p-0 overflow-hidden">
-        {/* Important: min-h-0 fixes flex scroll issues */}
-        <div className="flex flex-col h-full min-h-0">
-          <TaskWorkspace
-            teamId={teamId}
-            projectId={projectId}
-            taskId={taskId}
-          />
-        </div>
+      <DialogContent className="max-w-225 w-[95vw] h-[90vh] p-0 overflow-hidden">
+        <TaskWorkspace teamId={teamId} projectId={projectId} taskId={taskId} />
       </DialogContent>
     </Dialog>
   );
