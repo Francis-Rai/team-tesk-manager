@@ -37,7 +37,7 @@ export default function TaskContent({
 
       {/* COMMENT FORM */}
 
-      <TaskUpdateForm />
+      <TaskUpdateForm teamId={teamId} projectId={projectId} taskId={taskId} />
 
       <div className="flex items-center justify-between mt-8">
         <h2 className="text-sm font-semibold">Activity</h2>

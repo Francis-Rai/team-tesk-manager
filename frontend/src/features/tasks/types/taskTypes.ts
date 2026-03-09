@@ -1,3 +1,4 @@
+import type { TaskPriority } from "../utils/taskPriority";
 import type { TaskStatus } from "../utils/taskStatus";
 
 /*
@@ -12,7 +13,7 @@ export type Task = {
   description?: string;
 
   status: TaskStatus;
-  priority: string;
+  priority: TaskPriority;
 
   assignedUser?: TaskUser;
   supportUser?: TaskUser;

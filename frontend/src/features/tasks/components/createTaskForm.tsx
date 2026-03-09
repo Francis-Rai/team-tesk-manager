@@ -8,12 +8,13 @@ import {
 } from "../types/createTaskSchema";
 
 interface Props {
+  teamId: string;
   projectId: string;
   onSuccess?: () => void;
 }
 
-export function CreateTaskForm({ projectId, onSuccess }: Props) {
-  const createTaskMutation = useCreateTask(projectId);
+export function CreateTaskForm({ teamId, projectId, onSuccess }: Props) {
+  const createTaskMutation = useCreateTask(teamId, projectId);
 
   const form = useForm<CreateTaskInput>({
     resolver: zodResolver(createTaskSchema),

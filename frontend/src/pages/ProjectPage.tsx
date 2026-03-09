@@ -5,11 +5,8 @@ import { useProject } from "../features/projects/hooks/useProject";
 import { useTasks } from "../features/tasks/hooks/useTask";
 import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
 
-import TaskCard from "../features/tasks/components/TaskCard";
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
-
-import Pagination from "../common/components/Pagination";
 
 import type { Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
@@ -18,6 +15,7 @@ import { CreateTaskModal } from "../features/tasks/components/createTaskModal";
 import TaskFilters from "../features/tasks/components/taskFilters";
 import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";
+import TaskList from "../features/tasks/components/TaskList";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{
@@ -95,6 +93,7 @@ export default function ProjectPage() {
       />
 
       <CreateTaskModal
+        teamId={safeTeamId}
         projectId={safeProjectId}
         open={createOpen}
         onOpenChange={setCreateOpen}
@@ -115,11 +114,16 @@ export default function ProjectPage() {
       {isLoading ? (
         <div className="text-sm text-muted-foreground">Loading tasks...</div>
       ) : view === "list" ? (
-        <div className="grid gap-4">
-          {tasks.map((task) => (
-            <TaskCard key={task.id} task={task} onOpen={setSelectedTask} />
-          ))}
-        </div>
+        <TaskList
+          tasks={tasks}
+          teamId={safeTeamId}
+          projectId={safeProjectId}
+          pagination={{
+            page,
+            totalPages,
+            onPageChange: setPage,
+          }}
+        />
       ) : (
         <TaskBoard
           tasks={tasks}
@@ -127,10 +131,6 @@ export default function ProjectPage() {
           onOpenTask={setSelectedTask}
         />
       )}
-
-      {/*  */}
-
-      <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
 
       {/* Task Modal */}
 

@@ -34,21 +34,18 @@ export const getTask = async (
   return response.data;
 };
 
-export async function createTask(projectId: string, data: CreateTaskInput) {
-  const res = await fetch(`/api/projects/${projectId}/tasks`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(data),
-  });
+export const createTask = async (
+  teamId: string,
+  projectId: string,
+  data: CreateTaskInput,
+) => {
+  const response = await apiClient.post(
+    `/teams/${teamId}/projects/${projectId}/tasks`,
+    { data },
+  );
 
-  if (!res.ok) {
-    throw new Error("Failed to create task");
-  }
-
-  return res.json();
-}
+  return response.data;
+};
 
 export const updateTask = async (
   teamId: string,

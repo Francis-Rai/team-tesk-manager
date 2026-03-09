@@ -51,10 +51,17 @@ export default function TaskBoard({
   );
 
   const columns: Record<TaskStatus, Task[]> = {
-    TODO: tasks.filter((t) => t.status === "TODO"),
-    IN_PROGRESS: tasks.filter((t) => t.status === "IN_PROGRESS"),
-    DONE: tasks.filter((t) => t.status === "DONE"),
+    TODO: [],
+    IN_PROGRESS: [],
+    IN_REVIEW: [],
+    ON_HOLD: [],
+    DONE: [],
+    CANCELLED: [],
   };
+
+  for (const task of tasks) {
+    columns[task.status].push(task);
+  }
 
   function handleDragStart(event: DragStartEvent) {
     const task = tasks.find((t) => t.id === event.active.id);
@@ -91,14 +98,14 @@ export default function TaskBoard({
   }
 
   return (
-    <div className="w-full overflow-x-auto">
+    <div className="w-full h-full overflow-x-auto">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 min-w-[900px] items-start p-4">
+        <div className="flex gap-6 min-w-[900px] items-start p-4 h-full">
           <BoardColumn
             id="TODO"
             title="Todo"
@@ -114,9 +121,30 @@ export default function TaskBoard({
           />
 
           <BoardColumn
+            id="IN_REVIEW"
+            title="In Review"
+            tasks={columns.IN_REVIEW}
+            onOpenTask={onOpenTask}
+          />
+
+          <BoardColumn
+            id="ON_HOLD"
+            title="On Hold"
+            tasks={columns.ON_HOLD}
+            onOpenTask={onOpenTask}
+          />
+
+          <BoardColumn
             id="DONE"
             title="Done"
             tasks={columns.DONE}
+            onOpenTask={onOpenTask}
+          />
+
+          <BoardColumn
+            id="CANCELLED"
+            title="CANCELLED"
+            tasks={columns.CANCELLED}
             onOpenTask={onOpenTask}
           />
         </div>
@@ -147,18 +175,20 @@ function BoardColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col w-[300px] shrink-0 bg-muted/40 rounded-xl border p-4 shadow-sm"
+      className="flex flex-col w-[320px] shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(100vh-240px)]"
     >
       {/* Column Header */}
-      <div className="flex items-center justify-between mb-4">
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur sticky top-0 z-10">
         <h3 className="text-sm font-semibold tracking-tight">
           {title}
-          <span className="ml-2 text-muted-foreground">({tasks.length})</span>
+          <span className="ml-2 text-muted-foreground text-xs">
+            ({tasks.length})
+          </span>
         </h3>
       </div>
 
-      {/* Tasks */}
-      <div className="flex flex-col gap-3">
+      {/* Scrollable Task Area */}
+      <div className="flex flex-col gap-3 p-4 overflow-y-auto">
         <SortableContext
           items={tasks.map((t) => t.id)}
           strategy={verticalListSortingStrategy}
