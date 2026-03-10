@@ -18,7 +18,7 @@ export default function TaskModal({
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="w-[9000px] max-w-[95vw] max-h-[90vh] p-0 overflow-hidden">
+      <DialogContent className="w-full sm:min-w-180  max-h-[90vh] lg:max-h-fit p-0 overflow-auto">
         <TaskWorkspace teamId={teamId} projectId={projectId} taskId={taskId} />
       </DialogContent>
     </Dialog>
