@@ -16,7 +16,7 @@ export default function PriorityBadge({ priority, className }: Props) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-md border px-4 py-0.5 text-xs font-medium",
         PRIORITY_STYLES[priority],
         className,
       )}

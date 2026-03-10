@@ -105,7 +105,7 @@ export default function TaskBoard({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 min-w-[900px] items-start p-4 h-full">
+        <div className="flex gap-6 min-w-225 items-start p-4 h-full">
           <BoardColumn
             id="TODO"
             title="Todo"

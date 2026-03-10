@@ -18,7 +18,7 @@ interface Props {
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-wrap items-start">
-      <span className="w-30 shrink-0 text-xs text-muted-foreground">
+      <span className="w-25 shrink-0 text-xs text-muted-foreground">
         {label}
       </span>
 
