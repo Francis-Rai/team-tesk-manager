@@ -1,4 +1,4 @@
-export function formatDateTimeShort(date?: string) {
+export function formatDateTimeShort(date?: string | null) {
   if (!date) return "—";
 
   return new Date(date).toLocaleString(undefined, {

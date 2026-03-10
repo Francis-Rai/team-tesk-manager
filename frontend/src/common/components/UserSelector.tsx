@@ -3,25 +3,38 @@ import type { TeamMember } from "../../features/teams/types/memberTypes";
 interface Props {
   users: TeamMember[];
   value?: string;
-  onSelect: (userId: string) => void;
+  placeholder: string;
+  allowClear?: boolean;
+  onChange: (userId: string | null) => void;
 }
 
-export default function UserSelector({ users, value, onSelect }: Props) {
-  const handleChange = (userId: string) => {
-    if (userId === value) return;
-
-    onSelect(userId);
-  };
-
+export default function UserSelector({
+  users,
+  value,
+  placeholder,
+  allowClear = false,
+  onChange,
+}: Props) {
   return (
     <select
       value={value ?? ""}
-      onChange={(e) => handleChange(e.target.value)}
-      className="border p-2 rounded"
+      onChange={(e) => {
+        const val = e.target.value;
+        onChange(val === "" ? null : val);
+      }}
+      className="border rounded-md py-1 text-sm"
     >
+      {/* Placeholder */}
+      <option value="" disabled>
+        {placeholder}
+      </option>
+
+      {/* Optional clear option */}
+      {allowClear && <option value="">None</option>}
+
       {users.map((user) => (
         <option key={user.userId} value={user.userId}>
-          {user.firstName} {user.lastName} ({user.role})
+          {user.firstName} {user.lastName}
         </option>
       ))}
     </select>

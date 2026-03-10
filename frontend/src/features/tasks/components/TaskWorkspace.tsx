@@ -1,6 +1,8 @@
 import { useTask } from "../hooks/useTask";
+import TaskDescription from "./TaskDescription";
 
 import TaskHeader from "./TaskHeader";
+import TaskMetadata from "./TaskMetadata";
 import TaskTimeline from "./TaskTimeline";
 import TaskUpdateForm from "./TaskUpdateForm";
 
@@ -18,24 +20,39 @@ export default function TaskWorkspace({ teamId, projectId, taskId }: Props) {
   }
 
   return (
-    <div className="flex flex-col flex-1 min-h-0 overflow-y-auto px-8 py-6 space-y-8">
-      <TaskHeader
-        teamId={teamId}
-        projectId={projectId}
-        taskId={taskId}
-        task={task}
-      />
-      <div className="space-y-2">
-        <h2 className="text-sm font-medium text-muted-foreground">
-          Description
-        </h2>
+    // <div className="flex flex-col flex-1 min-h-0 overflow-y-auto px-8 py-6 space-y-8">
+    //   <TaskHeader
+    //     teamId={teamId}
+    //     projectId={projectId}
+    //     taskId={taskId}
+    //     task={task}
+    //   />
+    //   <div className="space-y-2">
+    //     <h2 className="text-sm font-medium text-muted-foreground">
+    //       Description
+    //     </h2>
 
-        <p className="text-sm leading-relaxed text-muted-foreground">
-          {task.description || "No description"}
-        </p>
+    //     <p className="text-sm leading-relaxed text-muted-foreground">
+    //       {task.description || "No description"}
+    //     </p>
+    //   </div>
+    //   <TaskUpdateForm teamId={teamId} projectId={projectId} taskId={taskId} />
+    //   <TaskTimeline teamId={teamId} projectId={projectId} taskId={taskId} />
+    // </div>
+    <div className="flex flex-col h-full">
+      {/* Header */}
+      <TaskHeader task={task} />
+
+      {/* Scrollable body */}
+      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
+        <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
+
+        <TaskDescription description={task.description} />
+
+        <TaskUpdateForm teamId={teamId} projectId={projectId} taskId={taskId} />
+
+        <TaskTimeline teamId={teamId} projectId={projectId} taskId={taskId} />
       </div>
-      <TaskUpdateForm teamId={teamId} projectId={projectId} taskId={taskId} />
-      <TaskTimeline teamId={teamId} projectId={projectId} taskId={taskId} />
     </div>
   );
 }

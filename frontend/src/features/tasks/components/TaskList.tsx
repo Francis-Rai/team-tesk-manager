@@ -12,7 +12,7 @@ import {
 import PriorityBadge from "../../../common/components/PriorityBadge";
 import { formatDateTimeShort } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
-import { TaskStatusStyles } from "../utils/taskStatus";
+import { TaskStatusLabel, TaskStatusStyles } from "../utils/taskStatus";
 import Pagination from "../../../common/components/Pagination";
 
 interface PaginationProps {
@@ -82,11 +82,11 @@ export default function TaskList({
 
               {/* TITLE */}
 
-              <TableCell>
-                <div className="font-medium">{task.title}</div>
+              <TableCell className="max-w-[320px]">
+                <div className="font-medium truncate">{task.title}</div>
 
                 {task.description && (
-                  <div className="text-xs text-muted-foreground line-clamp-1">
+                  <div className="text-xs text-muted-foreground truncate">
                     {task.description}
                   </div>
                 )}
@@ -106,7 +106,7 @@ export default function TaskList({
                     TaskStatusStyles[task.status]
                   }`}
                 >
-                  {task.status}
+                  {TaskStatusLabel[task.status]}
                 </div>
               </TableCell>
 
