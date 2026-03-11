@@ -9,11 +9,11 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import PriorityBadge from "../../../common/components/PriorityBadge";
 import { formatDateTimeShort } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { TaskStatusLabel, TaskStatusStyles } from "../utils/taskStatus";
 import Pagination from "../../../common/components/Pagination";
+import PriorityBadge from "../../../common/components/PriorityBadge";
 
 interface PaginationProps {
   page: number;

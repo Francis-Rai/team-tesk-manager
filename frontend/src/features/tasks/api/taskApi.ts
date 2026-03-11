@@ -2,6 +2,7 @@ import { apiClient } from "./../../../api/apiClients";
 import type { PageResponse } from "../../../common/types/pageResponse";
 import type { CreateTaskInput } from "../types/createTaskSchema";
 import type { TaskUpdate } from "../types/taskUpdatesTypes";
+import type { Task, UpdateTaskInput } from "../types/taskTypes";
 
 export const getTasks = async (
   teamId: string,
@@ -51,14 +52,8 @@ export const updateTask = async (
   teamId: string,
   projectId: string,
   taskId: string,
-  data: {
-    title?: string;
-    description?: string;
-    priority?: string;
-    plannedStartDate?: string;
-    plannedDueDate?: string;
-  },
-) => {
+  data: UpdateTaskInput,
+): Promise<Task> => {
   const response = await apiClient.patch(
     `/teams/${teamId}/projects/${projectId}/tasks/${taskId}`,
     data,

@@ -3,7 +3,6 @@ import { useState } from "react";
 
 import { useProject } from "../features/projects/hooks/useProject";
 import { useTasks } from "../features/tasks/hooks/useTask";
-import { useUpdateTaskStatus } from "../features/tasks/hooks/useTaskUpdateStatus";
 
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
@@ -16,6 +15,7 @@ import TaskFilters from "../features/tasks/components/taskFilters";
 import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";
 import TaskList from "../features/tasks/components/TaskList";
+import { useUpdateTaskStatus } from "../features/tasks/hooks/useUpdateTaskStatus";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{

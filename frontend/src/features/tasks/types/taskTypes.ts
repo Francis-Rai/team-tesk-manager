@@ -37,3 +37,11 @@ export interface TaskUser {
   lastName: string;
   email: string;
 }
+
+export interface UpdateTaskInput {
+  title?: string;
+  description?: string;
+  priority?: string;
+  plannedStartDate?: string | null;
+  plannedDueDate?: string | null;
+}
