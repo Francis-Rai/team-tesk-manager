@@ -27,7 +27,10 @@ import {
   isTaskStatus,
   canTransition,
   type TaskStatus,
+  TaskStatusLabel,
+  TaskStatusStyles,
 } from "../utils/taskStatus";
+import { cn } from "../../../lib/utils";
 
 interface Props {
   tasks: Task[];
@@ -106,44 +109,30 @@ export default function TaskBoard({
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-6 min-w-225 items-start p-4 h-full">
-          <BoardColumn
-            id="TODO"
-            title="Todo"
-            tasks={columns.TODO}
-            onOpenTask={onOpenTask}
-          />
+          <BoardColumn id="TODO" tasks={columns.TODO} onOpenTask={onOpenTask} />
 
           <BoardColumn
             id="IN_PROGRESS"
-            title="In Progress"
             tasks={columns.IN_PROGRESS}
             onOpenTask={onOpenTask}
           />
 
           <BoardColumn
             id="IN_REVIEW"
-            title="In Review"
             tasks={columns.IN_REVIEW}
             onOpenTask={onOpenTask}
           />
 
           <BoardColumn
             id="ON_HOLD"
-            title="On Hold"
             tasks={columns.ON_HOLD}
             onOpenTask={onOpenTask}
           />
 
-          <BoardColumn
-            id="DONE"
-            title="Done"
-            tasks={columns.DONE}
-            onOpenTask={onOpenTask}
-          />
+          <BoardColumn id="DONE" tasks={columns.DONE} onOpenTask={onOpenTask} />
 
           <BoardColumn
             id="CANCELLED"
-            title="CANCELLED"
             tasks={columns.CANCELLED}
             onOpenTask={onOpenTask}
           />
@@ -161,12 +150,10 @@ export default function TaskBoard({
 
 function BoardColumn({
   id,
-  title,
   tasks,
   onOpenTask,
 }: {
   id: TaskStatus;
-  title: string;
   tasks: Task[];
   onOpenTask: (task: Task) => void;
 }) {
@@ -179,12 +166,18 @@ function BoardColumn({
     >
       {/* Column Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur sticky top-0 z-10">
-        <h3 className="text-sm font-semibold tracking-tight">
-          {title}
-          <span className="ml-2 text-muted-foreground text-xs">
-            ({tasks.length})
+        <div className="flex items-center gap-2">
+          <span
+            className={cn(
+              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+              TaskStatusStyles[id],
+            )}
+          >
+            {TaskStatusLabel[id]}
           </span>
-        </h3>
+
+          <span className="text-muted-foreground text-xs">{tasks.length}</span>
+        </div>
       </div>
 
       {/* Scrollable Task Area */}
