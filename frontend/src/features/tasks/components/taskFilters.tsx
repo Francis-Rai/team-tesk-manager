@@ -34,7 +34,7 @@ export default function TaskFilters({
       >
         <option value="">All Status</option>
         <option value="TODO">TODO</option>
-        <option value="IN_PROGRESS">IN_PROGRESS</option>
+        <option value="IN_PROGRESS">IN PROGRESS</option>
         <option value="DONE">DONE</option>
       </select>
 

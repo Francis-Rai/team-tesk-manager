@@ -774,7 +774,13 @@ public class TaskService {
    * Allowed Sorting Fields
    */
   private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
-      "name",
+      "title",
+      "priority",
+      "status",
+      "assignee",
+      "support",
+      "plannedStartDate",
+      "plannedDueDate",
       "createdAt",
       "updatedAt");
 

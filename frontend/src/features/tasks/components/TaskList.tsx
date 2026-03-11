@@ -26,6 +26,8 @@ interface Props {
   teamId: string;
   projectId: string;
   pagination: PaginationProps;
+  sort: string;
+  onSortChange: (sort: string) => void;
 }
 
 export default function TaskList({
@@ -33,11 +35,24 @@ export default function TaskList({
   teamId,
   projectId,
   pagination,
+  sort,
+  onSortChange,
 }: Props) {
   const navigate = useNavigate();
 
   function openTask(taskId: string) {
     navigate(`/teams/${teamId}/projects/${projectId}/tasks/${taskId}`);
+  }
+
+  function handleSort(field: string) {
+    const [currentField, direction] = sort.split(",");
+
+    if (currentField === field) {
+      const newDir = direction === "asc" ? "desc" : "asc";
+      onSortChange(`${field},${newDir}`);
+    } else {
+      onSortChange(`${field},asc`);
+    }
   }
 
   return (
@@ -49,19 +64,54 @@ export default function TaskList({
           <TableRow>
             <TableHead className="w-20">#</TableHead>
 
-            <TableHead>Title</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("title")}
+            >
+              Title
+            </TableHead>
 
-            <TableHead>Priority</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("priority")}
+            >
+              Priority
+            </TableHead>
 
-            <TableHead>Status</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("status")}
+            >
+              Status
+            </TableHead>
 
-            <TableHead>Assignee</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("assignee")}
+            >
+              Assignee
+            </TableHead>
 
-            <TableHead>Support</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("support")}
+            >
+              Support
+            </TableHead>
 
-            <TableHead>Start</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("plannedStartDate")}
+            >
+              Start
+            </TableHead>
 
-            <TableHead>Due</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("plannedDueDate")}
+            >
+              Due
+            </TableHead>
           </TableRow>
         </TableHeader>
 

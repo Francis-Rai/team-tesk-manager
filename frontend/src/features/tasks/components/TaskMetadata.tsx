@@ -50,8 +50,6 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
-      {/* Status */}
-
       <Row
         label="Status"
         value={
@@ -64,9 +62,6 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
           </div>
         }
       />
-
-      {/* Assignee */}
-
       <Row
         label="Assignee"
         value={
@@ -78,16 +73,10 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
           />
         }
       />
-
-      {/* Priority */}
-
       <Row
         label="Priority"
         value={<PriorityBadge priority={task.priority ?? "LOW"} />}
       />
-
-      {/* Support */}
-
       <Row
         label="Support"
         value={
@@ -100,9 +89,6 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
           />
         }
       />
-
-      {/* Start Date */}
-
       <Row
         label="Start Date"
         value={
@@ -111,9 +97,6 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
             : "—"
         }
       />
-
-      {/* Due Date */}
-
       <Row
         label="Due Date"
         value={

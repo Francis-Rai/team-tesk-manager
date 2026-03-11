@@ -11,7 +11,7 @@ export const getTasks = async (
     size?: number;
     search?: string;
     status?: string;
-    assigneeId?: string;
+    sort?: string;
   },
 ) => {
   const response = await apiClient.get(

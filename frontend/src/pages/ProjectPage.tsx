@@ -35,6 +35,7 @@ export default function ProjectPage() {
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("");
+  const [sort, setSort] = useState("createdAt,desc");
   const debouncedSearch = useDebounce(search, 400);
 
   /* -------------------------
@@ -54,6 +55,7 @@ export default function ProjectPage() {
     page,
     search: debouncedSearch,
     status,
+    sort,
   });
 
   const tasks = tasksData?.content ?? [];
@@ -123,6 +125,8 @@ export default function ProjectPage() {
             totalPages,
             onPageChange: setPage,
           }}
+          sort={sort}
+          onSortChange={setSort}
         />
       ) : (
         <TaskBoard
