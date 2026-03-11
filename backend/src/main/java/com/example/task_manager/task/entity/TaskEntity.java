@@ -35,7 +35,7 @@ public class TaskEntity {
   @Column(nullable = false, length = 100)
   private String title;
 
-  @Column(length = 500)
+  @Column(length = 2000)
   private String description;
 
   @Enumerated(EnumType.STRING)

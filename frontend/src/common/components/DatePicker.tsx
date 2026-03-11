@@ -13,7 +13,7 @@ export default function DatePicker({ value, onChange }: Props) {
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <Button variant="outline" className="w-50 justify-start text-left">
+        <Button variant="outline" className="w-fit p-2 justify-start text-left">
           <CalendarIcon className="mr-2 h-4 w-4" />
 
           {value ? format(value, "MMM dd, yyyy") : "Pick a date"}

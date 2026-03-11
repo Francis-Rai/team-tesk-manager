@@ -42,7 +42,7 @@ public class TaskUpdateEntity {
   @JoinColumn(name = "task_id", nullable = false)
   private TaskEntity task;
 
-  @Column(nullable = false, length = 300)
+  @Column(nullable = false, length = 2000)
   private String message;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)

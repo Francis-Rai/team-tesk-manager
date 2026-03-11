@@ -21,7 +21,7 @@ export function CreateTaskModal({
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-xl" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Create Task</DialogTitle>
         </DialogHeader>
@@ -30,6 +30,7 @@ export function CreateTaskModal({
           teamId={teamId}
           projectId={projectId}
           onSuccess={() => onOpenChange(false)}
+          onCancel={() => onOpenChange(false)}
         />
       </DialogContent>
     </Dialog>

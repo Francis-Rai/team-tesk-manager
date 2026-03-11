@@ -22,7 +22,7 @@ export default function UserSelector({
         const val = e.target.value;
         onChange(val === "" ? null : val);
       }}
-      className="border rounded-md py-1 text-sm"
+      className="border rounded-md py-1 text-sm w-full"
     >
       {/* Placeholder */}
       <option value="" disabled>

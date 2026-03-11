@@ -16,7 +16,7 @@ public record CreateTaskRequest(
 
     @NotBlank @Size(max = 100) String title,
 
-    @Size(max = 500) String description,
+    @Size(max = 2000) String description,
 
     @NotNull TaskPriority priority,
 

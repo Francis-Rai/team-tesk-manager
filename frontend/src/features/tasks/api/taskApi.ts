@@ -42,7 +42,7 @@ export const createTask = async (
 ) => {
   const response = await apiClient.post(
     `/teams/${teamId}/projects/${projectId}/tasks`,
-    { data },
+    data,
   );
 
   return response.data;

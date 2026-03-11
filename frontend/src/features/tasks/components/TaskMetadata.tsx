@@ -10,6 +10,8 @@ import DatePicker from "../../../common/components/DatePicker";
 import StatusSelect from "../../../common/components/StatusSelector";
 import type { TaskStatus } from "../utils/taskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
 
 interface Props {
   teamId: string;
@@ -19,12 +21,9 @@ interface Props {
 
 function Row({ label, value }: { label: string; value: React.ReactNode }) {
   return (
-    <div className="flex flex-wrap items-start">
-      <span className="w-25 shrink-0 text-xs text-muted-foreground">
-        {label}
-      </span>
-
-      <div className="text-sm whitespace-nowrap">{value}</div>
+    <div className="flex items-center gap-4">
+      <span className="w-36 text-xs text-muted-foreground">{label}</span>
+      <div className="text-sm">{value}</div>
     </div>
   );
 }
@@ -83,7 +82,7 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
   }
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
       <Row
         label="Status"
         value={
@@ -126,7 +125,7 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         }
       />
       <Row
-        label="Start Date"
+        label="Planned Start Date"
         value={
           <DatePicker
             value={
@@ -141,7 +140,7 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         }
       />
       <Row
-        label="Due Date"
+        label="Planned Due Date"
         value={
           <DatePicker
             value={
@@ -151,6 +150,31 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
               handleUpdatePlannedDueDate(date ? date.toISOString() : null)
             }
           />
+        }
+      />
+
+      <Row
+        label="Actual Start Date"
+        value={
+          <span className="flex flex-wrap w-fit max-w-50 p-2 items-center text-left">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+
+            {task.actualStartDate
+              ? format(task.actualStartDate, "MMM dd, yyyy")
+              : "-"}
+          </span>
+        }
+      />
+      <Row
+        label="Actual Due Date"
+        value={
+          <span className="flex flex-wrap w-fit max-w-50 p-2 items-center text-left">
+            <CalendarIcon className="mr-2 h-4 w-4" />
+
+            {task.actualCompletionDate
+              ? format(task.actualCompletionDate, "MMM dd, yyyy")
+              : "-"}
+          </span>
         }
       />
     </div>

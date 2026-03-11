@@ -30,18 +30,25 @@ export default function TaskDetailsPage() {
   return (
     <div className="flex flex-col h-full">
       <TaskHeader task={task} />
-      <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
-        <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
 
-        <TaskDescription description={task.description} />
+      <div className="flex-1 overflow-y-auto px-8 py-6">
+        <div className="max-w-5xl mx-auto space-y-8">
+          <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
 
-        <TaskUpdateForm
-          teamId={teamId}
-          projectId={projectId}
-          taskId={task.id}
-        />
+          <TaskDescription description={task.description} />
 
-        <TaskTimeline teamId={teamId} projectId={projectId} taskId={task.id} />
+          <TaskUpdateForm
+            teamId={teamId}
+            projectId={projectId}
+            taskId={task.id}
+          />
+
+          <TaskTimeline
+            teamId={teamId}
+            projectId={projectId}
+            taskId={task.id}
+          />
+        </div>
       </div>
     </div>
   );
