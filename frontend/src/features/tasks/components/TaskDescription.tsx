@@ -1,15 +1,26 @@
+import EditableField from "../../../common/components/EditableField";
+import { useUpdateTask } from "../hooks/useUpdateTask";
+import type { Task } from "../types/taskTypes";
+
 interface Props {
-  description?: string;
+  teamId: string;
+  projectId: string;
+  task: Task;
 }
 
-export default function TaskDescription({ description }: Props) {
+export default function TaskDescription({ teamId, projectId, task }: Props) {
+  const updateTask = useUpdateTask(teamId, projectId, task.id);
+
   return (
     <div className="space-y-2">
       <h2 className="text-sm font-medium text-muted-foreground">Description</h2>
 
-      <p className="text-sm leading-relaxed text-muted-foreground">
-        {description || "No description"}
-      </p>
+      <EditableField
+        value={task.description}
+        displayClassName="text-sm leading-relaxed text-muted-foreground"
+        inputClassName="text-sm font-medium"
+        onSave={(value) => updateTask.mutate({ description: value })}
+      />
     </div>
   );
 }

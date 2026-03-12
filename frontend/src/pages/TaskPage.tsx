@@ -29,13 +29,13 @@ export default function TaskDetailsPage() {
 
   return (
     <div className="flex flex-col h-full">
-      <TaskHeader task={task} />
+      <TaskHeader task={task} teamId={teamId} projectId={projectId} />
 
       <div className="flex-1 overflow-y-auto px-8 py-6">
         <div className="max-w-5xl mx-auto space-y-8">
           <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
 
-          <TaskDescription description={task.description} />
+          <TaskDescription teamId={teamId} projectId={projectId} task={task} />
 
           <TaskUpdateForm
             teamId={teamId}
