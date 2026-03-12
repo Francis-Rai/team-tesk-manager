@@ -2,11 +2,13 @@ import { useForm } from "react-hook-form";
 import { useState, useRef } from "react";
 import { useCreateTaskUpdate } from "../hooks/useCreateTaskUpdate";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+import type { TaskPermissions } from "../utils/taskPermissions";
 
 interface Props {
   teamId: string;
   projectId: string;
   taskId: string;
+  permissions: TaskPermissions;
 }
 
 interface FormValues {
@@ -15,7 +17,12 @@ interface FormValues {
 
 const MAX_CHARACTERS = 2000;
 
-export default function TaskUpdateForm({ teamId, projectId, taskId }: Props) {
+export default function TaskUpdateForm({
+  teamId,
+  projectId,
+  taskId,
+  permissions,
+}: Props) {
   const { register, handleSubmit, reset, watch } = useForm<FormValues>();
   const [focused, setFocused] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -65,6 +72,7 @@ export default function TaskUpdateForm({ teamId, projectId, taskId }: Props) {
             register("message").ref(el);
             textareaRef.current = el;
           }}
+          disabled={!permissions.canEditTaskDetails}
           placeholder="Write an update..."
           rows={focused ? 3 : 1}
           maxLength={MAX_CHARACTERS}

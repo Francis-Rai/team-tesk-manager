@@ -22,6 +22,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
+import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
@@ -164,10 +165,23 @@ public class TeamController {
     return ResponseEntity.ok(teamService.getExistingTeamById(teamId, authentication.getName()));
   }
 
+  /**
+   * Get All members of team.
+   */
   @GetMapping("/{teamId}/members")
   public ResponseEntity<List<TeamMemberResponse>> getTeamMembers(
       @PathVariable UUID teamId,
       Authentication authentication) {
     return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
+  }
+
+  /**
+   * Get my role by team.
+   */
+  @GetMapping("/{teamId}/me")
+  public ResponseEntity<TeamMeResponse> getMyTeamRole(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getMyTeamRole(teamId, authentication.getName()));
   }
 }

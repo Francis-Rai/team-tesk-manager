@@ -16,6 +16,7 @@ interface Props {
   displayClassName?: string;
   inputClassName?: string;
   onSave: (value: string) => void;
+  disabled?: boolean;
 }
 
 export default function EditableField({
@@ -25,6 +26,7 @@ export default function EditableField({
   displayClassName,
   inputClassName,
   onSave,
+  disabled,
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
@@ -92,8 +94,11 @@ export default function EditableField({
       <Tooltip>
         <TooltipTrigger asChild>
           <div
-            onClick={() => setEditing(true)}
-            className="group flex items-center gap-2 cursor-pointer hover:bg-muted px-2 py-1 rounded transition-colors"
+            onClick={() => {
+              if (disabled) return;
+              setEditing(true);
+            }}
+            className={`group flex items-center gap-2 px-2 py-1 rounded transition-colors ${disabled ? "cursor-default" : "cursor-pointer hover:bg-muted"}`}
           >
             <span className={displayClassName}>{value || placeholder}</span>
 

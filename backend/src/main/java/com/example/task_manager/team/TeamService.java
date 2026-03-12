@@ -2,6 +2,7 @@ package com.example.task_manager.team;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.task.TaskRepository;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
+import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
@@ -256,7 +258,7 @@ public class TeamService {
 
     TeamMemberEntity newOwner = getMembership(teamId, newOwnerUserId);
 
-    validateGlobalAdminAndSuperAdmin(newOwner.getUser().getRole());
+    validateGlobalAdminOrSuperAdmin(newOwner.getUser().getRole());
 
     owner.setRole(TeamRole.ADMIN);
     newOwner.setRole(TeamRole.OWNER);
@@ -408,6 +410,35 @@ public class TeamService {
         .toList();
   }
 
+  /**
+   * Returns user's team role.
+   */
+  @Transactional(readOnly = true)
+  public TeamMeResponse getMyTeamRole(UUID teamId, String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+    UserRole globalRole = requester.getRole();
+
+    System.out.println(requester.toString());
+    System.out.println(globalRole);
+
+    Optional<TeamMemberEntity> member = teamMemberRepository
+        .findByTeamIdAndUserId(teamId, requester.getId());
+
+    // Case 1: User is a team member
+    if (member.isPresent()) {
+      return new TeamMeResponse(member.get().getId(), member.get().getRole());
+    }
+
+    // Case 2: Global / Super admin but not team member
+    if (globalRole == UserRole.ADMIN || globalRole == UserRole.SUPER_ADMIN) {
+      return new TeamMeResponse(requester.getId(), null);
+    }
+
+    // Case 3: Not allowed
+    throw new ForbiddenException("User is not a member of this team");
+  }
+
   // HELPERS
 
   /**
@@ -529,7 +560,7 @@ public class TeamService {
     return membership;
   }
 
-  private void validateGlobalAdminAndSuperAdmin(UserRole role) {
+  private void validateGlobalAdminOrSuperAdmin(UserRole role) {
     if (role != UserRole.ADMIN
         && role != UserRole.SUPER_ADMIN) {
 

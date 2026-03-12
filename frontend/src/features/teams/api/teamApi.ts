@@ -15,3 +15,13 @@ export const createTeam = async (data: {
   const response = await apiClient.post("/teams", data);
   return response.data;
 };
+
+export interface TeamMeResponse {
+  userId: string;
+  role: "OWNER" | "ADMIN" | "MEMBER" | null;
+}
+
+export const getTeamMe = async (teamId: string) => {
+  const res = await apiClient.get(`/teams/${teamId}/me`);
+  return res.data as TeamMeResponse;
+};

@@ -3,7 +3,9 @@ import {
   DialogContent,
   DialogTitle,
 } from "../../../components/ui/dialog";
+import { useTeamMe } from "../../teams/hooks/useTeamMe";
 import { useTask } from "../hooks/useTask";
+import { getTaskPermissions } from "../utils/taskPermissions";
 import TaskDescription from "./TaskDescription";
 import TaskHeader from "./TaskHeader";
 import TaskMetadata from "./TaskMetadata";
@@ -26,9 +28,18 @@ export default function TaskModal({
   projectId,
 }: Props) {
   const { data: task, isLoading } = useTask(teamId, projectId, taskId);
+  const { data: teamMe } = useTeamMe(teamId);
+
   if (isLoading || !task) {
     return <div className="p-6">Loading task...</div>;
   }
+
+  const permissions = getTaskPermissions({
+    role: teamMe?.role ?? null,
+    userId: teamMe?.userId,
+    assigneeId: task?.assignedUser?.id,
+    supportId: task?.supportUser?.id,
+  });
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
@@ -37,7 +48,12 @@ export default function TaskModal({
       >
         <div className="flex flex-col h-full">
           <DialogTitle>
-            <TaskHeader task={task} teamId={teamId} projectId={projectId} />
+            <TaskHeader
+              task={task}
+              teamId={teamId}
+              projectId={projectId}
+              permissions={permissions}
+            />
           </DialogTitle>
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
             <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
@@ -46,12 +62,14 @@ export default function TaskModal({
               teamId={teamId}
               projectId={projectId}
               task={task}
+              permissions={permissions}
             />
 
             <TaskUpdateForm
               teamId={teamId}
               projectId={projectId}
               taskId={task.id}
+              permissions={permissions}
             />
 
             <TaskTimeline
