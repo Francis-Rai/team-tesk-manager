@@ -108,7 +108,7 @@ export default function TaskBoard({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6 min-w-225 items-start p-4 h-full">
+        <div className="flex gap-6 xl:justify-around min-w-225 items-start p-4 h-full">
           <BoardColumn id="TODO" tasks={columns.TODO} onOpenTask={onOpenTask} />
 
           <BoardColumn
@@ -162,7 +162,7 @@ function BoardColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col w-[320px] shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(100vh-240px)]"
+      className="flex flex-col w-60 shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(100vh-240px)]"
     >
       {/* Column Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur sticky top-0 z-10">

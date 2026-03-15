@@ -87,12 +87,8 @@ export default function ProjectPage() {
   -------------------------- */
 
   return (
-    <div className="flex flex-col gap-6 p-6">
-      <ProjectHeader
-        name={project?.name}
-        description={project?.description}
-        onCreateTask={() => setCreateOpen(true)}
-      />
+    <div className="flex flex-col gap-6 p-6 max-h-[90vh]">
+      <ProjectHeader name={project?.name} description={project?.description} />
 
       <CreateTaskModal
         teamId={safeTeamId}
@@ -109,6 +105,7 @@ export default function ProjectPage() {
         setStatus={setStatus}
         setPage={setPage}
         setView={setView}
+        onCreateTask={() => setCreateOpen(true)}
       />
 
       {/* Content */}

@@ -1,9 +1,11 @@
 import type { Dispatch, SetStateAction } from "react";
+import { Button } from "../../../components/ui/button";
 
 interface Props {
   search: string;
   status: string;
   view: "list" | "board";
+  onCreateTask: () => void;
 
   setSearch: Dispatch<SetStateAction<string>>;
   setStatus: Dispatch<SetStateAction<string>>;
@@ -18,6 +20,7 @@ export default function TaskFilters({
   setSearch,
   setStatus,
   setView,
+  onCreateTask,
 }: Props) {
   return (
     <div className="flex flex-wrap gap-4">
@@ -39,23 +42,25 @@ export default function TaskFilters({
       </select>
 
       <div className="flex gap-2">
-        <button
+        <Button
           onClick={() => setView("list")}
-          className={`px-3 py-1 border rounded text-sm ${
-            view === "list" ? "bg-primary text-white" : "bg-white"
+          className={`px-3 py-1 border border-grey rounded text-sm ${
+            view === "list" ? "bg-primary text-white" : "bg-white text-black"
           }`}
         >
           List
-        </button>
+        </Button>
 
-        <button
+        <Button
           onClick={() => setView("board")}
-          className={`px-3 py-1 border rounded text-sm ${
-            view === "board" ? "bg-primary text-white" : "bg-white"
+          className={`px-3 py-1 border border-grey rounded text-sm ${
+            view === "board" ? "bg-primary text-white" : "bg-white text-black"
           }`}
         >
           Board
-        </button>
+        </Button>
+
+        <Button onClick={onCreateTask}>Create Task</Button>
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ export type TeamRole = "OWNER" | "ADMIN" | "MEMBER" | null;
 
 export interface TaskPermissions {
   canEditTaskDetails: boolean;
+  canDeleteTask: boolean;
   canChangeStatus: boolean;
   canComment: boolean;
 }
@@ -23,6 +24,7 @@ export function getTaskPermissions({
   if (role === null) {
     return {
       canEditTaskDetails: false,
+      canDeleteTask: false,
       canChangeStatus: false,
       canComment: false,
     };
@@ -35,12 +37,15 @@ export function getTaskPermissions({
 
   const canEditTaskDetails = isOwner || isAdmin;
 
+  const canDeleteTask = isOwner || isAdmin;
+
   const canChangeStatus = isOwner || isAdmin || isAssignee || isSupport;
 
   const canComment = isOwner || isAdmin || isAssignee || isSupport;
 
   return {
     canEditTaskDetails,
+    canDeleteTask,
     canChangeStatus,
     canComment,
   };

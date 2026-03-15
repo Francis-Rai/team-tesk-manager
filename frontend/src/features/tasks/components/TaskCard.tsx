@@ -16,7 +16,7 @@ export default function TaskCard({ task, onOpen }: Props) {
       onClick={() => onOpen(task)}
       className="cursor-pointer hover:bg-muted/40 transition-colors"
     >
-      <CardContent className="p-4 space-y-3">
+      <CardContent className="space-y-3">
         {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
@@ -27,11 +27,13 @@ export default function TaskCard({ task, onOpen }: Props) {
         </div>
 
         {/* Title */}
-        <h3 className="font-medium leading-snug line-clamp-2">{task.title}</h3>
+        <h3 className="text-xs font-medium leading-snug line-clamp-2">
+          {task.title}
+        </h3>
 
         {/* Description */}
         {task.description && (
-          <p className="text-sm text-muted-foreground line-clamp-2">
+          <p className="text-xs text-muted-foreground line-clamp-2">
             {task.description}
           </p>
         )}

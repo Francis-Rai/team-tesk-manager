@@ -62,6 +62,16 @@ export const updateTask = async (
   return response.data;
 };
 
+export const deleteTask = async (
+  teamId: string,
+  projectId: string,
+  taskId: string,
+) => {
+  await apiClient.delete(
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}`,
+  );
+};
+
 export const getTaskUpdates = async (
   teamId: string,
   projectId: string,
