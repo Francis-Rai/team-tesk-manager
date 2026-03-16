@@ -18,6 +18,7 @@ interface Props {
   taskId: string;
   teamId: string;
   projectId: string;
+  onTaskDeleted: () => void;
 }
 
 export default function TaskModal({
@@ -26,6 +27,7 @@ export default function TaskModal({
   taskId,
   teamId,
   projectId,
+  onTaskDeleted,
 }: Props) {
   const { data: task, isLoading } = useTask(teamId, projectId, taskId);
   const { data: teamMe } = useTeamMe(teamId);
@@ -53,6 +55,7 @@ export default function TaskModal({
               teamId={teamId}
               projectId={projectId}
               permissions={permissions}
+              onTaskDeleted={onTaskDeleted}
             />
           </DialogTitle>
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">

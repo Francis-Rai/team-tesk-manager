@@ -12,13 +12,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../../components/ui/alert-dialog";
-import { useState } from "react";
 
 interface Props {
   teamId: string;
   projectId: string;
   taskId: string;
   taskTitle: string;
+  onTaskDeleted?: () => void;
 }
 
 export function DeleteTaskButton({
@@ -26,22 +26,24 @@ export function DeleteTaskButton({
   projectId,
   taskId,
   taskTitle,
+  onTaskDeleted,
 }: Props) {
   const navigate = useNavigate();
   const deleteTaskMutation = useDeleteTask(teamId, projectId);
-  const [open, setOpen] = useState(false);
 
   const handleDelete = () => {
     deleteTaskMutation.mutate(taskId, {
       onSuccess: () => {
-        setOpen(false);
+        if (onTaskDeleted) {
+          onTaskDeleted();
+        }
         navigate(`/teams/${teamId}/projects/${projectId}`);
       },
     });
   };
 
   return (
-    <AlertDialog open={open} onOpenChange={setOpen}>
+    <AlertDialog>
       <AlertDialogTrigger asChild>
         <button className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
           <Trash2 className="h-4 w-4" />

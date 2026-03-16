@@ -10,6 +10,7 @@ interface Props {
   projectId: string;
   task: Task;
   permissions: TaskPermissions;
+  onTaskDeleted: () => void;
 }
 
 export default function TaskHeader({
@@ -17,6 +18,7 @@ export default function TaskHeader({
   projectId,
   task,
   permissions,
+  onTaskDeleted,
 }: Props) {
   const updateTask = useUpdateTask(teamId, projectId, task.id);
 
@@ -34,6 +36,7 @@ export default function TaskHeader({
               projectId={projectId}
               taskId={task.id}
               taskTitle={task.title}
+              onTaskDeleted={onTaskDeleted}
             />
           )}
         </div>

@@ -139,6 +139,7 @@ export default function ProjectPage() {
         <TaskModal
           open={!!selectedTask}
           onClose={() => setSelectedTask(null)}
+          onTaskDeleted={() => setSelectedTask(null)}
           taskId={selectedTask.id}
           teamId={safeTeamId}
           projectId={safeProjectId}

@@ -7,9 +7,9 @@ export function useDeleteTask(teamId: string, projectId: string) {
   return useMutation({
     mutationFn: (taskId: string) => deleteTask(teamId, projectId, taskId),
 
-    onSuccess: () => {
+    onSuccess: (_, taskId) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
-      queryClient.invalidateQueries({ queryKey: ["task"] });
+      queryClient.invalidateQueries({ queryKey: ["task", taskId] });
     },
   });
 }
