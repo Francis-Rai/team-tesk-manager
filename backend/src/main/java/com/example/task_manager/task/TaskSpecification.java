@@ -6,6 +6,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
@@ -27,8 +28,7 @@ public class TaskSpecification {
       UUID assigneeId,
       UUID supportId,
       Boolean overdue,
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter deletedFilter,
       boolean isGlobalAdmin) {
 
     return Specification
@@ -39,7 +39,7 @@ public class TaskSpecification {
         .and(hasAssignee(assigneeId))
         .and(hasSupport(supportId))
         .and(isOverdue(overdue))
-        .and(deletedFilter(includeDeleted, onlyDeleted, isGlobalAdmin));
+        .and(deletedFilter(deletedFilter, isGlobalAdmin));
   }
 
   private static Specification<TaskEntity> belongsToProject(UUID projectId) {
@@ -123,8 +123,7 @@ public class TaskSpecification {
   }
 
   private static Specification<TaskEntity> deletedFilter(
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter filter,
       boolean isGlobalAdmin) {
 
     return (root, query, cb) -> {
@@ -133,15 +132,11 @@ public class TaskSpecification {
         return cb.isNull(root.get("deletedAt"));
       }
 
-      if (Boolean.TRUE.equals(onlyDeleted)) {
-        return cb.isNotNull(root.get("deletedAt"));
-      }
-
-      if (Boolean.TRUE.equals(includeDeleted)) {
-        return cb.conjunction();
-      }
-
-      return cb.isNull(root.get("deletedAt"));
+      return switch (filter) {
+        case DELETED -> cb.isNotNull(root.get("deletedAt"));
+        case ALL -> cb.conjunction();
+        case ACTIVE -> cb.isNull(root.get("deletedAt"));
+      };
     };
   }
 }

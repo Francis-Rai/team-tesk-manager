@@ -7,7 +7,7 @@ import { useTasks } from "../features/tasks/hooks/useTask";
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
 
-import type { Task } from "../features/tasks/types/taskTypes";
+import type { DeletedFilter, Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
 
 import { CreateTaskModal } from "../features/tasks/components/createTaskModal";
@@ -26,7 +26,7 @@ export default function ProjectPage() {
   /* -------------------------
      UI State
   -------------------------- */
-
+  const [deletedFilter, setDeletedFilter] = useState<DeletedFilter>("ACTIVE");
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -56,6 +56,7 @@ export default function ProjectPage() {
     search: debouncedSearch,
     status,
     sort,
+    deletedFilter,
   });
 
   const tasks = tasksData?.content ?? [];
@@ -66,6 +67,25 @@ export default function ProjectPage() {
   -------------------------- */
 
   const updateStatus = useUpdateTaskStatus(safeTeamId, safeProjectId);
+
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(0);
+  };
+
+  const handleStatusFilterChange = (value: string) => {
+    setStatus(value === "ALL" ? "" : value);
+    setPage(0);
+  };
+
+  const handleDeletedFilterChange = (value: DeletedFilter) => {
+    setDeletedFilter(value);
+    setPage(0);
+  };
+
+  const handleViewChange = (value: "list" | "board") => {
+    setView(value);
+  };
 
   function handleStatusChange(taskId: string, status: TaskStatus) {
     updateStatus.mutate({
@@ -101,10 +121,11 @@ export default function ProjectPage() {
         search={search}
         status={status}
         view={view}
-        setSearch={setSearch}
-        setStatus={setStatus}
-        setPage={setPage}
-        setView={setView}
+        deletedFilter={deletedFilter}
+        onSearchChange={handleSearchChange}
+        onStatusFilterChange={handleStatusFilterChange}
+        onDeletedFilterChange={handleDeletedFilterChange}
+        onViewChange={handleViewChange}
         onCreateTask={() => setCreateOpen(true)}
       />
 

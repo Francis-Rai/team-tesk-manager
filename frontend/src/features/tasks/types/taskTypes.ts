@@ -45,3 +45,5 @@ export interface UpdateTaskInput {
   plannedStartDate?: string | null;
   plannedDueDate?: string | null;
 }
+
+export type DeletedFilter = "ACTIVE" | "ALL" | "DELETED";

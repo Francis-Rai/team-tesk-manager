@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getTask, getTasks } from "../api/taskApi";
 import type { PageResponse } from "../../../common/types/pageResponse";
-import type { Task } from "../types/taskTypes";
+import type { DeletedFilter, Task } from "../types/taskTypes";
 
 export const useTasks = (
   teamId: string,
@@ -11,6 +11,7 @@ export const useTasks = (
     search?: string;
     status?: string;
     sort?: string;
+    deletedFilter: DeletedFilter;
   },
 ) => {
   return useQuery<PageResponse<Task>>({
@@ -22,6 +23,7 @@ export const useTasks = (
       params.search,
       params.status,
       params.sort,
+      params.deletedFilter,
     ],
 
     queryFn: () =>
@@ -31,6 +33,7 @@ export const useTasks = (
         search: params.search,
         status: params.status,
         sort: params.sort,
+        deletedFilter: params.deletedFilter,
       }),
     placeholderData: keepPreviousData,
   });
