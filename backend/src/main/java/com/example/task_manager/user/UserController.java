@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -53,6 +54,15 @@ public class UserController {
   public ResponseEntity<Void> updateUserPassword(
       @PathVariable UUID userId,
       @Valid @RequestBody UpdatePasswordRequest request) {
-    return ResponseEntity.ok(userService.updatePassword(userId, request));
+    userService.updatePassword(userId, request);
+    return ResponseEntity.noContent().build();
+  }
+
+  /*
+   * Get Active User's Details
+   */
+  @GetMapping("/me")
+  public ResponseEntity<UserResponse> getCurrentUser(Authentication authentication) {
+    return ResponseEntity.ok(userService.getByEmail(authentication.getName()));
   }
 }

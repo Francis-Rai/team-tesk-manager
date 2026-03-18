@@ -13,6 +13,7 @@ import {
   ToggleGroupItem,
 } from "../../../components/ui/toggle-group";
 import { LayoutList, Kanban } from "lucide-react";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 type Props = {
   search: string;
@@ -39,6 +40,8 @@ export default function TaskFilters({
   onCreateTask,
   onDeletedFilterChange,
 }: Props) {
+  const { isGlobalAdmin } = useAuth();
+
   return (
     <div className="flex flex-wrap gap-4">
       <Input
@@ -59,19 +62,19 @@ export default function TaskFilters({
           <SelectItem value="DONE">DONE</SelectItem>
         </SelectContent>
       </Select>
+      {isGlobalAdmin && (
+        <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Filter" />
+          </SelectTrigger>
 
-      <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
-        <SelectTrigger className="w-40">
-          <SelectValue placeholder="Filter" />
-        </SelectTrigger>
-
-        <SelectContent>
-          <SelectItem value="ACTIVE">Active</SelectItem>
-          <SelectItem value="ALL">All</SelectItem>
-          <SelectItem value="DELETED">Deleted</SelectItem>
-        </SelectContent>
-      </Select>
-
+          <SelectContent>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="ALL">All</SelectItem>
+            <SelectItem value="DELETED">Deleted</SelectItem>
+          </SelectContent>
+        </Select>
+      )}
       <ToggleGroup
         type="single"
         value={view}

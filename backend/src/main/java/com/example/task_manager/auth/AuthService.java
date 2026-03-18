@@ -50,7 +50,14 @@ public class AuthService {
       throw new EmailAlreadyInUseException();
     }
 
-    return new AuthResponse(jwtService.generateToken(user));
+    AuthResponse.User userDetails = new AuthResponse.User(
+        user.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getEmail(),
+        user.getRole());
+
+    return new AuthResponse(jwtService.generateToken(user), userDetails);
   }
 
   /**
@@ -67,6 +74,13 @@ public class AuthService {
       throw new AuthException();
     }
 
-    return new AuthResponse(jwtService.generateToken(user));
+    AuthResponse.User userDetails = new AuthResponse.User(
+        user.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getEmail(),
+        user.getRole());
+
+    return new AuthResponse(jwtService.generateToken(user), userDetails);
   }
 }

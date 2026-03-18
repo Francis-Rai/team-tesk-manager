@@ -45,7 +45,8 @@ public class UserService {
             user.getId(),
             user.getFirstName(),
             user.getLastName(),
-            user.getEmail()))
+            user.getEmail(),
+            user.getRole()))
         .collect(Collectors.toList());
   }
 
@@ -108,7 +109,7 @@ public class UserService {
    */
   @PreAuthorize("#userId == authentication.principal.id or hasRole('SUPER_ADMIN')")
   @Transactional
-  public Void updatePassword(
+  public void updatePassword(
       UUID userId,
       UpdatePasswordRequest request) {
 
@@ -122,7 +123,13 @@ public class UserService {
 
     target.setPassword(passwordEncoder.encode(request.newPassword()));
 
-    return null;
+  }
+
+  public UserResponse getByEmail(String email) {
+    UserEntity user = userRepository.findByEmail(email)
+        .orElseThrow(() -> new RuntimeException("User not found"));
+
+    return mapToResponse(user);
   }
 
   // HELPER
@@ -131,7 +138,8 @@ public class UserService {
         user.getId(),
         user.getFirstName(),
         user.getLastName(),
-        user.getEmail());
+        user.getEmail(),
+        user.getRole());
   }
 
 }
