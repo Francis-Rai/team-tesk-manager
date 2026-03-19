@@ -12,6 +12,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "../../../components/ui/alert-dialog";
+import { Button } from "../../../components/ui/button";
 
 interface Props {
   teamId: string;
@@ -45,9 +46,12 @@ export function DeleteTaskButton({
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <button className="p-2 rounded-md text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors">
+        <Button
+          variant="ghost"
+          className=" hover:text-destructive hover:bg-destructive/10"
+        >
           <Trash2 className="h-4 w-4" />
-        </button>
+        </Button>
       </AlertDialogTrigger>
 
       <AlertDialogContent className="max-w-md">

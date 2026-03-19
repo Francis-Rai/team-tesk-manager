@@ -10,7 +10,7 @@ import TaskModal from "../features/tasks/components/TaskModal";
 import type { DeletedFilter, Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
 
-import { CreateTaskModal } from "../features/tasks/components/createTaskModal";
+import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
 import TaskFilters from "../features/tasks/components/taskFilters";
 import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";

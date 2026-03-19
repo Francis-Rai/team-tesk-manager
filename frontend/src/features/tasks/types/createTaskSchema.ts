@@ -1,25 +1,28 @@
 import { z } from "zod";
 
-export const createTaskSchema = z.object({
-  title: z.string().min(1, "Title is required").max(100),
+export const createTaskSchema = z
+  .object({
+    title: z.string().min(1, "Title is required"),
+    description: z.string().optional(),
 
-  description: z.string().max(2000).optional(),
+    priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
 
-  priority: z.enum(["LOW", "MEDIUM", "HIGH"]),
+    assigneeId: z.string().min(1, "Assignee is required"),
+    supportId: z.string().optional(),
 
-  assigneeId: z.string().uuid("Invalid assignee"),
+    plannedStartDate: z.string().min(1, "Start date is required"),
+    plannedDueDate: z.string().min(1, "Due date is required"),
+  })
+  .refine(
+    (data) => {
+      if (!data.plannedStartDate || !data.plannedDueDate) return true;
 
-  supportId: z.string().uuid().optional(),
-
-  plannedStartDate: z
-    .string()
-    .min(1, "Start date is required")
-    .transform((date) => `${date}T00:00:00Z`),
-
-  plannedDueDate: z
-    .string()
-    .min(1, "Due date is required")
-    .transform((date) => `${date}T00:00:00Z`),
-});
+      return new Date(data.plannedStartDate) <= new Date(data.plannedDueDate);
+    },
+    {
+      message: "Due date must be after start date",
+      path: ["plannedDueDate"],
+    },
+  );
 
 export type CreateTaskInput = z.infer<typeof createTaskSchema>;

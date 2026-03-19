@@ -60,6 +60,17 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
 
   function handleUpdatePlannedStartDate(plannedStartDate: string | null) {
     if (!plannedStartDate || plannedStartDate === task.plannedStartDate) return;
+    if (
+      task.plannedDueDate &&
+      new Date(plannedStartDate) > new Date(task.plannedDueDate)
+    ) {
+      updateTaskMutation.mutate({
+        plannedStartDate,
+        plannedDueDate: plannedStartDate,
+      });
+      return;
+    }
+
     updateTaskMutation.mutate({
       plannedStartDate,
     });
@@ -148,6 +159,11 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
             }
             onChange={(date) =>
               handleUpdatePlannedDueDate(date ? date.toISOString() : null)
+            }
+            disabled={(date) =>
+              task.plannedStartDate
+                ? date < new Date(task.plannedStartDate)
+                : false
             }
           />
         }

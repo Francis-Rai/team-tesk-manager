@@ -164,7 +164,6 @@ function BoardColumn({
       ref={setNodeRef}
       className="flex flex-col w-60 shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(100vh-240px)]"
     >
-      {/* Column Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur sticky top-0 z-10">
         <div className="flex items-center gap-2">
           <span
@@ -180,7 +179,6 @@ function BoardColumn({
         </div>
       </div>
 
-      {/* Scrollable Task Area */}
       <div className="flex flex-col gap-3 p-4 overflow-y-auto">
         <SortableContext
           items={tasks.map((t) => t.id)}

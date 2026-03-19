@@ -100,7 +100,6 @@ export default function AuthPage() {
 
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Register fields */}
             {isRegister && (
               <div className="grid grid-cols-2 gap-2">
                 <div>
@@ -132,8 +131,6 @@ export default function AuthPage() {
                 </div>
               </div>
             )}
-
-            {/* Email */}
             <div>
               <Input
                 name="email"
@@ -146,8 +143,6 @@ export default function AuthPage() {
                 <p className="text-red-500 text-xs mt-1">{errors.email}</p>
               )}
             </div>
-
-            {/* Password */}
             <div>
               <Input
                 name="password"
@@ -160,15 +155,11 @@ export default function AuthPage() {
                 <p className="text-red-500 text-xs mt-1">{errors.password}</p>
               )}
             </div>
-
-            {/* Server error */}
             {serverError && (
               <div className="text-red-600 text-sm text-center">
                 {serverError}
               </div>
             )}
-
-            {/* Button */}
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -183,7 +174,6 @@ export default function AuthPage() {
             </Button>
           </form>
 
-          {/* Toggle */}
           <p className="text-sm text-center mt-4">
             {isRegister ? (
               <>

@@ -10,6 +10,20 @@ import {
   createTaskSchema,
   type CreateTaskInput,
 } from "../types/createTaskSchema";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
+import {
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+  Select,
+} from "../../../components/ui/select";
+import { Textarea } from "../../../components/ui/textarea";
+import { Label } from "../../../components/ui/label";
+import { Separator } from "../../../components/ui/separator";
+import DatePicker from "../../../common/components/DatePicker";
+import type { TaskPriority } from "../utils/taskPriority";
 
 interface Props {
   teamId: string;
@@ -29,14 +43,19 @@ export function CreateTaskForm({
 
   const form = useForm<CreateTaskInput>({
     resolver: zodResolver(createTaskSchema),
+    mode: "onChange",
     defaultValues: {
       title: "",
       description: "",
-      priority: "MEDIUM",
       assigneeId: "",
       supportId: undefined,
+      plannedStartDate: "",
+      plannedDueDate: "",
     },
   });
+
+  const start = form.watch("plannedStartDate");
+  const due = form.watch("plannedDueDate");
 
   const onSubmit = (data: CreateTaskInput) => {
     createTaskMutation.mutate(data, {
@@ -49,107 +68,130 @@ export function CreateTaskForm({
 
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-      {/* Title */}
-      <div>
-        <input
-          {...form.register("title")}
-          placeholder="Task title"
-          className="w-full text-base font-medium border rounded-md px-3 py-2"
-        />
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Title</Label>
+        <Input {...form.register("title")} placeholder="Enter task title..." />
       </div>
-
-      {/* Description */}
-      <div>
-        <textarea
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Description</Label>
+        <Textarea
           {...form.register("description")}
-          rows={3}
-          placeholder="Add a description..."
-          className="w-full text-sm border rounded-md px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-primary"
+          rows={4}
+          placeholder="Add more details about this task..."
+          className="resize-none"
         />
       </div>
 
-      {/* Task Properties */}
       <div className="grid grid-cols-3 gap-3">
-        {/* Priority */}
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Priority</label>
+          <Label className="text-xs text-muted-foreground">Priority</Label>
 
-          <select
-            {...form.register("priority")}
-            className="w-full border rounded-md px-3 py-2 text-sm"
+          <Select
+            value={form.watch("priority")}
+            onValueChange={(value) =>
+              form.setValue("priority", value as TaskPriority, {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
           >
-            <option value="LOW">Low</option>
-            <option value="MEDIUM">Medium</option>
-            <option value="HIGH">High</option>
-          </select>
+            <SelectTrigger className="w-full border rounded-md px-3 py-2 text-sm">
+              <SelectValue placeholder="Priority" />
+            </SelectTrigger>
+
+            <SelectContent>
+              <SelectItem value="LOW">Low</SelectItem>
+              <SelectItem value="MEDIUM">Medium</SelectItem>
+              <SelectItem value="HIGH">High</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
-        {/* Assignee */}
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Assignee</label>
+          <Label className="text-xs text-muted-foreground">Assignee</Label>
 
           <UserSelector
             users={members}
             value={form.watch("assigneeId")}
-            onChange={(id) => form.setValue("assigneeId", id ?? "")}
-            placeholder={""}
+            onChange={(id) =>
+              form.setValue("assigneeId", id ?? "", {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+            placeholder="Select User"
           />
         </div>
 
-        {/* Support */}
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Support</label>
+          <Label className="text-xs text-muted-foreground">Support</Label>
 
           <UserSelector
             users={members}
             allowClear
             value={form.watch("supportId")}
             onChange={(id) => form.setValue("supportId", id ?? undefined)}
-            placeholder={""}
+            placeholder="Optional"
           />
         </div>
       </div>
 
-      {/* Dates */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Planned Start</label>
+          <Label className="text-xs text-muted-foreground">Planned Start</Label>
 
-          <input
-            type="date"
-            {...form.register("plannedStartDate")}
-            className="w-full border rounded-md px-3 py-2 text-sm"
+          <DatePicker
+            value={start ? new Date(start) : undefined}
+            onChange={(date) => {
+              const iso = date ? date.toISOString() : "";
+
+              form.setValue("plannedStartDate", iso, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+
+              if (due && date && new Date(iso) > new Date(due)) {
+                form.setValue("plannedDueDate", iso);
+              }
+
+              form.trigger("plannedDueDate");
+            }}
           />
         </div>
 
         <div className="space-y-1">
-          <label className="text-xs text-muted-foreground">Planned Due</label>
+          <Label className="text-xs text-muted-foreground">Planned Due</Label>
 
-          <input
-            type="date"
-            {...form.register("plannedDueDate")}
-            className="w-full border rounded-md px-3 py-2 text-sm"
+          <DatePicker
+            value={due ? new Date(due) : undefined}
+            onChange={(date) =>
+              form.setValue("plannedDueDate", date ? date.toISOString() : "", {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
+            disabled={(date) => {
+              if (!start) return true;
+
+              return date < new Date(start);
+            }}
           />
         </div>
       </div>
+      <Separator />
 
-      {/* Buttons */}
-      <div className="flex justify-end gap-2 pt-4 border-t">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="text-sm px-3 py-1.5 rounded-md border hover:bg-muted"
-        >
+      <div className="flex justify-end gap-2 pt-4">
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
+        </Button>
 
-        <button
+        <Button
           type="submit"
-          disabled={createTaskMutation.isPending}
-          className="text-sm px-4 py-1.5 rounded-md bg-primary text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          variant="default"
+          disabled={createTaskMutation.isPending || !form.formState.isValid}
         >
-          Create Task
-        </button>
+          {createTaskMutation.isPending ? "Creating..." : "Create Task"}
+        </Button>
       </div>
     </form>
   );

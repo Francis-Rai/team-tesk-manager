@@ -2,6 +2,7 @@ import PriorityBadge from "../../../common/components/PriorityBadge";
 import { formatDateTimeShort } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Card, CardContent, CardFooter } from "../../../components/ui/card";
+import { Label } from "../../../components/ui/label";
 
 import type { Task } from "../types/taskTypes";
 
@@ -17,7 +18,6 @@ export default function TaskCard({ task, onOpen }: Props) {
       className="cursor-pointer hover:bg-muted/40 transition-colors"
     >
       <CardContent className="space-y-3">
-        {/* Header */}
         <div className="flex items-center justify-between">
           <span className="text-xs text-muted-foreground">
             #{task.taskNumber}
@@ -26,21 +26,17 @@ export default function TaskCard({ task, onOpen }: Props) {
           <PriorityBadge priority={task.priority ?? "LOW"} />
         </div>
 
-        {/* Title */}
-        <h3 className="text-xs font-medium leading-snug line-clamp-2">
+        <Label className="text-xs font-medium leading-snug line-clamp-2">
           {task.title}
-        </h3>
+        </Label>
 
-        {/* Description */}
         {task.description && (
           <p className="text-xs text-muted-foreground line-clamp-2">
             {task.description}
           </p>
         )}
 
-        {/* Users */}
         <div className="flex items-center gap-4 text-xs text-muted-foreground">
-          {/* Assignee */}
           {task.assignedUser && (
             <div className="flex items-center gap-1">
               <Avatar className="h-5 w-5">
@@ -54,7 +50,6 @@ export default function TaskCard({ task, onOpen }: Props) {
             </div>
           )}
 
-          {/* Support */}
           {task.supportUser && (
             <div className="flex items-center gap-1">
               <Avatar className="h-5 w-5">
@@ -70,7 +65,6 @@ export default function TaskCard({ task, onOpen }: Props) {
         </div>
       </CardContent>
 
-      {/* Dates */}
       {(task.plannedStartDate || task.plannedDueDate) && (
         <CardFooter className="px-4 py-3 border-t text-xs text-muted-foreground flex flex-wrap gap-4">
           {task.plannedStartDate && (

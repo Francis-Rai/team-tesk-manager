@@ -58,8 +58,6 @@ export default function TaskList({
   return (
     <div className="border rounded-md">
       <Table>
-        {/* HEADER */}
-
         <TableHeader>
           <TableRow>
             <TableHead className="w-20">#</TableHead>
@@ -115,8 +113,6 @@ export default function TaskList({
           </TableRow>
         </TableHeader>
 
-        {/* BODY */}
-
         <TableBody>
           {tasks.map((task) => (
             <TableRow
@@ -124,13 +120,9 @@ export default function TaskList({
               onClick={() => openTask(task.id)}
               className="cursor-pointer hover:bg-muted/50"
             >
-              {/* NUMBER */}
-
               <TableCell className="text-muted-foreground">
                 #{task.taskNumber}
               </TableCell>
-
-              {/* TITLE */}
 
               <TableCell className="max-w-[320px]">
                 <div className="font-medium truncate">{task.title}</div>
@@ -142,13 +134,9 @@ export default function TaskList({
                 )}
               </TableCell>
 
-              {/* PRIORITY */}
-
               <TableCell>
-                <PriorityBadge priority={task.priority ?? "LOW"} />
+                <PriorityBadge priority={task.priority} />
               </TableCell>
-
-              {/* STATUS */}
 
               <TableCell>
                 <div
@@ -159,8 +147,6 @@ export default function TaskList({
                   {TaskStatusLabel[task.status]}
                 </div>
               </TableCell>
-
-              {/* ASSIGNEE */}
 
               <TableCell>
                 {task.assignedUser ? (
@@ -182,8 +168,6 @@ export default function TaskList({
                 )}
               </TableCell>
 
-              {/* SUPPORT */}
-
               <TableCell>
                 {task.supportUser ? (
                   <div className="flex items-center gap-2">
@@ -203,13 +187,10 @@ export default function TaskList({
                   "—"
                 )}
               </TableCell>
-              {/* START DATE */}
 
               <TableCell>
                 {formatDateTimeShort(task.plannedStartDate)}
               </TableCell>
-
-              {/* DUE DATE */}
 
               <TableCell>{formatDateTimeShort(task.plannedDueDate)}</TableCell>
             </TableRow>
