@@ -31,15 +31,23 @@ import {
   TaskStatusStyles,
 } from "../utils/taskStatus";
 import { cn } from "../../../lib/utils";
+import {
+  useInfiniteTasks,
+  type TaskQueryParams,
+} from "../hooks/useInfiniteTasks";
 
 interface Props {
-  tasks: Task[];
+  teamId: string;
+  projectId: string;
+  params: TaskQueryParams;
   onStatusChange: (taskId: string, status: TaskStatus) => void;
   onOpenTask: (task: Task) => void;
 }
 
 export default function TaskBoard({
-  tasks,
+  teamId,
+  projectId,
+  params,
   onStatusChange,
   onOpenTask,
 }: Props) {
@@ -53,21 +61,8 @@ export default function TaskBoard({
     }),
   );
 
-  const columns: Record<TaskStatus, Task[]> = {
-    TODO: [],
-    IN_PROGRESS: [],
-    IN_REVIEW: [],
-    ON_HOLD: [],
-    DONE: [],
-    CANCELLED: [],
-  };
-
-  for (const task of tasks) {
-    columns[task.status].push(task);
-  }
-
   function handleDragStart(event: DragStartEvent) {
-    const task = tasks.find((t) => t.id === event.active.id);
+    const task = event.active.data.current?.task;
 
     if (task) {
       setActiveTask(task);
@@ -84,7 +79,7 @@ export default function TaskBoard({
     const activeId = active.id as string;
     const overId = over.id as string;
 
-    const activeTask = tasks.find((t) => t.id === activeId);
+    const activeTask = active.data.current?.task as Task | undefined;
 
     if (!activeTask) return;
 
@@ -96,9 +91,18 @@ export default function TaskBoard({
         return;
       }
 
-      onStatusChange(activeId, newStatus);
+      if (activeTask.status !== newStatus) {
+        onStatusChange(activeId, newStatus);
+      }
     }
   }
+
+  const commonProps = {
+    teamId,
+    projectId,
+    params,
+    onOpenTask,
+  };
 
   return (
     <div className="w-full h-full">
@@ -109,33 +113,12 @@ export default function TaskBoard({
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-6 xl:justify-around min-w-225 items-start p-4 h-full">
-          <BoardColumn id="TODO" tasks={columns.TODO} onOpenTask={onOpenTask} />
-
-          <BoardColumn
-            id="IN_PROGRESS"
-            tasks={columns.IN_PROGRESS}
-            onOpenTask={onOpenTask}
-          />
-
-          <BoardColumn
-            id="IN_REVIEW"
-            tasks={columns.IN_REVIEW}
-            onOpenTask={onOpenTask}
-          />
-
-          <BoardColumn
-            id="ON_HOLD"
-            tasks={columns.ON_HOLD}
-            onOpenTask={onOpenTask}
-          />
-
-          <BoardColumn id="DONE" tasks={columns.DONE} onOpenTask={onOpenTask} />
-
-          <BoardColumn
-            id="CANCELLED"
-            tasks={columns.CANCELLED}
-            onOpenTask={onOpenTask}
-          />
+          <BoardColumn id="TODO" {...commonProps} />
+          <BoardColumn id="IN_PROGRESS" {...commonProps} />
+          <BoardColumn id="IN_REVIEW" {...commonProps} />
+          <BoardColumn id="ON_HOLD" {...commonProps} />
+          <BoardColumn id="DONE" {...commonProps} />
+          <BoardColumn id="CANCELLED" {...commonProps} />
         </div>
 
         <DragOverlay>
@@ -150,36 +133,59 @@ export default function TaskBoard({
 
 function BoardColumn({
   id,
-  tasks,
+  teamId,
+  projectId,
+  params,
   onOpenTask,
 }: {
   id: TaskStatus;
-  tasks: Task[];
+  teamId: string;
+  projectId: string;
+  params: TaskQueryParams;
   onOpenTask: (task: Task) => void;
 }) {
   const { setNodeRef } = useDroppable({ id });
+
+  const { data, fetchNextPage, hasNextPage, isFetchingNextPage } =
+    useInfiniteTasks(teamId, projectId, id, params);
+
+  const tasks = data?.pages.flatMap((page) => page.content) ?? [];
+
+  const total = data?.pages[0]?.totalElements ?? 0;
+
+  function handleScroll(e: React.UIEvent<HTMLDivElement>) {
+    const el = e.currentTarget;
+
+    const isNearBottom =
+      el.scrollHeight - el.scrollTop <= el.clientHeight + 100;
+
+    if (isNearBottom && hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
+    }
+  }
 
   return (
     <div
       ref={setNodeRef}
       className="flex flex-col w-60 shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(100vh-240px)]"
     >
-      <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 backdrop-blur sticky top-0 z-10">
-        <div className="flex items-center gap-2">
-          <span
-            className={cn(
-              "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-              TaskStatusStyles[id],
-            )}
-          >
-            {TaskStatusLabel[id]}
-          </span>
+      <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 sticky top-0 z-10">
+        <span
+          className={cn(
+            "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+            TaskStatusStyles[id],
+          )}
+        >
+          {TaskStatusLabel[id]}
+        </span>
 
-          <span className="text-muted-foreground text-xs">{tasks.length}</span>
-        </div>
+        <span className="text-xs text-muted-foreground">{total}</span>
       </div>
 
-      <div className="flex flex-col gap-3 p-4 overflow-y-auto">
+      <div
+        onScroll={handleScroll}
+        className="flex flex-col gap-3 p-4 overflow-y-auto"
+      >
         <SortableContext
           items={tasks.map((t) => t.id)}
           strategy={verticalListSortingStrategy}
@@ -188,6 +194,10 @@ function BoardColumn({
             <SortableTask key={task.id} task={task} onOpenTask={onOpenTask} />
           ))}
         </SortableContext>
+
+        {isFetchingNextPage && (
+          <div className="text-center text-xs py-2">Loading more...</div>
+        )}
       </div>
     </div>
   );
@@ -202,7 +212,7 @@ function SortableTask({
 }) {
   const { attributes, listeners, setNodeRef, transform } = useSortable({
     id: task.id,
-    animateLayoutChanges: () => false,
+    data: { task },
   });
 
   const style = {

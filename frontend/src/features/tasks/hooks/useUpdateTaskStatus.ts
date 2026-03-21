@@ -23,9 +23,6 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
     mutationFn: ({ taskId, status }: Params) =>
       updateTaskStatus(teamId, projectId, taskId, status),
 
-    // ------------------------------
-    // OPTIMISTIC UPDATE
-    // ------------------------------
     onMutate: async ({ taskId, status }): Promise<MutationContext> => {
       await queryClient.cancelQueries({
         queryKey: tasksQueryKey,
@@ -48,18 +45,12 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
       return { previousTasks };
     },
 
-    // ------------------------------
-    // ROLLBACK IF ERROR
-    // ------------------------------
     onError: (_err, _variables, context) => {
       if (context?.previousTasks) {
         queryClient.setQueryData(tasksQueryKey, context.previousTasks);
       }
     },
 
-    // ------------------------------
-    // FINAL SYNC
-    // ------------------------------
     onSettled: (_, __, variables) => {
       const { taskId } = variables;
 
@@ -69,6 +60,10 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
 
       queryClient.invalidateQueries({
         queryKey: ["task", teamId, projectId, taskId],
+      });
+
+      queryClient.invalidateQueries({
+        queryKey: ["tasks"],
       });
 
       queryClient.invalidateQueries({

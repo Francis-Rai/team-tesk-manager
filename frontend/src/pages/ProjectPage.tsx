@@ -2,7 +2,6 @@ import { useParams } from "react-router-dom";
 import { useState } from "react";
 
 import { useProject } from "../features/projects/hooks/useProject";
-import { useTasks } from "../features/tasks/hooks/useTask";
 
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
@@ -16,6 +15,7 @@ import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";
 import TaskList from "../features/tasks/components/TaskList";
 import { useUpdateTaskStatus } from "../features/tasks/hooks/useUpdateTaskStatus";
+import { useTasks } from "../features/tasks/hooks/useTasks";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{
@@ -148,7 +148,13 @@ export default function ProjectPage() {
         />
       ) : (
         <TaskBoard
-          tasks={tasks}
+          teamId={safeTeamId}
+          projectId={safeProjectId}
+          params={{
+            search: debouncedSearch,
+            sort,
+            deletedFilter,
+          }}
           onStatusChange={handleStatusChange}
           onOpenTask={setSelectedTask}
         />
