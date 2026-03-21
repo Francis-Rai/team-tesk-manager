@@ -21,7 +21,6 @@ interface Props {
 
 export default function StatusSelector({ value, onChange, className }: Props) {
   const statuses: TaskStatus[] = [
-    "TODO",
     "IN_PROGRESS",
     "IN_REVIEW",
     "ON_HOLD",
