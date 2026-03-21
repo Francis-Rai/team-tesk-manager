@@ -1,9 +1,6 @@
 import type { TaskPriority } from "../utils/taskPriority";
 import type { TaskStatus } from "../utils/taskStatus";
 
-/*
- * Represents a task within a project.
- */
 export type Task = {
   id: string;
 
@@ -28,9 +25,6 @@ export type Task = {
   updatedAt: string;
 };
 
-/*
- * Summary information about a user.
- */
 export interface TaskUser {
   id: string;
   firstName: string;
