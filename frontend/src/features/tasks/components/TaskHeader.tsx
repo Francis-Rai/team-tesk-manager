@@ -42,8 +42,7 @@ export default function TaskHeader({
         </div>
         <EditableField
           value={task.title}
-          displayClassName="text-2xl font-semibold leading-tight tracking-tight"
-          inputClassName="text-2xl font-semibold"
+          maxLength={100}
           onSave={(value) => updateTask.mutate({ title: value })}
           disabled={!permissions.canEditTaskDetails}
         />

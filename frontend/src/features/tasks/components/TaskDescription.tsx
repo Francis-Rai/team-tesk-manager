@@ -25,6 +25,8 @@ export default function TaskDescription({
       <EditableField
         value={task.description}
         displayClassName="text-sm leading-relaxed text-muted-foreground"
+        multiline
+        maxLength={2000}
         inputClassName="text-sm font-medium"
         onSave={(value) => updateTask.mutate({ description: value })}
         disabled={!permissions.canEditTaskDetails}

@@ -67,6 +67,10 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
       });
 
       queryClient.invalidateQueries({
+        queryKey: ["tasks", "infinite", teamId, projectId],
+      });
+
+      queryClient.invalidateQueries({
         queryKey: ["taskUpdates", teamId, projectId, taskId],
       });
 

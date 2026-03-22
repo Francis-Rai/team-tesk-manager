@@ -1,5 +1,5 @@
 import PriorityBadge from "../../../common/components/PriorityBadge";
-import { formatDateTimeShort } from "../../../common/utils/date";
+import { formatDate } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Card, CardContent, CardFooter } from "../../../components/ui/card";
 import { Label } from "../../../components/ui/label";
@@ -68,11 +68,11 @@ export default function TaskCard({ task, onOpen }: Props) {
       {(task.plannedStartDate || task.plannedDueDate) && (
         <CardFooter className="px-4 py-3 border-t text-xs text-muted-foreground flex flex-wrap gap-4">
           {task.plannedStartDate && (
-            <span>Start: {formatDateTimeShort(task.plannedStartDate)}</span>
+            <span>Start: {formatDate(task.plannedStartDate)}</span>
           )}
 
           {task.plannedDueDate && (
-            <span>Due: {formatDateTimeShort(task.plannedDueDate)}</span>
+            <span>Due: {formatDate(task.plannedDueDate)}</span>
           )}
         </CardFooter>
       )}

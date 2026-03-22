@@ -1,18 +1,23 @@
 import { useState, useRef, useEffect } from "react";
-import { Textarea } from "../../components/ui/textarea";
+
 import { Input } from "../../components/ui/input";
+import { Textarea } from "../../components/ui/textarea";
+import { Button } from "../../components/ui/button";
+
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "../../components/ui/tooltip";
+
 import { Pencil } from "lucide-react";
 
 interface Props {
   value?: string;
   placeholder?: string;
   multiline?: boolean;
+  maxLength?: number;
   displayClassName?: string;
   inputClassName?: string;
   onSave: (value: string) => void;
@@ -23,6 +28,7 @@ export default function EditableField({
   value = "",
   placeholder = "Click to edit",
   multiline = false,
+  maxLength,
   displayClassName,
   inputClassName,
   onSave,
@@ -30,6 +36,7 @@ export default function EditableField({
 }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(value);
+  const [focused, setFocused] = useState(false);
 
   const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
@@ -43,6 +50,11 @@ export default function EditableField({
     }
   }, [editing]);
 
+  const handleAutoResize = (el: HTMLTextAreaElement) => {
+    el.style.height = "auto";
+    el.style.height = `${el.scrollHeight}px`;
+  };
+
   const save = () => {
     const trimmed = draft.trim();
 
@@ -51,26 +63,62 @@ export default function EditableField({
     }
 
     setEditing(false);
+    setFocused(false);
   };
 
   const cancel = () => {
     setDraft(value);
     setEditing(false);
+    setFocused(false);
   };
 
   if (editing) {
     if (multiline) {
       return (
-        <Textarea
-          ref={inputRef as React.RefObject<HTMLTextAreaElement>}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={save}
-          onKeyDown={(e) => {
-            if (e.key === "Escape") cancel();
-          }}
-          className={inputClassName}
-        />
+        <div className="space-y-2">
+          <Textarea
+            ref={inputRef as React.RefObject<HTMLTextAreaElement>}
+            value={draft}
+            maxLength={maxLength}
+            onChange={(e) => setDraft(e.target.value)}
+            onFocus={() => setFocused(true)}
+            onBlur={() => {
+              if (!focused) save();
+            }}
+            onInput={(e) => handleAutoResize(e.currentTarget)}
+            className={`
+              resize-none text-sm
+              min-h-10 max-h-50
+              overflow-y-auto
+              ${inputClassName}
+            `}
+          />
+
+          {focused && (
+            <div className="flex items-center justify-between">
+              {maxLength && (
+                <span className="text-xs text-muted-foreground">
+                  {draft.length} / {maxLength}
+                </span>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={cancel}
+                >
+                  Cancel
+                </Button>
+
+                <Button size="sm" onClick={save} disabled={!draft.trim()}>
+                  Save
+                </Button>
+              </div>
+            </div>
+          )}
+        </div>
       );
     }
 
@@ -78,6 +126,7 @@ export default function EditableField({
       <Input
         ref={inputRef as React.RefObject<HTMLInputElement>}
         value={draft}
+        maxLength={maxLength}
         onChange={(e) => setDraft(e.target.value)}
         onBlur={save}
         onKeyDown={(e) => {
@@ -98,15 +147,27 @@ export default function EditableField({
               if (disabled) return;
               setEditing(true);
             }}
-            className={`group flex items-center gap-2 px-2 py-1 rounded transition-colors ${disabled ? "cursor-default" : "cursor-pointer hover:bg-muted"}`}
+            className={`
+              group flex items-start gap-2 px-2 py-1 rounded-md
+              transition-colors
+              ${
+                disabled ? "cursor-default" : "cursor-pointer hover:bg-muted/50"
+              }
+            `}
           >
-            <span className={displayClassName}>{value || placeholder}</span>
+            <span className={displayClassName}>
+              {value || (
+                <span className="text-muted-foreground">{placeholder}</span>
+              )}
+            </span>
 
-            <Pencil className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            {!disabled && (
+              <Pencil className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+            )}
           </div>
         </TooltipTrigger>
 
-        <TooltipContent>Click to edit</TooltipContent>
+        {!disabled && <TooltipContent>Click to edit</TooltipContent>}
       </Tooltip>
     </TooltipProvider>
   );

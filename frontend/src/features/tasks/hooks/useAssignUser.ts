@@ -22,6 +22,10 @@ export const useAssignUser = (
       });
 
       queryClient.invalidateQueries({
+        queryKey: ["tasks", "infinite", teamId, projectId],
+      });
+
+      queryClient.invalidateQueries({
         queryKey: ["taskUpdates", teamId, projectId, taskId],
       });
 

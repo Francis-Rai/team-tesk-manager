@@ -1,7 +1,10 @@
-import { useForm } from "react-hook-form";
-import { useState, useRef } from "react";
+import { useState } from "react";
+
 import { useCreateTaskUpdate } from "../hooks/useCreateTaskUpdate";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+
+import AutoResizeTextarea from "../../../common/components/AutoResizeTextarea";
+
 import type { TaskPermissions } from "../utils/taskPermissions";
 
 interface Props {
@@ -11,106 +14,48 @@ interface Props {
   permissions: TaskPermissions;
 }
 
-interface FormValues {
-  message: string;
-}
-
-const MAX_CHARACTERS = 2000;
-
 export default function TaskUpdateForm({
   teamId,
   projectId,
   taskId,
   permissions,
 }: Props) {
-  const { register, handleSubmit, reset, watch } = useForm<FormValues>();
-  const [focused, setFocused] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [message, setMessage] = useState("");
 
   const createUpdate = useCreateTaskUpdate(teamId, projectId, taskId);
 
-  const message = watch("message") || "";
+  const handleSubmit = () => {
+    if (!message.trim()) return;
 
-  const onSubmit = (data: FormValues) => {
-    if (!data.message.trim()) return;
-
-    createUpdate.mutate(data.message, {
+    createUpdate.mutate(message, {
       onSuccess: () => {
-        reset();
-        setFocused(false);
-
-        if (textareaRef.current) {
-          textareaRef.current.style.height = "auto";
-        }
+        setMessage("");
       },
     });
   };
 
   const handleCancel = () => {
-    reset();
-    setFocused(false);
-
-    if (textareaRef.current) {
-      textareaRef.current.style.height = "auto";
-    }
+    setMessage("");
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="flex gap-3 border rounded-md bg-background p-3"
-    >
-      {/* Avatar */}
+    <div className="flex gap-3">
       <Avatar className="h-8 w-8">
         <AvatarFallback>ME</AvatarFallback>
       </Avatar>
 
-      <div className="flex-1 space-y-2">
-        <textarea
-          {...register("message", { maxLength: MAX_CHARACTERS })}
-          ref={(el) => {
-            register("message").ref(el);
-            textareaRef.current = el;
-          }}
-          disabled={!permissions.canEditTaskDetails}
+      <div className="flex-1">
+        <AutoResizeTextarea
+          value={message}
+          onChange={setMessage}
+          onSubmit={handleSubmit}
+          onCancel={handleCancel}
           placeholder="Write an update..."
-          rows={focused ? 3 : 1}
-          maxLength={MAX_CHARACTERS}
-          onFocus={() => setFocused(true)}
-          onInput={(e) => {
-            const target = e.currentTarget;
-            target.style.height = "auto";
-            target.style.height = `${target.scrollHeight}px`;
-          }}
-          className="w-full resize-none text-sm outline-none bg-transparent max-h-[200px] overflow-y-auto"
+          maxLength={2000}
+          disabled={!permissions.canEditTaskDetails}
+          isLoading={createUpdate.isPending}
         />
-
-        {focused && (
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {message.length} / {MAX_CHARACTERS}
-            </span>
-
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={handleCancel}
-                className="text-sm px-3 py-1.5 rounded-md hover:bg-muted"
-              >
-                Cancel
-              </button>
-
-              <button
-                type="submit"
-                disabled={!message.trim()}
-                className="px-3 py-1.5 text-sm bg-primary text-primary-foreground rounded-md disabled:opacity-50"
-              >
-                Post Update
-              </button>
-            </div>
-          </div>
-        )}
       </div>
-    </form>
+    </div>
   );
 }
