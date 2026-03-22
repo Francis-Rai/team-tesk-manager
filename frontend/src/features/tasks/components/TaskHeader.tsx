@@ -10,7 +10,7 @@ interface Props {
   projectId: string;
   task: Task;
   permissions: TaskPermissions;
-  onTaskDeleted: () => void;
+  onTaskDeleted?: () => void;
 }
 
 export default function TaskHeader({

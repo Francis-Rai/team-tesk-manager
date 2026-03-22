@@ -54,4 +54,18 @@ public interface TaskRepository extends JpaRepository<TaskEntity, UUID>, JpaSpec
           )
       """)
   Page<TaskEntity> findMyTasks(UUID userId, Pageable pageable);
+
+  @Query("""
+          SELECT t FROM TaskEntity t
+          WHERE t.deletedAt IS NULL
+          AND t.project.id = :projectId
+          AND (
+              t.assignee.id = :userId
+              OR t.support.id = :userId
+          )
+      """)
+  Page<TaskEntity> findMyTasksByProject(
+      UUID projectId,
+      UUID userId,
+      Pageable pageable);
 }

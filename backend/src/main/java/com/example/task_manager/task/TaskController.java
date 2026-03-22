@@ -206,6 +206,21 @@ public class TaskController {
   }
 
   /**
+   * Get all authenticated user's assignments per project.
+   */
+  @GetMapping("/project-task")
+  public ResponseEntity<PageResponse<TaskResponse>> getMyTasksByProject(
+      @PathVariable UUID projectId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    PageResponse<TaskResponse> response = taskService.getMyTasksByProject(projectId, authentication.getName(),
+        pageable);
+
+    return ResponseEntity.ok(response);
+  }
+
+  /**
    * Get all updates for an Active Task
    */
   @GetMapping("/{taskId}/updates")

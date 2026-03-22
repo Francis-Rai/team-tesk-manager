@@ -12,6 +12,10 @@ export function useCreateTask(teamId: string, projectId: string) {
       queryClient.invalidateQueries({
         queryKey: ["tasks", projectId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["projectActivity", teamId, projectId],
+      });
     },
   });
 }

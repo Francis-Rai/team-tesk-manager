@@ -24,6 +24,10 @@ export const useAssignSupportUser = (
       queryClient.invalidateQueries({
         queryKey: ["taskUpdates", teamId, projectId, taskId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["projectActivity", teamId, projectId],
+      });
     },
   });
 };

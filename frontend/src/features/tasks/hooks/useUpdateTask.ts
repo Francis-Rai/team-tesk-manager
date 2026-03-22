@@ -25,6 +25,10 @@ export function useUpdateTask(
       queryClient.invalidateQueries({
         queryKey: ["taskUpdates", teamId, projectId, taskId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["projectActivity", teamId, projectId],
+      });
     },
   });
 }

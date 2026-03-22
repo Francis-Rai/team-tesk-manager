@@ -472,6 +472,30 @@ public class TaskService {
   }
 
   /**
+   * Returns all user's task by project.
+   * Assignee and Support
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TaskResponse> getMyTasksByProject(
+      UUID projectId,
+      String requesterEmail,
+      Pageable pageable) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+
+    Page<TaskEntity> page = taskRepository.findMyTasksByProject(projectId, requester.getId(), pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
    * Get all task update for an Active Task
    */
   @Transactional(readOnly = true)

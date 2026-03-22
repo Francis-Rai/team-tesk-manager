@@ -1,6 +1,6 @@
 import { useNavigate, useParams } from "react-router-dom";
 import CreateProjectModal from "../features/projects/components/CreateProjectModal";
-import { useProjects } from "../features/projects/hooks/useProject";
+import { useProjects } from "../features/projects/hooks/useProjects";
 
 /*
  * Project page showing projects.

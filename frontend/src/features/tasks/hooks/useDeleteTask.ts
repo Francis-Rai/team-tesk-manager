@@ -9,7 +9,12 @@ export function useDeleteTask(teamId: string, projectId: string) {
 
     onSuccess: (_, taskId) => {
       queryClient.invalidateQueries({ queryKey: ["tasks"] });
+
       queryClient.invalidateQueries({ queryKey: ["task", taskId] });
+
+      queryClient.invalidateQueries({
+        queryKey: ["projectActivity", teamId, projectId],
+      });
     },
   });
 }
