@@ -9,7 +9,6 @@ import TaskModal from "../features/tasks/components/TaskModal";
 import type { DeletedFilter, Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
 
-// import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
 import TaskFilters from "../features/tasks/components/taskFilters";
 import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";
@@ -22,9 +21,11 @@ import {
   TabsList,
   TabsTrigger,
 } from "../components/ui/tabs";
-import { Kanban, LayoutList } from "lucide-react";
+import { Kanban, LayoutList, ListCheck } from "lucide-react";
 import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
 import ProjectActivity from "../features/projects/components/ProjectActivity";
+import { getProjectPermissions } from "../features/projects/utils/projectPermissions";
+import { useTeamMe } from "../features/teams/hooks/useTeamMe";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{
@@ -42,12 +43,18 @@ export default function ProjectPage() {
   const [sort, setSort] = useState("createdAt,desc");
   const debouncedSearch = useDebounce(search, 400);
 
-  const safeTeamId = teamId ?? "";
-  const safeProjectId = projectId ?? "";
+  const { data: project, isLoading } = useProject(
+    teamId || "",
+    projectId || "",
+  );
 
-  const { data: project } = useProject(safeTeamId, safeProjectId);
+  const { data: teamMe } = useTeamMe(teamId || "");
 
-  const { data: tasksData } = useTasks(safeTeamId, safeProjectId, {
+  const permissions = getProjectPermissions({
+    role: teamMe?.role ?? null,
+  });
+
+  const { data: tasksData } = useTasks(teamId || "", projectId || "", {
     page,
     search: debouncedSearch,
     status,
@@ -58,7 +65,7 @@ export default function ProjectPage() {
   const tasks = tasksData?.content ?? [];
   const totalPages = tasksData?.totalPages ?? 0;
 
-  const updateStatus = useUpdateTaskStatus(safeTeamId, safeProjectId);
+  const updateStatus = useUpdateTaskStatus(teamId || "", projectId || "");
 
   const handleSearchChange = (value: string) => {
     setSearch(value);
@@ -86,20 +93,27 @@ export default function ProjectPage() {
     return <div className="p-6">Invalid project</div>;
   }
 
+  if (isLoading || !project) {
+    return <div className="p-6">Loading Project...</div>;
+  }
+
   return (
     <div className="flex flex-col gap-6 p-6 min-h-screen">
       <div className="text-sm text-muted-foreground">
         Team / {project?.name}
       </div>
       <ProjectHeader
-        name={project?.name}
+        teamId={teamId}
+        projectId={projectId}
+        name={project.name}
         description={project?.description}
         onCreateTask={() => setCreateOpen(true)}
+        permissions={permissions}
       />
 
       <CreateTaskModal
-        teamId={safeTeamId}
-        projectId={safeProjectId}
+        teamId={teamId}
+        projectId={projectId}
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
@@ -150,10 +164,11 @@ export default function ProjectPage() {
       transition-all
     "
           >
+            <ListCheck className="h-4 w-4" />
             Activity
           </TabsTrigger>
 
-          <TabsTrigger
+          {/* <TabsTrigger
             value="settings"
             className="
       flex items-center gap-2 px-3 py-1.5 text-sm rounded-md
@@ -166,7 +181,7 @@ export default function ProjectPage() {
     "
           >
             Settings
-          </TabsTrigger>
+          </TabsTrigger> */}
         </TabsList>
         <div className="rounded-lg border bg-background p-4 min-w-full w-fit">
           <TabsContent value="board">
@@ -179,8 +194,8 @@ export default function ProjectPage() {
               onDeletedFilterChange={handleDeletedFilterChange}
             />
             <TaskBoard
-              teamId={safeTeamId}
-              projectId={safeProjectId}
+              teamId={teamId}
+              projectId={projectId}
               params={{
                 search: debouncedSearch,
                 sort,
@@ -202,8 +217,8 @@ export default function ProjectPage() {
             />
             <TaskList
               tasks={tasks}
-              teamId={safeTeamId}
-              projectId={safeProjectId}
+              teamId={teamId}
+              projectId={projectId}
               pagination={{
                 page,
                 totalPages,
@@ -216,17 +231,17 @@ export default function ProjectPage() {
 
           <TabsContent value="activity">
             <ProjectActivity
-              teamId={safeTeamId}
-              projectId={safeProjectId}
+              teamId={teamId}
+              projectId={projectId}
               onOpenTask={(taskId) => setSelectedTask({ id: taskId } as Task)}
             />
           </TabsContent>
 
-          <TabsContent value="settings">
+          {/* <TabsContent value="settings">
             <div className="text-sm text-muted-foreground">
               Settings coming soon...
             </div>
-          </TabsContent>
+          </TabsContent> */}
         </div>
       </Tabs>
 
@@ -236,8 +251,8 @@ export default function ProjectPage() {
           onClose={() => setSelectedTask(null)}
           onTaskDeleted={() => setSelectedTask(null)}
           taskId={selectedTask.id}
-          teamId={safeTeamId}
-          projectId={safeProjectId}
+          teamId={teamId}
+          projectId={projectId}
         />
       )}
     </div>

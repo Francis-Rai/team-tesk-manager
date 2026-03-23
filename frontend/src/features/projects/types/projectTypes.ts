@@ -6,15 +6,20 @@ export type Project = {
   name: string;
   description?: string;
   createdAt: string;
-  createdBy: ProjectCreator;
+  createdBy: ProjectOwner;
 };
 
 /*
  * Represents a project owner.
  */
-export type ProjectCreator = {
+export type ProjectOwner = {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
 };
+
+export interface UpdateProjectInput {
+  name?: string;
+  description?: string;
+}

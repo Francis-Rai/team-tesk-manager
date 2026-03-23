@@ -28,25 +28,21 @@ export const getProject = async (
   return response.data;
 };
 
-// // Fetch project by ID
-// export const getProjectById = async (projectId: number) => {
-//   const { data } = await apiClient.get(`/projects/${projectId}`);
-//   return data;
-// };
+export const updateProject = async (
+  teamId: string,
+  projectId: string,
+  data: {
+    name?: string;
+    description?: string;
+  },
+): Promise<Project> => {
+  const response = await apiClient.patch(
+    `/teams/${teamId}/projects/${projectId}`,
+    data,
+  );
+  return response.data;
+};
 
-// // Update Project
-// export const updateProject = async (
-//   projectId: number,
-//   payload: {
-//     name?: string;
-//     description?: string;
-//   },
-// ) => {
-//   const { data } = await apiClient.patch(`/projects/${projectId}`, payload);
-//   return data;
-// };
-
-// // Delete Project
-// export const deleteProject = async (projectId: number): Promise<void> => {
-//   await apiClient.delete(`/projects/${projectId}`);
-// };
+export const deleteProject = async (teamId: string, projectId: string) => {
+  await apiClient.delete(`/teams/${teamId}/projects/${projectId}`);
+};
