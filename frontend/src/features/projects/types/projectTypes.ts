@@ -1,17 +1,11 @@
-/*
- * Represents a project.
- */
 export type Project = {
-  id: number;
+  id: string;
   name: string;
   description?: string;
   createdAt: string;
   createdBy: ProjectOwner;
 };
 
-/*
- * Represents a project owner.
- */
 export type ProjectOwner = {
   id: number;
   firstName: string;

@@ -1,37 +1,72 @@
 import { useNavigate, useParams } from "react-router-dom";
-import CreateProjectModal from "../features/projects/components/CreateProjectModal";
+import { useState } from "react";
+
 import { useProjects } from "../features/projects/hooks/useProjects";
 
-/*
- * Project page showing projects.
- */
+import ProjectsToolbar from "../features/projects/components/ProjectsToolBar";
+import { ProjectsHeader } from "../features/projects/components/ProjectsHeader";
+import { CreateProjectModal } from "../features/projects/components/CreateProjectModal";
+import ProjectCard from "../features/projects/components/ProjectCard";
+
 export default function ProjectsPage() {
-  const { teamId } = useParams();
+  const { teamId } = useParams<{
+    teamId: string;
+  }>();
+
   const navigate = useNavigate();
 
   const { data, isLoading } = useProjects(teamId!);
 
   const projects = data?.content ?? [];
 
-  if (isLoading) return <div>Loading projects...</div>;
+  const [search, setSearch] = useState("");
+
+  const filteredProjects = projects.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()),
+  );
+
+  const [createOpen, setCreateOpen] = useState(false);
+
+  function openProject(projectId: string) {
+    navigate(`/teams/${teamId}/projects/${projectId}`);
+  }
+
+  if (!teamId) {
+    return <div className="p-6">Invalid project</div>;
+  }
+
+  if (isLoading) {
+    return <div className="p-6">Loading projects...</div>;
+  }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Projects</h1>
+    <div className="p-6 space-y-6 max-w-7xl mx-auto">
+      <ProjectsHeader onCreateProject={() => setCreateOpen(true)} />
 
-      <CreateProjectModal />
+      <CreateProjectModal
+        teamId={teamId}
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+      />
 
-      <div className="grid grid-cols-3 gap-4">
-        {projects.map((project) => (
-          <div
+      <ProjectsToolbar search={search} onSearchChange={setSearch} />
+
+      <div
+        className="
+            grid gap-4
+            grid-cols-1
+            sm:grid-cols-2
+            lg:grid-cols-3
+            xl:grid-cols-4
+          "
+      >
+        {filteredProjects.map((project) => (
+          <ProjectCard
             key={project.id}
-            onClick={() => navigate(`/teams/${teamId}/projects/${project.id}`)}
-            className="border p-4 rounded hover:bg-gray-50 cursor-pointer"
-          >
-            <h3 className="font-semibold">{project.name}</h3>
-
-            <p className="text-sm text-gray-500">{project.description}</p>
-          </div>
+            name={project.name}
+            description={project.description}
+            onClick={() => openProject(project.id)}
+          />
         ))}
       </div>
     </div>
