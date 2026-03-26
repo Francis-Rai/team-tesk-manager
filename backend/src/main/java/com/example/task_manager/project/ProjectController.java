@@ -88,13 +88,13 @@ public class ProjectController {
    * ?includeDeleted=true
    */
   @GetMapping
-  public PageResponse<ProjectResponse> getProjects(
+  public ResponseEntity<PageResponse<ProjectResponse>> getProjects(
       @PathVariable UUID teamId,
       ProjectSearchRequest request,
       @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
 
-    return projectService.getProjects(teamId, request, pageable, authentication);
+    return ResponseEntity.ok(projectService.getProjects(teamId, request, pageable, authentication));
   }
 
   /**

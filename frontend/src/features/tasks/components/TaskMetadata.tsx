@@ -7,7 +7,7 @@ import { useAssignSupportUser } from "../hooks/useAssignSupportUser";
 import PrioritySelect from "../../../common/components/PrioritySelector";
 import { useUpdateTask } from "../hooks/useUpdateTask";
 import DatePicker from "../../../common/components/DatePicker";
-import StatusSelect from "../../../common/components/StatusSelector";
+import StatusSelect from "../../../common/components/TaskStatusSelector";
 import type { TaskStatus } from "../utils/taskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import { format } from "date-fns";

@@ -1,34 +1,58 @@
+import { formatDateTimeShort } from "../../../common/utils/date";
 import { Card, CardContent } from "../../../components/ui/card";
+import type { Project } from "../types/projectTypes";
+import {
+  ProjectStatusLabel,
+  ProjectStatusStyles,
+} from "../utils/projectStatus";
 
 interface Props {
-  name: string;
-  description?: string;
+  project: Project;
   onClick: () => void;
 }
 
-export default function ProjectCard({ name, description, onClick }: Props) {
+export default function ProjectCard({ project, onClick }: Props) {
   return (
     <Card
       onClick={onClick}
       className="
-        cursor-pointer group transition
-        hover:shadow-sm hover:border-muted-foreground/20
-      "
+    cursor-pointer group transition
+    hover:shadow-sm hover:border-muted-foreground/20
+  "
     >
-      <CardContent className="p-4">
-        <h3 className="font-semibold text-base truncate">{name}</h3>
+      <CardContent className="p-4 space-y-3">
+        {/* Top: Title + Status */}
+        <div className="flex items-start justify-between gap-2">
+          <h3 className="font-semibold text-base leading-tight line-clamp-2">
+            {project.name}
+          </h3>
 
-        <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-          {description || "No description"}
+          <span
+            className={`
+          shrink-0 inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium
+          ${ProjectStatusStyles[project.status]}
+        `}
+          >
+            {ProjectStatusLabel[project.status]}
+          </span>
+        </div>
+
+        {/* Description */}
+        <p className="text-sm text-muted-foreground line-clamp-2">
+          {project.description || "No description"}
         </p>
 
-        {/* <div className="flex items-center justify-between mt-4 text-xs text-muted-foreground">
-          <span>Updated recently</span>
+        {/* Metadata */}
+        <div className="flex flex-col gap-1 text-xs text-muted-foreground">
+          <span>Updated {formatDateTimeShort(project.updatedAt)}</span>
 
-          <span className="opacity-0 group-hover:opacity-100 transition">
-            →
+          <span>
+            Created by{" "}
+            <span className="font-medium text-foreground">
+              {project.createdBy.firstName} {project.createdBy.lastName}
+            </span>
           </span>
-        </div> */}
+        </div>
       </CardContent>
     </Card>
   );

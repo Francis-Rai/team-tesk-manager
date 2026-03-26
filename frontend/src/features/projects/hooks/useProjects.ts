@@ -1,9 +1,38 @@
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getProjects } from "../api/projectApi";
+import type { DeletedFilter } from "../../tasks/types/taskTypes";
+import type { Project } from "../types/projectTypes";
+import type { PageResponse } from "../../../common/types/pageResponse";
 
-export const useProjects = (teamId: string) => {
-  return useQuery({
-    queryKey: ["projects", teamId],
-    queryFn: () => getProjects(teamId),
+export const useProjects = (
+  teamId: string,
+  params: {
+    page: number;
+    search?: string;
+    status?: string;
+    sort?: string;
+    deletedFilter: DeletedFilter;
+  },
+) => {
+  return useQuery<PageResponse<Project>>({
+    queryKey: [
+      "projects",
+      teamId,
+      params.page,
+      params.search,
+      params.status,
+      params.sort,
+      params.deletedFilter,
+    ],
+    queryFn: () =>
+      getProjects(teamId, {
+        page: params.page,
+        size: 10,
+        search: params.search,
+        status: params.status,
+        sort: params.sort,
+        deletedFilter: params.deletedFilter,
+      }),
+    placeholderData: keepPreviousData,
   });
 };

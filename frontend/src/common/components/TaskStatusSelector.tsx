@@ -19,7 +19,7 @@ interface Props {
   className?: string;
 }
 
-export default function StatusSelector({ value, onChange, className }: Props) {
+export default function TaskStatusSelector({ value, onChange, className }: Props) {
   const statuses: TaskStatus[] = [
     "IN_PROGRESS",
     "IN_REVIEW",

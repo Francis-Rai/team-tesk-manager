@@ -1,8 +1,12 @@
+import type { ProjectStatus } from "../utils/projectStatus";
+
 export type Project = {
   id: string;
   name: string;
   description?: string;
   createdAt: string;
+  updatedAt: string;
+  status: ProjectStatus;
   createdBy: ProjectOwner;
 };
 

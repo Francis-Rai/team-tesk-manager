@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.user.entity.UserEntity;
@@ -22,8 +23,7 @@ public class ProjectSpecification {
       String search,
       List<ProjectStatus> status,
       UUID createdBy,
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter deletedFilter,
       boolean isGlobalAdmin) {
 
     return Specification
@@ -31,7 +31,7 @@ public class ProjectSpecification {
         .and(search(search))
         .and(hasStatuses(status))
         .and(hasCreatedBy(createdBy))
-        .and(deletedFilter(includeDeleted, onlyDeleted, isGlobalAdmin));
+        .and(deletedFilter(deletedFilter, isGlobalAdmin));
   }
 
   private static Specification<ProjectEntity> belongsToTeam(UUID teamId) {
@@ -78,8 +78,7 @@ public class ProjectSpecification {
   }
 
   private static Specification<ProjectEntity> deletedFilter(
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter filter,
       boolean isGlobalAdmin) {
 
     return (root, query, cb) -> {
@@ -88,15 +87,11 @@ public class ProjectSpecification {
         return cb.isNull(root.get("deletedAt"));
       }
 
-      if (Boolean.TRUE.equals(onlyDeleted)) {
-        return cb.isNotNull(root.get("deletedAt"));
-      }
-
-      if (Boolean.TRUE.equals(includeDeleted)) {
-        return cb.conjunction();
-      }
-
-      return cb.isNull(root.get("deletedAt"));
+      return switch (filter) {
+        case DELETED -> cb.isNotNull(root.get("deletedAt"));
+        case ALL -> cb.conjunction();
+        case ACTIVE -> cb.isNull(root.get("deletedAt"));
+      };
     };
   }
 }

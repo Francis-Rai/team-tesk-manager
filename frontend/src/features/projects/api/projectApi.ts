@@ -1,11 +1,19 @@
 import { apiClient } from "../../../api/apiClients";
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { DeletedFilter } from "../../tasks/types/taskTypes";
 import type { Project } from "../types/projectTypes";
 
 export const getProjects = async (
   teamId: string,
-): Promise<PageResponse<Project>> => {
-  const response = await apiClient.get(`/teams/${teamId}/projects`);
+  params: {
+    page?: number;
+    size?: number;
+    search?: string;
+    status?: string;
+    sort?: string;
+    deletedFilter: DeletedFilter;
+  },
+) => {
+  const response = await apiClient.get(`/teams/${teamId}/projects`, { params });
   return response.data;
 };
 

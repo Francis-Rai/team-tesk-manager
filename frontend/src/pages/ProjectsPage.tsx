@@ -7,6 +7,8 @@ import ProjectsToolbar from "../features/projects/components/ProjectsToolBar";
 import { ProjectsHeader } from "../features/projects/components/ProjectsHeader";
 import { CreateProjectModal } from "../features/projects/components/CreateProjectModal";
 import ProjectCard from "../features/projects/components/ProjectCard";
+import { useDebounce } from "../common/hooks/useDebounce";
+import type { DeletedFilter } from "../features/tasks/types/taskTypes";
 
 export default function ProjectsPage() {
   const { teamId } = useParams<{
@@ -15,15 +17,38 @@ export default function ProjectsPage() {
 
   const navigate = useNavigate();
 
-  const { data, isLoading } = useProjects(teamId!);
+  const [page, setPage] = useState(0);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
+  const [sort, setSort] = useState("createdAt,desc");
+  const [deletedFilter, setDeletedFilter] = useState<DeletedFilter>("ACTIVE");
+
+  const debouncedSearch = useDebounce(search, 400);
+
+  const { data, isLoading } = useProjects(teamId || "", {
+    page,
+    search: debouncedSearch,
+    status,
+    sort,
+    deletedFilter,
+  });
 
   const projects = data?.content ?? [];
 
-  const [search, setSearch] = useState("");
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(0);
+  };
 
-  const filteredProjects = projects.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()),
-  );
+  const handleStatusFilterChange = (value: string) => {
+    setStatus(value === "ALL" ? "" : value);
+    setPage(0);
+  };
+
+  const handleDeletedFilterChange = (value: DeletedFilter) => {
+    setDeletedFilter(value);
+    setPage(0);
+  };
 
   const [createOpen, setCreateOpen] = useState(false);
 
@@ -49,7 +74,16 @@ export default function ProjectsPage() {
         onOpenChange={setCreateOpen}
       />
 
-      <ProjectsToolbar search={search} onSearchChange={setSearch} />
+      <ProjectsToolbar
+        search={search}
+        onSearchChange={handleSearchChange}
+        onStatusChange={handleStatusFilterChange}
+        onSortChange={setSort}
+        onDeletedFilterChange={handleDeletedFilterChange}
+        status={status}
+        sort={sort}
+        deletedFilter={deletedFilter}
+      />
 
       <div
         className="
@@ -60,11 +94,10 @@ export default function ProjectsPage() {
             xl:grid-cols-4
           "
       >
-        {filteredProjects.map((project) => (
+        {projects?.map((project) => (
           <ProjectCard
             key={project.id}
-            name={project.name}
-            description={project.description}
+            project={project}
             onClick={() => openProject(project.id)}
           />
         ))}

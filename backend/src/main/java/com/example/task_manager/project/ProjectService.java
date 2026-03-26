@@ -13,6 +13,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
 import com.example.task_manager.exception.api.ConflictException;
@@ -201,15 +202,20 @@ public class ProjectService {
       validateMembership(teamId, requester.getId());
     }
 
+    DeletedFilter filter = request.deletedFilter();
+
+    if (!isGlobalAdmin && filter != DeletedFilter.ACTIVE) {
+      throw new ForbiddenException("Not allowed to view deleted tasks");
+    }
+
     pageable = validateSorting(pageable);
 
     Specification<ProjectEntity> spec = ProjectSpecification.build(
         teamId,
         request.search(),
-        request.statuses(),
+        request.status(),
         request.createdBy(),
-        request.includeDeleted(),
-        request.onlyDeleted(),
+        request.deletedFilter(),
         isGlobalAdmin);
 
     Page<ProjectEntity> page = projectRepository.findAll(spec, pageable);
