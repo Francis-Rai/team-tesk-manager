@@ -1,31 +1,45 @@
-import { useTeams } from "../features/teams/hooks/useTeams";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAllTeams } from "../features/teams/hooks/useAllTeams";
+import {
+  getLastTeamId,
+  setLastTeamId,
+} from "../features/teams/utils/useTeamStore";
 
-const TeamSelectionPage = () => {
-  const { data, isLoading } = useTeams();
+export default function TeamSelectionPage() {
   const navigate = useNavigate();
 
-  if (isLoading) return <div>Loading teams...</div>;
+  const { data: teams = [], isLoading } = useAllTeams();
 
-  const teams = data?.content ?? [];
+  useEffect(() => {
+    if (!teams.length) return;
+
+    const last = getLastTeamId();
+
+    if (last && teams.some((t) => t.id === last)) {
+      navigate(`/teams/${last}`);
+    }
+  }, [teams]);
+
+  function openTeam(teamId: string) {
+    setLastTeamId(teamId);
+    navigate(`/teams/${teamId}`);
+  }
+
+  if (isLoading) {
+    return <div className="p-6">Loading teams...</div>;
+  }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-4">Your Teams</h1>
-
-      <div className="grid grid-cols-3 gap-4">
+    <div className="p-6">
+      <h1>Select Team</h1>
+      <div>
         {teams.map((team) => (
-          <div
-            key={team.id}
-            onClick={() => navigate(`/teams/${team.id}`)}
-            className="border p-4 rounded cursor-pointer hover:bg-gray-100"
-          >
+          <div key={team.id} onClick={() => openTeam(team.id)}>
             {team.name}
           </div>
         ))}
       </div>
     </div>
   );
-};
-
-export default TeamSelectionPage;
+}

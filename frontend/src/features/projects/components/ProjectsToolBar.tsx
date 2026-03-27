@@ -1,3 +1,4 @@
+import type { DeletedFilter } from "../../../common/utils/deletedFilter";
 import { Input } from "../../../components/ui/input";
 import {
   Select,
@@ -6,7 +7,6 @@ import {
   SelectItem,
   SelectValue,
 } from "../../../components/ui/select";
-import type { DeletedFilter } from "../../tasks/types/taskTypes";
 
 interface Props {
   search: string;
@@ -33,15 +33,15 @@ export default function ProjectsToolbar({
   return (
     <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
       {/* LEFT: Search */}
-      <Input
-        placeholder="Search projects..."
-        value={search}
-        onChange={(e) => onSearchChange(e.target.value)}
-        className="w-full md:max-w-sm"
-      />
+      <div className="flex items-center gap-2 flex-1">
+        <Input
+          placeholder="Search projects..."
+          value={search}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="w-full md:max-w-sm"
+        />
 
-      {/* RIGHT: Filters */}
-      <div className="flex items-center gap-2 flex-wrap">
+        {/* RIGHT: Filters */}
         {/* Status */}
         <Select value={status} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[140px]">
@@ -55,6 +55,18 @@ export default function ProjectsToolbar({
           </SelectContent>
         </Select>
 
+        {/* Deleted */}
+        <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
+          <SelectTrigger className="w-[140px]">
+            <SelectValue placeholder="Visibility" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ACTIVE">Active</SelectItem>
+            <SelectItem value="DELETED">Deleted</SelectItem>
+            <SelectItem value="ALL">All</SelectItem>
+          </SelectContent>
+        </Select>
+
         {/* Sort */}
         <Select value={sort} onValueChange={onSortChange}>
           <SelectTrigger className="w-[160px]">
@@ -65,18 +77,6 @@ export default function ProjectsToolbar({
             <SelectItem value="createdAt,asc">Oldest</SelectItem>
             <SelectItem value="name,asc">Name (A–Z)</SelectItem>
             <SelectItem value="updatedAt,desc">Last Updated</SelectItem>
-          </SelectContent>
-        </Select>
-
-        {/* Deleted */}
-        <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
-          <SelectTrigger className="w-[140px]">
-            <SelectValue placeholder="Visibility" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ACTIVE">Active</SelectItem>
-            <SelectItem value="DELETED">Deleted</SelectItem>
-            <SelectItem value="ALL">All</SelectItem>
           </SelectContent>
         </Select>
       </div>

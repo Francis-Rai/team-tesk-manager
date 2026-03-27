@@ -1,5 +1,5 @@
 import { apiClient } from "../../../api/apiClients";
-import type { DeletedFilter } from "../../tasks/types/taskTypes";
+import type { DeletedFilter } from "../../../common/utils/deletedFilter";
 import type { Project } from "../types/projectTypes";
 
 export const getProjects = async (
