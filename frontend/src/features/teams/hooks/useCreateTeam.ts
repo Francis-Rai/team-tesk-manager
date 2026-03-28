@@ -9,6 +9,7 @@ export const useCreateTeam = () => {
 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["teams"] });
+      queryClient.invalidateQueries({ queryKey: ["team"] });
     },
   });
 };

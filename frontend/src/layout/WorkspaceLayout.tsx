@@ -1,5 +1,5 @@
 import { Outlet, useParams } from "react-router-dom";
-import Sidebar from "../features/teams/components/Sidebar";
+import Sidebar from "../features/teams/components/TeamSidebar";
 import TopBar from "../features/teams/components/TopBar";
 
 export default function WorkspaceLayout() {

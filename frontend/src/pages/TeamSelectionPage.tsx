@@ -32,7 +32,7 @@ export default function TeamSelectionPage() {
   -------------------------- */
   if (!teams.length) {
     return (
-      <div className="h-screen flex flex-col items-center justify-center gap-4">
+      <div className="h-screen flex flex-col items-center justify-center gap-4 p-6">
         <h1 className="text-xl font-semibold">No teams yet</h1>
 
         <p className="text-sm text-muted-foreground">
@@ -50,7 +50,7 @@ export default function TeamSelectionPage() {
      Main UI
   -------------------------- */
   return (
-    <div className="min-h-screen flex items-center justify-center px-6">
+    <div className="min-h-screen flex items-center justify-center p-6">
       <div className="w-full max-w-5xl space-y-8">
         {/* HEADER */}
         <div className="flex items-center justify-between">

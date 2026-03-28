@@ -15,6 +15,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
 import com.example.task_manager.exception.api.ConflictException;
@@ -308,14 +309,20 @@ public class TeamService {
   @Transactional(readOnly = true)
   public TeamResponse getActiveTeamById(
       UUID teamId,
-      String requesterEmail) {
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity requester = getUserByEmail(authentication.getName());
 
     TeamEntity team = getActiveTeam(teamId);
 
-    validateMembership(teamId, requester.getId());
+    boolean isGlobalAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
 
+    if (!isGlobalAdmin) {
+      validateMembership(teamId, requester.getId());
+    }
+    
     return mapToResponse(team);
   }
 
@@ -356,10 +363,14 @@ public class TeamService {
     UUID ownerId = null, memberId = null;
 
     if (isGlobalAdmin) {
-
       ownerId = request.ownerId();
       memberId = request.memberId();
+    }
 
+    DeletedFilter filter = request.deletedFilter();
+
+    if (!isGlobalAdmin && filter != DeletedFilter.ACTIVE) {
+      throw new ForbiddenException("Not allowed to view deleted tasks");
     }
 
     Specification<TeamEntity> spec = TeamSpecification.build(
@@ -367,8 +378,7 @@ public class TeamService {
         request.search(),
         ownerId,
         memberId,
-        request.includeDeleted(),
-        request.onlyDeleted(),
+        request.deletedFilter(),
         isGlobalAdmin);
 
     pageable = validateSorting(pageable);

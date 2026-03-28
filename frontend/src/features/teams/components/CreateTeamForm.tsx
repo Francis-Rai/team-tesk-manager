@@ -11,9 +11,10 @@ import {
 } from "../types/createTeamSchema";
 import FormField from "../../../common/components/FormFieldWrapper";
 import { Separator } from "../../../components/ui/separator";
+import type { Team } from "../types/teamTypes";
 
 interface Props {
-  onSuccess?: () => void;
+  onSuccess?: (team: Team) => void;
   onCancel?: () => void;
 }
 
@@ -37,9 +38,9 @@ export function CreateTeamForm({ onSuccess, onCancel }: Props) {
 
   const onSubmit = (data: CreateTeamInput) => {
     createTeamMutation.mutate(data, {
-      onSuccess: () => {
+      onSuccess: (team) => {
         form.reset();
-        onSuccess?.();
+        onSuccess?.(team);
       },
     });
   };

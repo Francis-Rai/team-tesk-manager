@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.user.entity.UserEntity;
@@ -21,8 +22,7 @@ public class TeamSpecification {
       String search,
       UUID ownerId,
       UUID memberId,
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter deletedFilter,
       boolean isGlobalAdmin) {
 
     return Specification
@@ -30,7 +30,7 @@ public class TeamSpecification {
         .and(hasOwner(ownerId))
         .and(hasMember(memberId))
         .and(isAccessibleByUser(requesterId, isGlobalAdmin))
-        .and(deletedFilter(includeDeleted, onlyDeleted, isGlobalAdmin));
+        .and(deletedFilter(deletedFilter, isGlobalAdmin));
   }
 
   private static Specification<TeamEntity> search(String keyword) {
@@ -95,8 +95,7 @@ public class TeamSpecification {
   }
 
   private static Specification<TeamEntity> deletedFilter(
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
+      DeletedFilter filter,
       boolean isGlobalAdmin) {
 
     return (root, query, cb) -> {
@@ -105,15 +104,11 @@ public class TeamSpecification {
         return cb.isNull(root.get("deletedAt"));
       }
 
-      if (Boolean.TRUE.equals(onlyDeleted)) {
-        return cb.isNotNull(root.get("deletedAt"));
-      }
-
-      if (Boolean.TRUE.equals(includeDeleted)) {
-        return cb.conjunction();
-      }
-
-      return cb.isNull(root.get("deletedAt"));
+      return switch (filter) {
+        case DELETED -> cb.isNotNull(root.get("deletedAt"));
+        case ALL -> cb.conjunction();
+        case ACTIVE -> cb.isNull(root.get("deletedAt"));
+      };
     };
   }
 }

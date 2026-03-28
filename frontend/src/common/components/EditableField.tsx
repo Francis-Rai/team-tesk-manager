@@ -48,7 +48,37 @@ export default function EditableField({
     setDraft(value);
     setEditing(false);
   };
+  useEffect(() => {
+    if (!editing) return;
 
+    function handleClickOutside(e: MouseEvent) {
+      if (!containerRef.current?.contains(e.target as Node)) {
+        cancel();
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [editing]);
+
+  useEffect(() => {
+    if (!editing) return;
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        cancel();
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [editing]);
 
   if (!editing) {
     return (
@@ -70,7 +100,6 @@ export default function EditableField({
       </div>
     );
   }
-
 
   return (
     <div

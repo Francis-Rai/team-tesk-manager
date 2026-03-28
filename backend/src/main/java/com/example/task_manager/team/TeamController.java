@@ -151,7 +151,7 @@ public class TeamController {
       @PathVariable UUID teamId,
       Authentication authentication) {
 
-    return ResponseEntity.ok(teamService.getActiveTeamById(teamId, authentication.getName()));
+    return ResponseEntity.ok(teamService.getActiveTeamById(teamId, authentication));
   }
 
   /**

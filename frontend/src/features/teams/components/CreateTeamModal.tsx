@@ -4,14 +4,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../components/ui/dialog";
+import type { Team } from "../types/teamTypes";
 import { CreateTeamForm } from "./CreateTeamForm";
 
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  onSuccess?: (team: Team) => void;
 }
 
-export function CreateTeamModal({ open, onOpenChange }: Props) {
+export function CreateTeamModal({ open, onOpenChange, onSuccess }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-xl" aria-describedby={undefined}>
@@ -19,7 +21,10 @@ export function CreateTeamModal({ open, onOpenChange }: Props) {
           <DialogTitle>Create Team</DialogTitle>
         </DialogHeader>
         <CreateTeamForm
-          onSuccess={() => onOpenChange(false)}
+          onSuccess={(team) => {
+            onOpenChange(false);
+            onSuccess?.(team);
+          }}
           onCancel={() => onOpenChange(false)}
         />
       </DialogContent>
