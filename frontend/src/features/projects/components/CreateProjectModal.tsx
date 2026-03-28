@@ -15,7 +15,7 @@ interface Props {
 export function CreateProjectModal({ teamId, open, onOpenChange }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-xl" aria-describedby={undefined}>
         <DialogHeader>
           <DialogTitle>Create Project</DialogTitle>
         </DialogHeader>

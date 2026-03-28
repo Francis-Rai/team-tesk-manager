@@ -1,4 +1,4 @@
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateTask } from "../hooks/useCreateTask";
@@ -19,11 +19,12 @@ import {
   SelectItem,
   Select,
 } from "../../../components/ui/select";
-import { Textarea } from "../../../components/ui/textarea";
 import { Label } from "../../../components/ui/label";
 import { Separator } from "../../../components/ui/separator";
 import DatePicker from "../../../common/components/DatePicker";
 import type { TaskPriority } from "../utils/taskPriority";
+import AutoResizeTextareaBase from "../../../common/components/AutoResizeTextareaBase";
+import FormField from "../../../common/components/FormFieldWrapper";
 
 interface Props {
   teamId: string;
@@ -54,6 +55,11 @@ export function CreateTaskForm({
     },
   });
 
+  const MAX_TITLE = 100;
+  const MAX_DESC = 2000;
+
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const title = form.watch("title") || "";
   const start = form.watch("plannedStartDate");
   const due = form.watch("plannedDueDate");
 
@@ -69,18 +75,46 @@ export function CreateTaskForm({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Title</Label>
-        <Input {...form.register("title")} placeholder="Enter task title..." />
+        <FormField
+          label="Title"
+          error={form.formState.errors.title?.message}
+          length={title.length}
+          maxLength={MAX_TITLE}
+        >
+          <Input
+            {...form.register("title")}
+            maxLength={MAX_TITLE}
+            placeholder="Enter task title..."
+            className="
+      border-none px-0 py-0
+      focus-visible:ring-0
+      shadow-none
+      text-sm
+    "
+          />
+        </FormField>
       </div>
-      <div className="space-y-2">
-        <Label className="text-xs text-muted-foreground">Description</Label>
-        <Textarea
-          {...form.register("description")}
-          rows={4}
-          placeholder="Add more details about this task..."
-          className="resize-none"
-        />
-      </div>
+
+      <Controller
+        control={form.control}
+        name="description"
+        render={({ field, fieldState }) => (
+          <FormField
+            label="Description"
+            error={fieldState.error?.message}
+            length={field.value?.length}
+            maxLength={MAX_DESC}
+          >
+            <AutoResizeTextareaBase
+              value={field.value || ""}
+              onChange={field.onChange}
+              placeholder="Add more details about this task..."
+              maxLength={2000}
+              className="text-sm"
+            />
+          </FormField>
+        )}
+      />
 
       <div className="grid grid-cols-3 gap-3">
         <div className="space-y-1">

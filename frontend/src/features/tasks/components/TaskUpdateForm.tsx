@@ -3,7 +3,7 @@ import { useState } from "react";
 import { useCreateTaskUpdate } from "../hooks/useCreateTaskUpdate";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 
-import AutoResizeTextarea from "../../../common/components/AutoResizeTextarea";
+import AutoResizeTextarea from "../../../common/components/AutoResizeTextareaForm";
 
 import type { TaskPermissions } from "../utils/taskPermissions";
 

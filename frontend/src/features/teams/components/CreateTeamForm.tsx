@@ -1,27 +1,27 @@
-import { zodResolver } from "@hookform/resolvers/zod";
 import { Controller, useForm } from "react-hook-form";
-import { Input } from "../../../components/ui/input";
-import {
-  type CreateProjectInput,
-  createProjectSchema,
-} from "../types/createProjectSchema";
+import { zodResolver } from "@hookform/resolvers/zod";
+
 import { Button } from "../../../components/ui/button";
-import { useCreateProject } from "../hooks/useCreateProject";
-import { Separator } from "../../../components/ui/separator";
+import { Input } from "../../../components/ui/input";
 import AutoResizeTextareaBase from "../../../common/components/AutoResizeTextareaBase";
+import { useCreateTeam } from "../hooks/useCreateTeam";
+import {
+  createTeamSchema,
+  type CreateTeamInput,
+} from "../types/createTeamSchema";
 import FormField from "../../../common/components/FormFieldWrapper";
+import { Separator } from "../../../components/ui/separator";
 
 interface Props {
-  teamId: string;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
 
-export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
-  const createProjectMutation = useCreateProject(teamId);
+export function CreateTeamForm({ onSuccess, onCancel }: Props) {
+  const createTeamMutation = useCreateTeam();
 
-  const form = useForm<CreateProjectInput>({
-    resolver: zodResolver(createProjectSchema),
+  const form = useForm<CreateTeamInput>({
+    resolver: zodResolver(createTeamSchema),
     mode: "onChange",
     defaultValues: {
       name: "",
@@ -35,8 +35,8 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
   // eslint-disable-next-line react-hooks/incompatible-library
   const name = form.watch("name") || "";
 
-  const onSubmit = (data: CreateProjectInput) => {
-    createProjectMutation.mutate(data, {
+  const onSubmit = (data: CreateTeamInput) => {
+    createTeamMutation.mutate(data, {
       onSuccess: () => {
         form.reset();
         onSuccess?.();
@@ -45,7 +45,7 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
   };
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
       <div className="space-y-2">
         <FormField
           label="Name"
@@ -56,13 +56,13 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
           <Input
             {...form.register("name")}
             maxLength={MAX_NAME}
-            placeholder="Enter project name..."
+            placeholder="Enter team name..."
             className="
-                  border-none px-0 py-0
-                  focus-visible:ring-0
-                  shadow-none
-                  text-sm
-                "
+            border-none px-0 py-0
+            focus-visible:ring-0
+            shadow-none
+            text-sm
+          "
           />
         </FormField>
       </div>
@@ -80,7 +80,7 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
             <AutoResizeTextareaBase
               value={field.value || ""}
               onChange={field.onChange}
-              placeholder="Add more details about this project..."
+              placeholder="Add more details about this team..."
               maxLength={2000}
               className="text-sm"
             />
@@ -97,9 +97,9 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
         <Button
           type="submit"
           variant="default"
-          disabled={createProjectMutation.isPending || !form.formState.isValid}
+          disabled={createTeamMutation.isPending || !form.formState.isValid}
         >
-          {createProjectMutation.isPending ? "Creating..." : "Create Project"}
+          {createTeamMutation.isPending ? "Creating..." : "Create Team"}
         </Button>
       </div>
     </form>

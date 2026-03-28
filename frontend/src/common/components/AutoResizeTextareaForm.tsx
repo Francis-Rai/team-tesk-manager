@@ -1,7 +1,7 @@
-import { useState, useRef, useEffect } from "react";
-
+import { useState } from "react";
 import { cn } from "../../lib/utils";
 import { Button } from "../../components/ui/button";
+import AutoResizeTextareaBase from "./AutoResizeTextareaBase";
 
 interface Props {
   value: string;
@@ -14,44 +14,24 @@ interface Props {
   isLoading?: boolean;
 }
 
-export default function AutoResizeTextarea({
+export default function AutoResizeTextareaForm({
   value,
   onChange,
   onSubmit,
   onCancel,
-  placeholder = "Write something...",
+  placeholder,
   maxLength = 500,
   disabled,
   isLoading,
 }: Props) {
   const [focused, setFocused] = useState(false);
 
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  /* -------------------------
-     Auto resize
-  -------------------------- */
-  const adjustHeight = () => {
-    const el = textareaRef.current;
-    if (!el) return;
-
-    el.style.height = "auto";
-    el.style.height = `${el.scrollHeight}px`;
-  };
-
-  useEffect(() => {
-    adjustHeight();
-  }, [value]);
-
-  /* -------------------------
-     Submit handler
-  -------------------------- */
-  const handleSubmit = () => {
+  function handleSubmit() {
     if (!value.trim()) return;
 
     onSubmit();
     setFocused(false);
-  };
+  }
 
   return (
     <div
@@ -61,40 +41,23 @@ export default function AutoResizeTextarea({
       )}
     >
       {/* TEXTAREA */}
-      <textarea
-        ref={textareaRef}
+      <AutoResizeTextareaBase
         value={value}
-        disabled={disabled}
-        placeholder={placeholder}
-        rows={focused ? 3 : 1}
-        maxLength={maxLength}
+        onChange={onChange}
         onFocus={() => setFocused(true)}
-        onChange={(e) => onChange(e.target.value)}
-        onInput={adjustHeight}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            handleSubmit();
-          }
-        }}
-        className="
-          w-full resize-none text-sm
-          outline-none bg-transparent
-          min-h-6 max-h-50
-          overflow-y-auto
-          placeholder:text-muted-foreground
-        "
+        placeholder={placeholder}
+        maxLength={maxLength}
+        disabled={disabled}
+        className="text-sm"
       />
 
-      {/* ACTION BAR */}
+      {/* ACTIONS */}
       {focused && (
         <div className="flex items-center justify-between mt-2">
-          {/* Character count */}
           <span className="text-xs text-muted-foreground">
             {value.length} / {maxLength}
           </span>
 
-          {/* Actions */}
           <div className="flex gap-2">
             {onCancel && (
               <Button

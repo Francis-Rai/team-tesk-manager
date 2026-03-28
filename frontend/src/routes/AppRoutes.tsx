@@ -7,7 +7,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
 import TeamSelectionPage from "../pages/TeamSelectionPage";
-import TaskDetailsPage from "../pages/TaskPage";
+import TaskDetailsPage from "../pages/TaskDetailsPage";
 import ProjectDetailsPage from "../pages/ProjectDetailsPage";
 import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
