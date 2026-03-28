@@ -1,4 +1,4 @@
-export type TeamRole = "OWNER" | "ADMIN" | "MEMBER" | null;
+import type { TeamRole } from "../../teams/types/TeamRole";
 
 export interface TaskPermissions {
   canEditTaskDetails: boolean;

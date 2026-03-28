@@ -1,6 +1,6 @@
 import { apiClient } from "../../../api/apiClients";
 import type { DeletedFilter } from "../../../common/utils/deletedFilter";
-import type { Team } from "../types/TeamTypes";
+import type { Team } from "../types/teamTypes";
 
 export const getTeams = async (params: {
   page?: number;
@@ -45,4 +45,19 @@ export const getTeam = async (teamId: string): Promise<Team> => {
   const response = await apiClient.get(`/teams/${teamId}`);
 
   return response.data;
+};
+
+export const updateTeam = async (
+  teamId: string,
+  data: {
+    name?: string;
+    description?: string;
+  },
+): Promise<Team> => {
+  const response = await apiClient.patch(`/teams/${teamId}`, data);
+  return response.data;
+};
+
+export const deleteTeam = async (teamId: string) => {
+  await apiClient.delete(`/teams/${teamId}`);
 };

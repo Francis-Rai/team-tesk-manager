@@ -1,60 +1,62 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-
-import { useCreateTeam } from "../hooks/useCreateTeam";
 import {
   createTeamSchema,
   type CreateTeamInput,
 } from "../types/createTeamSchema";
+import { useCreateTeam } from "../hooks/useCreateTeam";
 
-const CreateTeamModal = () => {
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "../../../components/ui/dialog";
+import { Input } from "../../../components/ui/input";
+import { Textarea } from "../../../components/ui/textarea";
+import { Button } from "../../../components/ui/button";
+
+interface Props {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}
+
+export function CreateTeamModal({ open, onOpenChange }: Props) {
   const { mutate, isPending } = useCreateTeam();
 
   const form = useForm<CreateTeamInput>({
     resolver: zodResolver(createTeamSchema),
   });
 
-  const onSubmit = (data: CreateTeamInput) => {
-    mutate(data);
-  };
+  function onSubmit(data: CreateTeamInput) {
+    mutate(data, {
+      onSuccess: () => {
+        onOpenChange(false);
+        form.reset();
+      },
+    });
+  }
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="border p-6 rounded-lg space-y-4"
-    >
-      <h2 className="text-xl font-semibold">Create Team</h2>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create Team</DialogTitle>
+        </DialogHeader>
 
-      <div>
-        <input
-          {...form.register("name")}
-          placeholder="Team name"
-          className="border p-2 w-full rounded"
-        />
-        {form.formState.errors.name && (
-          <p className="text-red-500 text-sm">
-            {form.formState.errors.name.message}
-          </p>
-        )}
-      </div>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <Input placeholder="Team name" {...form.register("name")} />
 
-      <div>
-        <textarea
-          {...form.register("description")}
-          placeholder="Description"
-          className="border p-2 w-full rounded"
-        />
-      </div>
+          <Textarea
+            placeholder="Description"
+            {...form.register("description")}
+          />
 
-      <button
-        type="submit"
-        disabled={isPending}
-        className="bg-blue-500 text-white px-4 py-2 rounded"
-      >
-        {isPending ? "Creating..." : "Create Team"}
-      </button>
-    </form>
+          <Button type="submit" disabled={isPending} className="w-full">
+            {isPending ? "Creating..." : "Create Team"}
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
-};
-
-export default CreateTeamModal;
+}

@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getTeams } from "../api/teamApi";
 import type { DeletedFilter } from "../../../common/utils/deletedFilter";
-import type { Team } from "../types/TeamTypes";
+import type { Team } from "../types/teamTypes";
 import type { PageResponse } from "../../../common/types/pageResponse";
 
 export const useTeams = (params: {

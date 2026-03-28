@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { Team } from "../types/TeamTypes";
+import type { Team } from "../types/teamTypes";
 import { getAllTeams } from "../api/teamApi";
 
 export const useAllTeams = () => {

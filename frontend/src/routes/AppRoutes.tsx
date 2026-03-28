@@ -11,7 +11,7 @@ import TaskDetailsPage from "../pages/TaskPage";
 import ProjectDetailsPage from "../pages/ProjectDetailsPage";
 import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
-import TeamOverview from "../features/teams/components/TeamOverView";
+import TeamOverview from "../features/teams/components/TeamOverview";
 
 export default function AppRoutes() {
   return (

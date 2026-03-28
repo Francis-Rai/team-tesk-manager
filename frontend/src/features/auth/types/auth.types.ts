@@ -1,4 +1,4 @@
-import type { User } from "../../users/user.types";
+import type { User } from "../../users/types/userType";
 
 export type AuthResponse = {
   token: string;

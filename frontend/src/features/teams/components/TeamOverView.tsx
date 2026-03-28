@@ -1,27 +1,36 @@
 import { useParams } from "react-router-dom";
 import { useTeam } from "../hooks/useTeam";
+import TeamHeader from "./TeamHeader";
+import { getTeamPermissions } from "../utils/teamPermissions";
+import { getUserFromToken } from "../../users/api/userApi";
 
 export default function TeamOverview() {
   const { teamId } = useParams<{ teamId: string }>();
 
   const { data: team, isLoading } = useTeam(teamId || "");
 
-  if (isLoading) {
+  const user = getUserFromToken();
+
+  if (isLoading || !team) {
     return (
       <div className="text-sm text-muted-foreground">Loading overview...</div>
     );
   }
 
+  if (!user?.role) return;
+
+  const permissions = getTeamPermissions({
+    role: user.role,
+  });
+
   return (
     <div className="space-y-6">
-      {/* HEADER */}
-      <div>
-        <h1 className="text-xl font-semibold">Welcome to {team?.name}</h1>
-
-        <p className="text-sm text-muted-foreground">
-          Manage projects, tasks, and team activity
-        </p>
-      </div>
+      <TeamHeader
+        teamId={team.id}
+        name={team.name}
+        description={team.description}
+        permissions={permissions}
+      />
 
       {/* QUICK ACTIONS */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

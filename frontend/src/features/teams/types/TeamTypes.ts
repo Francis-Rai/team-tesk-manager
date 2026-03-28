@@ -4,3 +4,8 @@ export interface Team {
   description?: string;
   createdAt: string;
 }
+
+export interface UpdateTeamInput {
+  name?: string;
+  description?: string;
+}

@@ -1,5 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
-import { getUsers } from "./user.service";
+import { getUsers } from "../api/userApi";
 
 /*
  * Custom hook to fetch users using React Query

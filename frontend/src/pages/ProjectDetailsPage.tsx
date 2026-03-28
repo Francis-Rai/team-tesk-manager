@@ -6,7 +6,7 @@ import { useProject } from "../features/projects/hooks/useProject";
 import TaskBoard from "../features/tasks/components/TaskBoard";
 import TaskModal from "../features/tasks/components/TaskModal";
 
-import type { DeletedFilter, Task } from "../features/tasks/types/taskTypes";
+import type { Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
 
 import TaskFilters from "../features/tasks/components/TaskFilters";
@@ -26,6 +26,7 @@ import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
 import ProjectActivity from "../features/projects/components/ProjectActivity";
 import { getProjectPermissions } from "../features/projects/utils/projectPermissions";
 import { useTeamMe } from "../features/teams/hooks/useTeamMe";
+import type { DeletedFilter } from "../common/utils/deletedFilter";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{
