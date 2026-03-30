@@ -15,27 +15,30 @@ import { cn } from "../../../lib/utils";
 
 export default function Sidebar({ teamId }: { teamId: string }) {
   const [collapsed, setCollapsed] = useState(false);
-  
-
   return (
     <aside
       className={cn(
         "h-screen border-r bg-muted/40 flex flex-col transition-all duration-200",
-        collapsed ? "w-16" : "w-64",
+        collapsed ? "w-16" : "w-fit",
       )}
     >
-      <div className="flex items-center justify-between p-3 border-b">
+      <div className="relative border-b p-3">
         {!collapsed && <TeamSwitcher teamId={teamId} />}
 
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed((prev) => !prev)}
+          className="
+      absolute -right-3 top-1/2 -translate-y-1/2
+      h-6 w-6 rounded-full border bg-background shadow-sm
+      hover:bg-muted
+    "
         >
           {collapsed ? (
-            <ChevronRight className="h-4 w-4" />
+            <ChevronRight className="h-3 w-3" />
           ) : (
-            <ChevronLeft className="h-4 w-4" />
+            <ChevronLeft className="h-3 w-3" />
           )}
         </Button>
       </div>
