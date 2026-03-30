@@ -99,7 +99,7 @@ export default function ProjectPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6 p-6 min-h-screen">
+    <div className="flex flex-col gap-6">
       <div className="text-sm text-muted-foreground">
         Team / {project?.name}
       </div>
@@ -111,14 +111,12 @@ export default function ProjectPage() {
         onCreateTask={() => setCreateOpen(true)}
         permissions={permissions}
       />
-
       <CreateTaskModal
         teamId={teamId}
         projectId={projectId}
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
-
       <Tabs defaultValue="board">
         <TabsList className="border rounded-md bg-muted/40 p-1 inline-flex gap-1">
           <TabsTrigger
@@ -184,7 +182,7 @@ export default function ProjectPage() {
             Settings
           </TabsTrigger> */}
         </TabsList>
-        <div className="rounded-lg border bg-background p-4 min-w-full w-fit">
+        <div className="rounded-lg border bg-background p-4">
           <TabsContent value="board">
             <TaskFilters
               search={search}
@@ -245,7 +243,6 @@ export default function ProjectPage() {
           </TabsContent> */}
         </div>
       </Tabs>
-
       {selectedTask && (
         <TaskModal
           open={!!selectedTask}

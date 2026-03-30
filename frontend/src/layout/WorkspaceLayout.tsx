@@ -11,10 +11,10 @@ export default function WorkspaceLayout() {
     <div className="h-screen flex">
       <Sidebar teamId={teamId} />
 
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col min-w-0 min-h-0">
         <TopBar teamId={teamId} />
 
-        <main className="flex-1 overflow-auto p-6">
+        <main className="p-6">
           <Outlet />
         </main>
       </div>

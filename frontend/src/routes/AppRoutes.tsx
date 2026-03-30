@@ -47,12 +47,11 @@ export default function AppRoutes() {
           <Route path="projects" element={<ProjectsView />} />
           {/* <Route path="members" element={<MembersView />} /> */}
           {/* <Route path="activity" element={<ActivityView />} /> */}
+          <Route
+            path="/teams/:teamId/projects/:projectId"
+            element={<ProjectDetailsPage />}
+          />
         </Route>
-
-        <Route
-          path="/teams/:teamId/projects/:projectId"
-          element={<ProjectDetailsPage />}
-        />
 
         <Route
           path="/teams/:teamId/projects/:projectId/tasks/:taskId"
