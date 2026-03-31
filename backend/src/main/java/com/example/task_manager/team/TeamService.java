@@ -27,6 +27,7 @@ import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
+import com.example.task_manager.team.dto.TeamMemberSearchRequest;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
@@ -399,25 +400,41 @@ public class TeamService {
    * Returns all the team's members.
    */
   @Transactional(readOnly = true)
-  public List<TeamMemberResponse> getTeamMembers(
+  public PageResponse<TeamMemberResponse> getTeamMembers(
+      TeamMemberSearchRequest request,
       UUID teamId,
-      String requesterEmail) {
+      Pageable pageable,
+      Authentication authentication) {
 
-    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity requester = getUserByEmail(authentication.getName());
 
-    validateMembership(teamId, requester.getId());
+    // validateMembership(teamId, requester.getId());
 
-    List<TeamMemberEntity> members = teamMemberRepository.findMembersByTeamId(teamId);
+    // TeamMemberEntity member = getMembership(teamId, requester.getId());
 
-    return members.stream()
-        .map(member -> new TeamMemberResponse(
-            member.getUser().getId(),
-            member.getUser().getFirstName(),
-            member.getUser().getLastName(),
-            member.getUser().getEmail(),
-            member.getRole(),
-            member.getJoinedAt()))
-        .toList();
+    boolean isGlobalAdmin = authentication.getAuthorities()
+        .stream()
+        .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
+
+    Specification<TeamMemberEntity> spec = TeamMemberSpecification.build(
+        teamId,
+        request.search(),
+        // member.getRole(),
+        requester.getId(),
+        isGlobalAdmin);
+
+    pageable = validateSorting(pageable);
+
+    Page<TeamMemberEntity> page = teamMemberRepository.findAll(spec, pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToMemberResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
   }
 
   /**
@@ -611,6 +628,7 @@ public class TeamService {
   private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
       "name",
       "ownerId",
+      "joinedAt",
       "createdAt",
       "updatedAt");
 

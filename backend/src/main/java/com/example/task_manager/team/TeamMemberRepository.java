@@ -7,13 +7,15 @@ import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 import com.example.task_manager.team.entity.TeamMemberEntity;
 
 /**
  * Repository interface for Team Member entities.
  */
-public interface TeamMemberRepository extends JpaRepository<TeamMemberEntity, UUID> {
+public interface TeamMemberRepository
+    extends JpaRepository<TeamMemberEntity, UUID>, JpaSpecificationExecutor<TeamMemberEntity> {
 
   Optional<TeamMemberEntity> findByTeamIdAndUserIdAndTeamDeletedAtIsNull(UUID teamId, UUID userId);
 

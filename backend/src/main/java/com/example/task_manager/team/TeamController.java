@@ -1,6 +1,5 @@
 package com.example.task_manager.team;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -24,6 +23,7 @@ import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
+import com.example.task_manager.team.dto.TeamMemberSearchRequest;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
@@ -169,10 +169,12 @@ public class TeamController {
    * Get All members of team.
    */
   @GetMapping("/{teamId}/members")
-  public ResponseEntity<List<TeamMemberResponse>> getTeamMembers(
+  public ResponseEntity<PageResponse<TeamMemberResponse>> getTeamMembers(
+      TeamMemberSearchRequest request,
       @PathVariable UUID teamId,
+      @PageableDefault(page = 0, size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
-    return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
+    return ResponseEntity.ok(teamService.getTeamMembers(request, teamId, pageable, authentication));
   }
 
   /**

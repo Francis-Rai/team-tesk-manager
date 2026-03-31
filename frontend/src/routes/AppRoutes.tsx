@@ -12,6 +12,7 @@ import ProjectDetailsPage from "../pages/ProjectDetailsPage";
 import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
 import TeamOverview from "../features/teams/components/TeamOverview";
+import TeamMembersPage from "../pages/TeamMembersPage";
 
 export default function AppRoutes() {
   return (
@@ -45,7 +46,7 @@ export default function AppRoutes() {
         >
           <Route index element={<TeamOverview />} />
           <Route path="projects" element={<ProjectsView />} />
-          {/* <Route path="members" element={<MembersView />} /> */}
+          <Route path="members" element={<TeamMembersPage />} />
           {/* <Route path="activity" element={<ActivityView />} /> */}
           <Route
             path="/teams/:teamId/projects/:projectId"
