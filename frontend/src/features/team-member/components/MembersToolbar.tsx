@@ -30,7 +30,7 @@ export default function MembersToolbar({
       />
 
       <Select value={role} onValueChange={onRoleChange}>
-        <SelectTrigger className="w-[160px]">
+        <SelectTrigger className="w-40">
           <SelectValue placeholder="Role" />
         </SelectTrigger>
 

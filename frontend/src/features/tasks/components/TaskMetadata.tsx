@@ -1,7 +1,7 @@
 import type { Task } from "../types/taskTypes";
 import UserSelector from "../../../common/components/UserSelector";
 
-import { useTeamMembers } from "../../teams/hooks/useTeamMembers";
+import { useTeamMembers } from "../../team-member/hooks/useTeamMembers";
 import { useAssignUser } from "../hooks/useAssignUser";
 import { useAssignSupportUser } from "../hooks/useAssignSupportUser";
 import PrioritySelect from "../../../common/components/PrioritySelector";
@@ -12,6 +12,8 @@ import type { TaskStatus } from "../utils/taskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import type { TeamMember } from "../../team-member/types/memberTypes";
+import type { User } from "../../users/types/userType";
 
 interface Props {
   teamId: string;
@@ -29,7 +31,8 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 }
 
 export default function TaskMetadata({ teamId, projectId, task }: Props) {
-  const { data: members = [] } = useTeamMembers(teamId);
+  const { data } = useTeamMembers(teamId);
+  const members = data?.content ?? [];
 
   const assignUserMutation = useAssignUser(teamId, projectId, task.id);
 
@@ -76,6 +79,15 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
     });
   }
 
+  function mapTeamMembersToUsers(members: TeamMember[]): User[] {
+    return members.map((m) => ({
+      id: m.userId,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      email: m.email,
+    }));
+  }
+
   function handleUpdatePlannedDueDate(plannedDueDate: string | null) {
     if (!plannedDueDate || plannedDueDate === task.plannedDueDate) return;
     updateTaskMutation.mutate({
@@ -107,7 +119,8 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         label="Assignee"
         value={
           <UserSelector
-            users={members}
+            key={"assignee"}
+            users={mapTeamMembersToUsers(members)}
             value={task.assignedUser?.id}
             placeholder="Select assignee"
             onChange={handleAssignUser}
@@ -127,7 +140,8 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         label="Support"
         value={
           <UserSelector
-            users={members}
+            key={"support"}
+            users={mapTeamMembersToUsers(members)}
             value={task.supportUser?.id}
             placeholder="Select support"
             allowClear

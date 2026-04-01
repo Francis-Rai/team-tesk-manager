@@ -1,12 +1,13 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 
-import { useTeamMembers } from "../features/teams/hooks/useTeamMembers";
+import { useTeamMembers } from "../features/team-member/hooks/useTeamMembers";
 import { useDebounce } from "../common/hooks/useDebounce";
 import MembersHeader from "../features/team-member/components/MembersHeader";
 import MembersToolbar from "../features/team-member/components/MembersToolbar";
 import MembersList from "../features/team-member/components/MembersList";
-import InviteMemberModal from "../features/team-member/components/InviteMemberModal";
+import AddMemberModal from "../features/team-member/components/AddMemberModal";
+import { useAvailableUsers } from "../features/team-member/hooks/useAvailableUsers";
 
 export default function MembersPage() {
   const { teamId } = useParams<{ teamId: string }>();
@@ -20,14 +21,24 @@ export default function MembersPage() {
 
   const [inviteOpen, setInviteOpen] = useState(false);
 
-  const { data, isLoading } = useTeamMembers(teamId || "", {
-    page,
-    search: debouncedSearch,
-    sort,
-  });
+  const { data: membersData, isLoading: membersLoading } = useTeamMembers(
+    teamId || "",
+    {
+      page,
+      search: debouncedSearch,
+      sort,
+    },
+  );
 
-  const members = data?.content ?? [];
-  const totalPages = data?.totalPages ?? 0;
+  const members = membersData?.content ?? [];
+  const totalPages = membersData?.totalPages ?? 0;
+
+  const { data: availableUserData, isLoading: availableUsersLoading } =
+    useAvailableUsers(teamId || "", {
+      search: debouncedSearch,
+    });
+
+  const availableUser = availableUserData?.content ?? [];
 
   if (!teamId) return <div className="p-6">Invalid team</div>;
 
@@ -43,8 +54,9 @@ export default function MembersPage() {
       />
 
       <MembersList
+        teamId={teamId}
         members={members}
-        isLoading={isLoading}
+        isLoading={membersLoading}
         search={debouncedSearch}
         role={role}
         pagination={{
@@ -56,7 +68,9 @@ export default function MembersPage() {
         onSortChange={setSort}
       />
 
-      <InviteMemberModal
+      <AddMemberModal
+        users={availableUser}
+        isLoading={availableUsersLoading}
         open={inviteOpen}
         onOpenChange={setInviteOpen}
         teamId={teamId}

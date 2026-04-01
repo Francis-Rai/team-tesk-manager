@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { updateMemberRole } from "../api/teamApi";
+import { updateMemberRole } from "../api/teamMemberApi";
 
 export const useUpdateMemberRole = (teamId: string) => {
   const queryClient = useQueryClient();

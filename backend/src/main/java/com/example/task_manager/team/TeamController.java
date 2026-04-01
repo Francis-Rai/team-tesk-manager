@@ -27,6 +27,7 @@ import com.example.task_manager.team.dto.TeamMemberSearchRequest;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
+import com.example.task_manager.user.dto.UserResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -175,6 +176,15 @@ public class TeamController {
       @PageableDefault(page = 0, size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable,
       Authentication authentication) {
     return ResponseEntity.ok(teamService.getTeamMembers(request, teamId, pageable, authentication));
+  }
+
+  @GetMapping("/{teamId}/available-users")
+  public ResponseEntity<PageResponse<UserResponse>> getAvailableUsers(
+      @PathVariable UUID teamId,
+      String search,
+      @PageableDefault(page = 0, size = 20, sort = "lastName", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getAvailableUsers(search, teamId, pageable, authentication));
   }
 
   /**

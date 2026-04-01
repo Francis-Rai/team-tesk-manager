@@ -4,7 +4,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../components/ui/popover";
-import type { TeamMember } from "../../features/teams/types/memberTypes";
 import { cn } from "../../lib/utils";
 import {
   Command,
@@ -15,13 +14,14 @@ import {
 } from "../../components/ui/command";
 import { Button } from "../../components/ui/button";
 import { useState } from "react";
+import type { User } from "../../features/users/types/userType";
 
 interface Props {
-  users: TeamMember[];
+  users: User[];
   value?: string;
   placeholder: string;
   allowClear?: boolean;
-  onChange: (userId: string | null) => void;
+  onChange: (id: string | null) => void;
 }
 
 export default function UserSelector({
@@ -33,7 +33,7 @@ export default function UserSelector({
 }: Props) {
   const [open, setOpen] = useState(false);
 
-  const selectedUser = users.find((u) => u.userId === value);
+  const selectedUser = users.find((u) => u.id === value);
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -46,7 +46,7 @@ export default function UserSelector({
           )}
         >
           {selectedUser
-            ? `${selectedUser.firstName} ${selectedUser.lastName}`
+            ? `${selectedUser.lastName} ${selectedUser.firstName}`
             : placeholder}
 
           <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
@@ -74,14 +74,14 @@ export default function UserSelector({
             )}
 
             {users.map((user) => {
-              const label = `${user.firstName} ${user.lastName}`;
+              const label = `${user.lastName} ${user.firstName}`;
 
               return (
                 <CommandItem
-                  key={user.userId}
+                  key={user.id}
                   value={label}
                   onSelect={() => {
-                    onChange(user.userId);
+                    onChange(user.id);
                     setOpen(false);
                   }}
                 >
@@ -90,7 +90,7 @@ export default function UserSelector({
                   <Check
                     className={cn(
                       "ml-auto h-4 w-4",
-                      value === user.userId ? "opacity-100" : "opacity-0",
+                      value === user.id ? "opacity-100" : "opacity-0",
                     )}
                   />
                 </CommandItem>

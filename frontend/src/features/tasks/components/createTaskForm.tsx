@@ -2,7 +2,6 @@ import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateTask } from "../hooks/useCreateTask";
-import { useTeamMembers } from "../../teams/hooks/useTeamMembers";
 
 import UserSelector from "../../../common/components/UserSelector";
 
@@ -25,6 +24,9 @@ import DatePicker from "../../../common/components/DatePicker";
 import type { TaskPriority } from "../utils/taskPriority";
 import AutoResizeTextareaBase from "../../../common/components/AutoResizeTextareaBase";
 import FormField from "../../../common/components/FormFieldWrapper";
+import { useTeamMembers } from "../../team-member/hooks/useTeamMembers";
+import type { TeamMember } from "../../team-member/types/memberTypes";
+import type { User } from "../../users/types/userType";
 
 interface Props {
   teamId: string;
@@ -40,7 +42,17 @@ export function CreateTaskForm({
   onCancel,
 }: Props) {
   const createTaskMutation = useCreateTask(teamId, projectId);
-  const { data: members = [] } = useTeamMembers(teamId);
+  const { data } = useTeamMembers(teamId);
+  const members = data?.content ?? [];
+
+  function mapTeamMembersToUsers(members: TeamMember[]): User[] {
+    return members.map((m) => ({
+      id: m.userId,
+      firstName: m.firstName,
+      lastName: m.lastName,
+      email: m.email,
+    }));
+  }
 
   const form = useForm<CreateTaskInput>({
     resolver: zodResolver(createTaskSchema),
@@ -145,7 +157,7 @@ export function CreateTaskForm({
           <Label className="text-xs text-muted-foreground">Assignee</Label>
 
           <UserSelector
-            users={members}
+            users={mapTeamMembersToUsers(members)}
             value={form.watch("assigneeId")}
             onChange={(id) =>
               form.setValue("assigneeId", id ?? "", {
@@ -161,7 +173,7 @@ export function CreateTaskForm({
           <Label className="text-xs text-muted-foreground">Support</Label>
 
           <UserSelector
-            users={members}
+            users={mapTeamMembersToUsers(members)}
             allowClear
             value={form.watch("supportId")}
             onChange={(id) => form.setValue("supportId", id ?? undefined)}

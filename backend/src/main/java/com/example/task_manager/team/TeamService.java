@@ -34,6 +34,8 @@ import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.UserRepository;
+import com.example.task_manager.user.UserSpecification;
+import com.example.task_manager.user.dto.UserResponse;
 import com.example.task_manager.user.entity.UserEntity;
 import com.example.task_manager.user.entity.UserRole;
 
@@ -322,7 +324,6 @@ public class TeamService {
     if (!isGlobalAdmin) {
       validateMembership(teamId, requester.getId());
     }
-    
     return mapToResponse(team);
   }
 
@@ -432,6 +433,32 @@ public class TeamService {
   }
 
   /**
+   * Returns all the user thats not part of the team .
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<UserResponse> getAvailableUsers(
+      String search,
+      UUID teamId,
+      Pageable pageable,
+      Authentication authentication) {
+
+    Specification<UserEntity> spec = UserSpecification.availableUsers(teamId, search);
+
+    pageable = validateSorting(pageable);
+
+    Page<UserEntity> page = userRepository.findAll(spec, pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToNonMemberResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
+  /**
    * Returns user's team role.
    */
   @Transactional(readOnly = true)
@@ -495,6 +522,18 @@ public class TeamService {
         member.getUser().getEmail(),
         member.getRole(),
         member.getJoinedAt());
+  }
+
+  /**
+   * Maps a TeamMemberEntity to a TeamMemberResponse.
+   */
+  private UserResponse mapToNonMemberResponse(UserEntity user) {
+    return new UserResponse(
+        user.getId(),
+        user.getFirstName(),
+        user.getLastName(),
+        user.getEmail(),
+        user.getRole());
   }
 
   /**
@@ -621,6 +660,7 @@ public class TeamService {
    */
   private static final Set<String> ALLOWED_SORT_FIELDS = Set.of(
       "name",
+      "lastName",
       "ownerId",
       "joinedAt",
       "createdAt",

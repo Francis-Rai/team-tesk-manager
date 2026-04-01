@@ -1,12 +1,12 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { inviteMember } from "../api/teamApi";
+import { addMember } from "../api/teamMemberApi";
 
-export const useInviteMember = (teamId: string) => {
+export const useAddMember = (teamId: string) => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: { userId: string; role: "ADMIN" | "MEMBER" }) =>
-      inviteMember(teamId, data),
+      addMember(teamId, data),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
