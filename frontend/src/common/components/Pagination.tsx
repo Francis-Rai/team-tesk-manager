@@ -1,10 +1,10 @@
-interface Props {
+export interface PaginationProps {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
 }
 
-export default function Pagination({ page, totalPages, onPageChange }: Props) {
+export default function Pagination({ page, totalPages, onPageChange }: PaginationProps) {
   const pages = Array.from({ length: totalPages });
 
   return (

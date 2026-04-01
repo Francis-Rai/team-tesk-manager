@@ -27,6 +27,7 @@ export default function MembersPage() {
   });
 
   const members = data?.content ?? [];
+  const totalPages = data?.totalPages ?? 0;
 
   if (!teamId) return <div className="p-6">Invalid team</div>;
 
@@ -46,6 +47,13 @@ export default function MembersPage() {
         isLoading={isLoading}
         search={debouncedSearch}
         role={role}
+        pagination={{
+          page,
+          totalPages,
+          onPageChange: setPage,
+        }}
+        sort={sort}
+        onSortChange={setSort}
       />
 
       <InviteMemberModal

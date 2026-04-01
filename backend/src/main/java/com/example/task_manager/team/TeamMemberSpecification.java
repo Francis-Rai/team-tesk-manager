@@ -5,7 +5,6 @@ import java.util.UUID;
 import org.springframework.data.jpa.domain.Specification;
 
 import com.example.task_manager.team.entity.TeamMemberEntity;
-import com.example.task_manager.team.entity.TeamRole;
 import com.example.task_manager.user.entity.UserEntity;
 
 import jakarta.persistence.criteria.Join;
@@ -19,14 +18,12 @@ public class TeamMemberSpecification {
   public static Specification<TeamMemberEntity> build(
       UUID teamId,
       String search,
-      // TeamRole role,
       UUID requesterId,
       boolean isGlobalAdmin) {
 
     return Specification
         .where(belongsToTeam(teamId))
         .and(search(search))
-        // .and(hasRole(role))
         .and(isAccessibleByUser(requesterId, isGlobalAdmin));
   }
 
@@ -61,19 +58,6 @@ public class TeamMemberSpecification {
           cb.like(cb.lower(userJoin.get("firstName")), pattern),
           cb.like(cb.lower(userJoin.get("lastName")), pattern),
           cb.like(cb.lower(userJoin.get("email")), pattern));
-    };
-  }
-
-  /**
-   * Filter by role (ADMIN / MEMBER)
-   */
-  private static Specification<TeamMemberEntity> hasRole(TeamRole role) {
-    return (root, query, cb) -> {
-      if (role == null) {
-        return cb.conjunction();
-      }
-
-      return cb.equal(root.get("role"), role);
     };
   }
 

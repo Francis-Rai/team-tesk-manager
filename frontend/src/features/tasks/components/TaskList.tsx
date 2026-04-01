@@ -12,14 +12,10 @@ import {
 import { formatDateTimeShort } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { TaskStatusLabel, TaskStatusStyles } from "../utils/taskStatus";
-import Pagination from "../../../common/components/Pagination";
 import PriorityBadge from "../../../common/components/PriorityBadge";
-
-interface PaginationProps {
-  page: number;
-  totalPages: number;
-  onPageChange: (page: number) => void;
-}
+import Pagination, {
+  type PaginationProps,
+} from "../../../common/components/Pagination";
 
 interface Props {
   tasks: Task[];

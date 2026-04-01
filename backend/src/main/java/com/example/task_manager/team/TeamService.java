@@ -1,7 +1,6 @@
 package com.example.task_manager.team;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -408,10 +407,6 @@ public class TeamService {
 
     UserEntity requester = getUserByEmail(authentication.getName());
 
-    // validateMembership(teamId, requester.getId());
-
-    // TeamMemberEntity member = getMembership(teamId, requester.getId());
-
     boolean isGlobalAdmin = authentication.getAuthorities()
         .stream()
         .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
@@ -419,7 +414,6 @@ public class TeamService {
     Specification<TeamMemberEntity> spec = TeamMemberSpecification.build(
         teamId,
         request.search(),
-        // member.getRole(),
         requester.getId(),
         isGlobalAdmin);
 
@@ -630,7 +624,10 @@ public class TeamService {
       "ownerId",
       "joinedAt",
       "createdAt",
-      "updatedAt");
+      "updatedAt",
+      "user.lastName",
+      "user.email",
+      "role");
 
   /*
    * Check sort request

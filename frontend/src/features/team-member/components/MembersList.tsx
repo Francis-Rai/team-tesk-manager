@@ -1,3 +1,6 @@
+import type { PaginationProps } from "../../../common/components/Pagination";
+import Pagination from "../../../common/components/Pagination";
+import { formatDate } from "../../../common/utils/date";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
 import { Button } from "../../../components/ui/button";
@@ -16,6 +19,9 @@ interface Props {
   isLoading: boolean;
   search: string;
   role: string;
+  pagination: PaginationProps;
+  sort: string;
+  onSortChange: (sort: string) => void;
 }
 
 export default function MembersList({
@@ -23,6 +29,9 @@ export default function MembersList({
   isLoading,
   search,
   role,
+  pagination,
+  sort,
+  onSortChange,
 }: Props) {
   const filtered = members.filter((m) => {
     const fullName = `${m.firstName} ${m.lastName}`.toLowerCase();
@@ -35,6 +44,17 @@ export default function MembersList({
 
     return matchesSearch && matchesRole;
   });
+
+  function handleSort(field: string) {
+    const [currentField, direction] = sort.split(",");
+
+    if (currentField === field) {
+      const newDir = direction === "asc" ? "desc" : "asc";
+      onSortChange(`${field},${newDir}`);
+    } else {
+      onSortChange(`${field},asc`);
+    }
+  }
 
   if (isLoading) {
     return <div className="text-sm text-muted-foreground">Loading...</div>;
@@ -51,9 +71,30 @@ export default function MembersList({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>Member</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Email</TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("user.lastName")}
+            >
+              Name
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("role")}
+            >
+              Role
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("user.email")}
+            >
+              Email
+            </TableHead>
+            <TableHead
+              className="cursor-pointer select-none"
+              onClick={() => handleSort("joinedAt")}
+            >
+              Joined Date
+            </TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
@@ -65,13 +106,13 @@ export default function MembersList({
                 <div className="flex items-center gap-2">
                   <Avatar className="h-6 w-6">
                     <AvatarFallback>
-                      {member.firstName[0]}
                       {member.lastName[0]}
+                      {member.firstName[0]}
                     </AvatarFallback>
                   </Avatar>
 
                   <span className="font-medium">
-                    {member.firstName} {member.lastName}
+                    {member.lastName}, {member.firstName}
                   </span>
                 </div>
               </TableCell>
@@ -81,6 +122,7 @@ export default function MembersList({
               </TableCell>
 
               <TableCell>{member.email}</TableCell>
+              <TableCell>{formatDate(member.joinedAt)}</TableCell>
 
               <TableCell className="text-right">
                 <Button size="sm" variant="ghost">
@@ -91,6 +133,15 @@ export default function MembersList({
           ))}
         </TableBody>
       </Table>
+      {pagination.totalPages > 1 && (
+        <div className="border-t p-4">
+          <Pagination
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={pagination.onPageChange}
+          />
+        </div>
+      )}
     </div>
   );
 }

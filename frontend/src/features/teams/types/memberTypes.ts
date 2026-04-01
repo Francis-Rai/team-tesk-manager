@@ -5,4 +5,5 @@ export interface TeamMember {
   lastName: string;
   email: string;
   role: TeamRole;
+  joinedAt: string;
 }
