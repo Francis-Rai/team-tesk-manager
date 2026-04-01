@@ -1,5 +1,5 @@
 import { useInfiniteQuery } from "@tanstack/react-query";
-import type { DeletedFilter } from "../types/taskTypes";
+import type { DeletedFilter } from "../../../common/utils/deletedFilter";
 import type { Task } from "../types/taskTypes";
 import { getTasks } from "../api/taskApi";
 import type { PageResponse } from "../../../common/types/pageResponse";

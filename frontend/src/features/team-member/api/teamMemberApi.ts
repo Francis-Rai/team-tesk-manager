@@ -23,6 +23,7 @@ export const getAvailableUsers = async (
   teamId: string,
   params: {
     search?: string;
+    size?: number;
   },
 ) => {
   const response = await apiClient.get(`/teams/${teamId}/available-users`, {

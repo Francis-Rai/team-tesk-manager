@@ -1,19 +1,24 @@
-import { UserPlus } from "lucide-react";
 import { Button } from "../../../components/ui/button";
+import type { User } from "../../users/types/userType";
 
-export default function MembersHeader({ onInvite }: { onInvite: () => void }) {
+interface Props {
+  teamId: string;
+  availableUsers: User[];
+  setOpen: () => void;
+}
+
+export default function MembersHeader({ setOpen }: Props) {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-start justify-between border-b pb-4">
       <div>
-        <h1 className="text-xl font-semibold">Members</h1>
-        <p className="text-sm text-muted-foreground">
+        <h1 className="text-xl font-semibold tracking-tight">Members</h1>
+        <p className="text-sm text-muted-foreground mt-1">
           Manage your team members and roles
         </p>
       </div>
 
-      <Button onClick={onInvite} className="gap-2">
-        <UserPlus className="h-4 w-4" />
-        Invite Member
+      <Button onClick={setOpen} className="gap-2">
+        Add Member
       </Button>
     </div>
   );
