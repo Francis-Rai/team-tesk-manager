@@ -8,11 +8,16 @@ import MembersToolbar from "../features/team-member/components/MembersToolbar";
 import MembersList from "../features/team-member/components/MembersList";
 import { useAvailableUsers } from "../features/team-member/hooks/useAvailableUsers";
 import AddMemberModal from "../features/team-member/components/AddMemberModal";
+import TransferOwnershipModal from "../features/team-member/components/TransferOwnershipModal";
+import { getTeamPermissions } from "../features/teams/utils/teamPermissions";
+import { getUserFromToken } from "../features/users/api/userApi";
+import { useTeamMe } from "../features/teams/hooks/useTeamMe";
 
 export default function MembersPage() {
   const { teamId } = useParams<{ teamId: string }>();
 
-  const [open, setOpen] = useState(false);
+  const [addMemberOpen, setAddMemberOpen] = useState(false);
+  const [transferOpen, setTransferOpen] = useState(false);
 
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
@@ -29,12 +34,21 @@ export default function MembersPage() {
       sort,
     },
   );
+  const { data: teamMe } = useTeamMe(teamId || "");
 
   const members = membersData?.content ?? [];
   const totalPages = membersData?.totalPages ?? 0;
 
   const { data: availableUsersData } = useAvailableUsers(teamId || "", {
     search: debouncedSearch,
+  });
+
+  const user = getUserFromToken();
+  if (!user?.role) return;
+
+  const permissions = getTeamPermissions({
+    globalRole: user.role,
+    teamRole: teamMe?.role,
   });
 
   const availableUsers = availableUsersData?.content ?? [];
@@ -44,9 +58,9 @@ export default function MembersPage() {
   return (
     <div className="p-6 space-y-6 max-w-6xl mx-auto">
       <MembersHeader
-        teamId={teamId}
-        availableUsers={availableUsers}
-        setOpen={() => setOpen(true)}
+        setAddMemberOpen={() => setAddMemberOpen(true)}
+        setTransferOpen={() => setTransferOpen(true)}
+        permissions={permissions}
       />
 
       <MembersToolbar
@@ -57,6 +71,7 @@ export default function MembersPage() {
       />
 
       <MembersList
+        permissions={permissions}
         teamId={teamId}
         members={members}
         isLoading={membersLoading}
@@ -74,9 +89,16 @@ export default function MembersPage() {
       <AddMemberModal
         users={availableUsers}
         teamId={teamId}
-        open={open}
+        open={addMemberOpen}
         isLoading={false}
-        onOpenChange={setOpen}
+        onOpenChange={setAddMemberOpen}
+      />
+
+      <TransferOwnershipModal
+        teamId={teamId}
+        open={transferOpen}
+        onClose={() => setTransferOpen(false)}
+        members={members}
       />
     </div>
   );

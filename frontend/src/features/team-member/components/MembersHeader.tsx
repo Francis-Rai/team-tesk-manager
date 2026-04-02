@@ -1,13 +1,17 @@
 import { Button } from "../../../components/ui/button";
-import type { User } from "../../users/types/userType";
+import type { TeamPermissions } from "../../teams/utils/teamPermissions";
 
 interface Props {
-  teamId: string;
-  availableUsers: User[];
-  setOpen: () => void;
+  setAddMemberOpen: () => void;
+  setTransferOpen: () => void;
+  permissions: TeamPermissions;
 }
 
-export default function MembersHeader({ setOpen }: Props) {
+export default function MembersHeader({
+  setAddMemberOpen,
+  setTransferOpen,
+  permissions,
+}: Props) {
   return (
     <div className="flex items-start justify-between border-b pb-4">
       <div>
@@ -17,9 +21,18 @@ export default function MembersHeader({ setOpen }: Props) {
         </p>
       </div>
 
-      <Button onClick={setOpen} className="gap-2">
-        Add Member
-      </Button>
+      <div className="flex items-center gap-2">
+        {permissions.canAddMember && (
+          <Button onClick={setAddMemberOpen} className="gap-2">
+            Add Member
+          </Button>
+        )}
+        {permissions.canTransferOwnership && (
+          <Button variant="outline" onClick={setTransferOpen} className="h-9">
+            Transfer Ownership
+          </Button>
+        )}
+      </div>
     </div>
   );
 }

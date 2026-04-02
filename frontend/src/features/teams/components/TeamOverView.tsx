@@ -20,7 +20,7 @@ export default function TeamOverview() {
   if (!user?.role) return;
 
   const permissions = getTeamPermissions({
-    role: user.role,
+    globalRole: user.role,
   });
 
   return (

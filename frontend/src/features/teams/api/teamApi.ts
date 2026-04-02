@@ -61,3 +61,7 @@ export const updateTeam = async (
 export const deleteTeam = async (teamId: string) => {
   await apiClient.delete(`/teams/${teamId}`);
 };
+
+export const transferTeam = async (teamId: string, userId: string) => {
+  await apiClient.patch(`/teams/${teamId}/transfer/${userId}`);
+};

@@ -1,10 +1,12 @@
 import type { TeamRole } from "../../teams/types/TeamRole";
+import type { UserRole } from "../../users/types/userRole";
 
 export interface TeamMember {
-  userId: string;
+  id: string;
   firstName: string;
   lastName: string;
   email: string;
-  role: TeamRole;
+  teamRole: TeamRole;
+  globalRole: UserRole;
   joinedAt: string;
 }

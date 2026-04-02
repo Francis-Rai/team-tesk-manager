@@ -521,6 +521,7 @@ public class TeamService {
         member.getUser().getLastName(),
         member.getUser().getEmail(),
         member.getRole(),
+        member.getUser().getRole(),
         member.getJoinedAt());
   }
 

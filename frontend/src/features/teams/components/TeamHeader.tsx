@@ -41,7 +41,7 @@ export default function TeamHeader({
         />
       </div>
 
-      <Button size="sm">Invite Member</Button>
+      <Button size="sm">Add Member</Button>
     </div>
   );
 }

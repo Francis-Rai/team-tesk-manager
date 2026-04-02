@@ -22,7 +22,7 @@ interface Props {
   onTaskDeleted?: () => void;
 }
 
-export function DeleteTaskButton({
+export default function DeleteTaskButton({
   teamId,
   projectId,
   taskId,

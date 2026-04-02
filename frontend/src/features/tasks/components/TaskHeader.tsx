@@ -2,8 +2,7 @@ import EditableField from "../../../common/components/EditableField";
 import { useUpdateTask } from "../hooks/useUpdateTask";
 import type { Task } from "../types/taskTypes";
 import type { TaskPermissions } from "../utils/taskPermissions";
-
-import { DeleteTaskButton } from "./DeleteTaskButton";
+import DeleteTaskButton from "./DeleteTaskButton";
 
 interface Props {
   teamId: string;

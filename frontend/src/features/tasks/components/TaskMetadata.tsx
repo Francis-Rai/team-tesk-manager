@@ -12,8 +12,6 @@ import type { TaskStatus } from "../utils/taskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import type { TeamMember } from "../../team-member/types/memberTypes";
-import type { User } from "../../users/types/userType";
 
 interface Props {
   teamId: string;
@@ -79,15 +77,6 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
     });
   }
 
-  function mapTeamMembersToUsers(members: TeamMember[]): User[] {
-    return members.map((m) => ({
-      id: m.userId,
-      firstName: m.firstName,
-      lastName: m.lastName,
-      email: m.email,
-    }));
-  }
-
   function handleUpdatePlannedDueDate(plannedDueDate: string | null) {
     if (!plannedDueDate || plannedDueDate === task.plannedDueDate) return;
     updateTaskMutation.mutate({
@@ -120,7 +109,7 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         value={
           <UserSelector
             key={"assignee"}
-            users={mapTeamMembersToUsers(members)}
+            users={members}
             value={task.assignedUser?.id}
             placeholder="Select assignee"
             onChange={handleAssignUser}
@@ -141,7 +130,7 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         value={
           <UserSelector
             key={"support"}
-            users={mapTeamMembersToUsers(members)}
+            users={members}
             value={task.supportUser?.id}
             placeholder="Select support"
             allowClear
