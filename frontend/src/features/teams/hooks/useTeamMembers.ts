@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 import { getTeamMembers } from "../api/teamMemberApi";
 import type { TeamMember } from "../types/team.type";
 

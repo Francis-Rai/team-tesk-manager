@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../components/ui/dialog";
-import { CreateTaskForm } from "./CreateTaskForm";
+import { CreateTaskForm } from "./_CreateTaskForm";
 
 interface Props {
   teamId: string;

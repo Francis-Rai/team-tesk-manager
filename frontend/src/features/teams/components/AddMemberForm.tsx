@@ -10,16 +10,16 @@ import {
 
 import UserSelector from "../../../common/components/UserSelector";
 import { Separator } from "../../../components/ui/separator";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { useAddMember } from "../hooks/useAddMember";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { User } from "../../users/types/userType";
 import { cn } from "../../../lib/utils";
 import {
-  TeamRoleLabel,
-  TeamRoleStyles,
-} from "../../../common/utils/teamRoleStyles";
+  TEAM_ROLE_LABEL,
+  TEAM_ROLE_STYLES,
+} from "../../../common/constants/team.constants";
 
 const schema = z.object({
   userId: z.string(),
@@ -37,9 +37,19 @@ interface Props {
 export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
+    mode: "onChange",
     defaultValues: {
       role: "MEMBER",
     },
+  });
+
+  const role = useWatch({
+    control: form.control,
+    name: "role",
+  });
+  const selectedUserId = useWatch({
+    control: form.control,
+    name: "userId",
   });
 
   const addMember = useAddMember(teamId);
@@ -52,6 +62,7 @@ export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
       },
     });
   };
+
   return (
     <form
       onSubmit={form.handleSubmit(onSubmit)}
@@ -88,7 +99,7 @@ export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
         </label>
 
         <Select
-          value={form.watch("role")}
+          value={role}
           onValueChange={(value) =>
             form.setValue("role", value as "ADMIN" | "MEMBER")
           }
@@ -102,10 +113,10 @@ export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
               <span
                 className={cn(
                   "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                  TeamRoleStyles.MEMBER,
+                  TEAM_ROLE_STYLES.MEMBER,
                 )}
               >
-                {TeamRoleLabel.MEMBER}
+                {TEAM_ROLE_LABEL.MEMBER}
               </span>{" "}
             </SelectItem>
 
@@ -113,10 +124,10 @@ export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
               <span
                 className={cn(
                   "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                  TeamRoleStyles.ADMIN,
+                  TEAM_ROLE_STYLES.ADMIN,
                 )}
               >
-                {TeamRoleLabel.ADMIN}
+                {TEAM_ROLE_LABEL.ADMIN}
               </span>{" "}
             </SelectItem>
           </SelectContent>
@@ -136,7 +147,7 @@ export function AddMemberForm({ teamId, users, onOpenChange }: Props) {
 
         <Button
           type="submit"
-          disabled={!form.watch("userId") || addMember.isPending}
+          disabled={!selectedUserId || addMember.isPending}
           className="h-9 px-4"
         >
           {addMember.isPending ? "Adding..." : "Add member"}

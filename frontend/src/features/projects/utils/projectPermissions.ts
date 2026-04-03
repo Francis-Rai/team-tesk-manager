@@ -1,4 +1,4 @@
-import type { TeamRole } from "../../teams/types/TeamRole";
+import type { NullableTeamRole } from "../../teams/types/team.type";
 
 export interface ProjectPermissions {
   canEditProjectDetails: boolean;
@@ -6,7 +6,7 @@ export interface ProjectPermissions {
 }
 
 interface Params {
-  role: TeamRole;
+  role: NullableTeamRole;
 }
 
 export function getProjectPermissions({ role }: Params): ProjectPermissions {

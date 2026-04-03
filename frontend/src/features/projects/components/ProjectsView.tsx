@@ -6,7 +6,7 @@ import { CreateProjectModal } from "./CreateProjectModal";
 import ProjectCard from "./ProjectCard";
 import { ProjectsHeader } from "./ProjectsHeader";
 import ProjectsToolbar from "./ProjectsToolBar";
-import type { DeletedFilter } from "../../../common/utils/deletedFilter";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 export default function ProjectsPage() {
   const { teamId } = useParams<{

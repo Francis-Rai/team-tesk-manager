@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { getTasks, getTaskUpdates } from "../../tasks/api/taskApi";
 import type { TaskUpdate } from "../../tasks/types/taskUpdatesTypes";
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { Task } from "../../tasks/types/taskTypes";
 import type { ActivityItem } from "../types/activityTypes";
 

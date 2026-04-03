@@ -1,6 +1,6 @@
 import type { TaskPriority } from "../../features/tasks/utils/taskPriority";
 import { cn } from "../../lib/utils";
-import { TaskPriorityLabel, TaskPriorityStyles } from "../utils/taskPriorityStyles";
+import { TASK_PRIORITY_LABEL, TASK_PRIORITY_STYLES } from "../constants/task.constants";
 
 interface Props {
   priority: TaskPriority;
@@ -12,11 +12,11 @@ export default function PriorityBadge({ priority, className }: Props) {
     <span
       className={cn(
         "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-        TaskPriorityStyles[priority],
+        TASK_PRIORITY_STYLES[priority],
         className,
       )}
     >
-      {TaskPriorityLabel[priority]}
+      {TASK_PRIORITY_LABEL[priority]}
     </span>
   );
 }

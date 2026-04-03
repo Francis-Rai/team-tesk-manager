@@ -1,7 +1,7 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import { getTaskUpdates } from "../api/taskApi";
 
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { TaskUpdate } from "../types/taskUpdatesTypes";
 
 interface Params {

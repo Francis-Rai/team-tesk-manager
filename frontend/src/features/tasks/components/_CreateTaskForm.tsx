@@ -1,4 +1,4 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { useCreateTask } from "../hooks/useCreateTask";
@@ -59,10 +59,35 @@ export function CreateTaskForm({
   const MAX_TITLE = 100;
   const MAX_DESC = 2000;
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const title = form.watch("title") || "";
-  const start = form.watch("plannedStartDate");
-  const due = form.watch("plannedDueDate");
+  const title = useWatch({
+    control: form.control,
+    name: "title",
+  });
+
+  const priority = useWatch({
+    control: form.control,
+    name: "priority",
+  });
+
+  const assigneeId = useWatch({
+    control: form.control,
+    name: "assigneeId",
+  });
+
+  const supportId = useWatch({
+    control: form.control,
+    name: "supportId",
+  });
+
+  const plannedStartDate = useWatch({
+    control: form.control,
+    name: "plannedStartDate",
+  });
+
+  const plannedDueDate = useWatch({
+    control: form.control,
+    name: "plannedDueDate",
+  });
 
   const onSubmit = (data: CreateTaskInput) => {
     createTaskMutation.mutate(data, {
@@ -122,7 +147,7 @@ export function CreateTaskForm({
           <Label className="text-xs text-muted-foreground">Priority</Label>
 
           <Select
-            value={form.watch("priority")}
+            value={priority}
             onValueChange={(value) =>
               form.setValue("priority", value as TaskPriority, {
                 shouldValidate: true,
@@ -147,7 +172,7 @@ export function CreateTaskForm({
 
           <UserSelector
             users={members}
-            value={form.watch("assigneeId")}
+            value={assigneeId}
             onChange={(id) =>
               form.setValue("assigneeId", id ?? "", {
                 shouldValidate: true,
@@ -164,7 +189,7 @@ export function CreateTaskForm({
           <UserSelector
             users={members}
             allowClear
-            value={form.watch("supportId")}
+            value={supportId}
             onChange={(id) => form.setValue("supportId", id ?? undefined)}
             placeholder="Optional"
           />
@@ -176,7 +201,7 @@ export function CreateTaskForm({
           <Label className="text-xs text-muted-foreground">Planned Start</Label>
 
           <DatePicker
-            value={start ? new Date(start) : undefined}
+            value={plannedStartDate ? new Date(plannedStartDate) : undefined}
             onChange={(date) => {
               const iso = date ? date.toISOString() : "";
 
@@ -185,7 +210,11 @@ export function CreateTaskForm({
                 shouldDirty: true,
               });
 
-              if (due && date && new Date(iso) > new Date(due)) {
+              if (
+                plannedDueDate &&
+                date &&
+                new Date(iso) > new Date(plannedDueDate)
+              ) {
                 form.setValue("plannedDueDate", iso);
               }
 
@@ -198,7 +227,7 @@ export function CreateTaskForm({
           <Label className="text-xs text-muted-foreground">Planned Due</Label>
 
           <DatePicker
-            value={due ? new Date(due) : undefined}
+            value={plannedDueDate ? new Date(plannedDueDate) : undefined}
             onChange={(date) =>
               form.setValue("plannedDueDate", date ? date.toISOString() : "", {
                 shouldValidate: true,
@@ -206,9 +235,9 @@ export function CreateTaskForm({
               })
             }
             disabled={(date) => {
-              if (!start) return true;
+              if (!plannedStartDate) return true;
 
-              return date < new Date(start);
+              return date < new Date(plannedStartDate);
             }}
           />
         </div>

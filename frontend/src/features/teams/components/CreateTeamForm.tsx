@@ -8,7 +8,7 @@ import { useCreateTeam } from "../hooks/useCreateTeam";
 import {
   createTeamSchema,
   type CreateTeamInput,
-} from "../types/createTeamSchema";
+} from "../types/createTeamSchema.types";
 import FormField from "../../../common/components/FormFieldWrapper";
 import { Separator } from "../../../components/ui/separator";
 import type { Team } from "../types/team.type";
@@ -36,7 +36,6 @@ export function CreateTeamForm({ onSuccess, onCancel }: Props) {
   const name = useWatch({
     control: form.control,
     name: "name",
-    defaultValue: "",
   });
 
   const onSubmit = (data: CreateTeamInput) => {

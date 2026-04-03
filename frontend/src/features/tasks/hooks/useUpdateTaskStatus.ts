@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTaskStatus } from "../api/taskApi";
 
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { Task } from "../types/taskTypes";
 import type { TaskStatus } from "../utils/taskStatus";
 

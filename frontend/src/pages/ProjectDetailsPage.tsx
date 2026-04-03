@@ -9,7 +9,7 @@ import TaskModal from "../features/tasks/components/TaskModal";
 import type { Task } from "../features/tasks/types/taskTypes";
 import type { TaskStatus } from "../features/tasks/utils/taskStatus";
 
-import TaskFilters from "../features/tasks/components/TaskFilters";
+import TaskFilters from "../features/tasks/components/_TaskFilters";
 import ProjectHeader from "../features/projects/components/ProjectHeader";
 import { useDebounce } from "../common/hooks/useDebounce";
 import TaskList from "../features/tasks/components/TaskList";
@@ -22,11 +22,11 @@ import {
   TabsTrigger,
 } from "../components/ui/tabs";
 import { Kanban, LayoutList, ListCheck } from "lucide-react";
-import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
+import { CreateTaskModal } from "../features/tasks/components/_CreateTaskModal";
 import ProjectActivity from "../features/projects/components/ProjectActivity";
 import { getProjectPermissions } from "../features/projects/utils/projectPermissions";
 import { useTeamMe } from "../features/teams/hooks/useTeamMe";
-import type { DeletedFilter } from "../common/utils/deletedFilter";
+import type { DeletedFilter } from "../common/types/deletedFilter.types";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{

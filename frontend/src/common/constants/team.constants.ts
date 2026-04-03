@@ -1,12 +1,12 @@
 import type { TeamRole } from "../../features/teams/types/team.type";
 
-export const TeamRoleLabel: Record<TeamRole, string> = {
+export const TEAM_ROLE_LABEL: Record<TeamRole, string> = {
   OWNER: "Owner",
   ADMIN: "Admin",
   MEMBER: "Member",
 };
 
-export const TeamRoleStyles: Record<TeamRole, string> = {
+export const TEAM_ROLE_STYLES: Record<TeamRole, string> = {
   OWNER:
     "bg-purple-100 text-purple-700 border-purple-200 dark:bg-purple-500/10 dark:text-purple-300",
   ADMIN:

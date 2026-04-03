@@ -1,7 +1,7 @@
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
-import { formatTimelineMessage } from "../../../common/utils/activityFormatter";
-import { formatDateTimeShort } from "../../../common/utils/dateFormat";
+import { activityFormatter } from "../../../common/utils/activityFormatter";
+import { formatDateTimeShort } from "../../../common/utils/dateFormatter";
 import { Button } from "../../../components/ui/button";
 
 export function ActivityItem({
@@ -44,7 +44,7 @@ export function ActivityItem({
           <span className="text-muted-foreground">updated</span>{" "}
           <span className="font-medium">"{item.taskTitle}"</span>{" "}
           <span className="text-muted-foreground">
-            {formatTimelineMessage(displayMessage)}
+            {activityFormatter(displayMessage)}
           </span>
         </div>
 

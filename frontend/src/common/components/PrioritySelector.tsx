@@ -10,10 +10,10 @@ import { cn } from "../../lib/utils";
 
 import {
   type TaskPriority,
-  TaskPriorityLabel,
-  TaskPriorityStyles,
-  TaskPriorityOrder,
-} from "../utils/taskPriorityStyles";
+  TASK_PRIORITY_LABEL,
+  TASK_PRIORITY_STYLES,
+  TASK_PRIORITY_ORDER,
+} from "../constants/task.constants";
 
 interface Props {
   value: TaskPriority;
@@ -30,7 +30,7 @@ export default function PrioritySelect({ value, onChange, className }: Props) {
       <SelectTrigger
         className={cn(
           "h-8 w-35 text-xs font-medium",
-          TaskPriorityStyles[value],
+          TASK_PRIORITY_STYLES[value],
           className,
         )}
       >
@@ -38,15 +38,15 @@ export default function PrioritySelect({ value, onChange, className }: Props) {
       </SelectTrigger>
 
       <SelectContent>
-        {TaskPriorityOrder.map((priority) => (
+        {TASK_PRIORITY_ORDER.map((priority) => (
           <SelectItem key={priority} value={priority}>
             <span
               className={cn(
                 "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                TaskPriorityStyles[priority],
+                TASK_PRIORITY_STYLES[priority],
               )}
             >
-              {TaskPriorityLabel[priority]}
+              {TASK_PRIORITY_LABEL[priority]}
             </span>
           </SelectItem>
         ))}

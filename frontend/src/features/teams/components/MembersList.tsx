@@ -3,7 +3,7 @@ import { MoreHorizontal } from "lucide-react";
 
 import type { PaginationProps } from "../../../common/components/Pagination";
 import Pagination from "../../../common/components/Pagination";
-import { formatDate } from "../../../common/utils/dateFormat";
+import { formatDate } from "../../../common/utils/dateFormatter";
 
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
@@ -37,9 +37,9 @@ import {
   SelectValue,
 } from "../../../components/ui/select";
 import {
-  TeamRoleLabel,
-  TeamRoleStyles,
-} from "../../../common/utils/teamRoleStyles";
+  TEAM_ROLE_LABEL,
+  TEAM_ROLE_STYLES,
+} from "../../../common/constants/team.constants";
 import { cn } from "../../../lib/utils";
 import TransferOwnershipModal from "./TransferOwnershipModal";
 import type { TeamPermissions } from "../../teams/utils/teamPermissions";
@@ -207,8 +207,8 @@ export default function MembersList({
 
                   <TableCell>
                     {member.teamRole === "OWNER" ? (
-                      <Badge variant="outline" className={TeamRoleStyles.OWNER}>
-                        {TeamRoleLabel.OWNER}
+                      <Badge variant="outline" className={TEAM_ROLE_STYLES.OWNER}>
+                        {TEAM_ROLE_LABEL.OWNER}
                       </Badge>
                     ) : (
                       <Select
@@ -219,7 +219,7 @@ export default function MembersList({
                         disabled={isUpdating}
                       >
                         <SelectTrigger
-                          className={`h-8 w-35 text-xs font-medium ${TeamRoleStyles[(member.teamRole ?? "MEMBER") as TeamRole]}`}
+                          className={`h-8 w-35 text-xs font-medium ${TEAM_ROLE_STYLES[(member.teamRole ?? "MEMBER") as TeamRole]}`}
                         >
                           <SelectValue />
                         </SelectTrigger>
@@ -229,10 +229,10 @@ export default function MembersList({
                             <span
                               className={cn(
                                 "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                                TeamRoleStyles.ADMIN,
+                                TEAM_ROLE_STYLES.ADMIN,
                               )}
                             >
-                              {TeamRoleLabel.ADMIN}
+                              {TEAM_ROLE_LABEL.ADMIN}
                             </span>
                           </SelectItem>
 
@@ -240,10 +240,10 @@ export default function MembersList({
                             <span
                               className={cn(
                                 "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-                                TeamRoleStyles.MEMBER,
+                                TEAM_ROLE_STYLES.MEMBER,
                               )}
                             >
-                              {TeamRoleLabel.MEMBER}
+                              {TEAM_ROLE_LABEL.MEMBER}
                             </span>
                           </SelectItem>
                         </SelectContent>

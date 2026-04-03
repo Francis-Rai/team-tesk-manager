@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { formatTimelineMessage } from "../../../common/utils/activityFormatter";
+import { activityFormatter } from "../../../common/utils/activityFormatter";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { formatDateTimeShort } from "../../../common/utils/dateFormat";
+import { formatDateTimeShort } from "../../../common/utils/dateFormatter";
 
 interface Props {
   name: string;
@@ -45,7 +45,7 @@ export default function TimelineItem({
             <div className="text-sm leading-tight">
               <span className="font-medium">{name}</span>{" "}
               <span className="text-muted-foreground">
-                {formatTimelineMessage(displayMessage)}
+                {activityFormatter(displayMessage)}
               </span>
               {isLong && (
                 <Button

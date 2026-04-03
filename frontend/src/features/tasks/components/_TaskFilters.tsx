@@ -1,4 +1,3 @@
-import type { DeletedFilter } from "../types/taskTypes";
 import {
   Select,
   SelectContent,
@@ -8,6 +7,7 @@ import {
 } from "../../../components/ui/select";
 import { Input } from "../../../components/ui/input";
 import { useAuth } from "../../auth/hooks/useAuth";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 type Props = {
   search: string;

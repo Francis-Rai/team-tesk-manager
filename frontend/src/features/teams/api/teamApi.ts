@@ -1,7 +1,7 @@
 import { apiClient } from "../../../api/apiClients";
-import type { BaseQueryParams } from "../../../common/types/baseQueryParams";
-import type { PageResponse } from "../../../common/types/pageResponse";
-import type { DeletedFilter } from "../../../common/utils/deletedFilter";
+import type { BaseQueryParams } from "../../../common/types/baseQuery.types";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 import type { Team, TeamMe, TeamMember } from "../types/team.type";
 
 export const getTeams = async (params: {

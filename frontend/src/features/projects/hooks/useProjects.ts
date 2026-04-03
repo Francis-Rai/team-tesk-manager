@@ -1,8 +1,8 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getProjects } from "../api/projectApi";
 import type { Project } from "../types/projectTypes";
-import type { PageResponse } from "../../../common/types/pageResponse";
-import type { DeletedFilter } from "../../../common/utils/deletedFilter";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 export const useProjects = (
   teamId: string,

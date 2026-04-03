@@ -1,9 +1,9 @@
 import { apiClient } from "./../../../api/apiClients";
-import type { PageResponse } from "../../../common/types/pageResponse";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { CreateTaskInput } from "../types/createTaskSchema";
 import type { TaskUpdate } from "../types/taskUpdatesTypes";
 import type { Task, UpdateTaskInput } from "../types/taskTypes";
-import type { DeletedFilter } from "../../../common/utils/deletedFilter";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 export const getTasks = async (
   teamId: string,

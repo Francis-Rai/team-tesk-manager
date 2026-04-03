@@ -1,5 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { Input } from "../../../components/ui/input";
 import {
   type CreateProjectInput,
@@ -32,8 +32,11 @@ export function CreateProjectForm({ teamId, onSuccess, onCancel }: Props) {
   const MAX_NAME = 100;
   const MAX_DESC = 2000;
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const name = form.watch("name") || "";
+  const name = useWatch({
+    control: form.control,
+    name: "name",
+    defaultValue: "",
+  });
 
   const onSubmit = (data: CreateProjectInput) => {
     createProjectMutation.mutate(data, {

@@ -1,4 +1,4 @@
-import { formatDateTimeShort } from "../../../common/utils/dateFormat";
+import { formatDateTimeShort } from "../../../common/utils/dateFormatter";
 import { Card, CardContent } from "../../../components/ui/card";
 import type { Project } from "../types/projectTypes";
 import {

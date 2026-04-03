@@ -1,4 +1,4 @@
-import type { TeamRole } from "../../teams/types/TeamRole";
+import type { NullableTeamRole } from "../../teams/types/team.type";
 
 export interface TaskPermissions {
   canEditTaskDetails: boolean;
@@ -8,7 +8,7 @@ export interface TaskPermissions {
 }
 
 interface Params {
-  role: TeamRole;
+  role: NullableTeamRole;
   userId?: string;
   assigneeId?: string;
   supportId?: string;

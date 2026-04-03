@@ -74,7 +74,7 @@ function getStatusColor(status: string): string {
   }
 }
 
-export function formatTimelineMessage(message: string): React.ReactNode {
+export function activityFormatter(message: string): React.ReactNode {
   const type = getActivityType(message);
 
   switch (type) {

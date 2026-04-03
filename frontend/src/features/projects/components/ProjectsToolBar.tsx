@@ -1,4 +1,4 @@
-import type { DeletedFilter } from "../../../common/utils/deletedFilter";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 import { Input } from "../../../components/ui/input";
 import {
   Select,
@@ -44,7 +44,7 @@ export default function ProjectsToolbar({
         {/* RIGHT: Filters */}
         {/* Status */}
         <Select value={status} onValueChange={onStatusChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-35">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
@@ -57,7 +57,7 @@ export default function ProjectsToolbar({
 
         {/* Deleted */}
         <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
-          <SelectTrigger className="w-[140px]">
+          <SelectTrigger className="w-35">
             <SelectValue placeholder="Visibility" />
           </SelectTrigger>
           <SelectContent>
@@ -69,7 +69,7 @@ export default function ProjectsToolbar({
 
         {/* Sort */}
         <Select value={sort} onValueChange={onSortChange}>
-          <SelectTrigger className="w-[160px]">
+          <SelectTrigger className="w-40">
             <SelectValue placeholder="Sort" />
           </SelectTrigger>
           <SelectContent>
