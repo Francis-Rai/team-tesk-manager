@@ -4,7 +4,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../../../components/ui/dialog";
-import type { Team } from "../types/teamTypes";
+import type { Team } from "../types/team.type";
 import { CreateTeamForm } from "./CreateTeamForm";
 
 interface Props {

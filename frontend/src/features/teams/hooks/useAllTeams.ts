@@ -1,5 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import type { Team } from "../types/teamTypes";
+import type { Team } from "../types/team.type";
 import { getAllTeams } from "../api/teamApi";
 
 export const useAllTeams = () => {
@@ -8,8 +8,10 @@ export const useAllTeams = () => {
 
     queryFn: async () =>
       getAllTeams({
-        page: 0,
-        size: 1000,
+        baseParams: {
+          page: 0,
+          size: 1000,
+        },
         deletedFilter: "ACTIVE",
       }),
     placeholderData: keepPreviousData,

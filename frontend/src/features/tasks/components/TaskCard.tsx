@@ -1,5 +1,5 @@
 import PriorityBadge from "../../../common/components/PriorityBadge";
-import { formatDate } from "../../../common/utils/date";
+import { formatDate } from "../../../common/utils/dateFormat";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Card, CardContent, CardFooter } from "../../../components/ui/card";
 import { Label } from "../../../components/ui/label";

@@ -13,7 +13,7 @@ import {
   TaskPriorityLabel,
   TaskPriorityStyles,
   TaskPriorityOrder,
-} from "../utils/taskPriority";
+} from "../utils/taskPriorityStyles";
 
 interface Props {
   value: TaskPriority;

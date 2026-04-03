@@ -1,12 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { PageResponse } from "../../../common/types/pageResponse";
-import type { TeamMember } from "../types/memberTypes";
 import { getTeamMembers } from "../api/teamMemberApi";
+import type { TeamMember } from "../types/team.type";
 
 interface Params {
   page: number;
   search?: string;
-  status?: string;
   sort?: string;
 }
 
@@ -17,7 +16,6 @@ export const useTeamMembers = (teamId: string, params?: Params) => {
       teamId,
       params?.page,
       params?.search,
-      params?.status,
       params?.sort,
     ],
     queryFn: () =>
@@ -25,7 +23,6 @@ export const useTeamMembers = (teamId: string, params?: Params) => {
         page: params?.page,
         size: 10,
         search: params?.search,
-        status: params?.status,
         sort: params?.sort,
       }),
     placeholderData: keepPreviousData,

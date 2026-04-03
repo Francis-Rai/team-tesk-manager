@@ -1,0 +1,37 @@
+import type { UserRole } from "../../users/types/userRole";
+
+export interface Team {
+  id: string;
+  name: string;
+  description?: string;
+  createdAt: string;
+}
+
+export interface AddMemberInput {
+  userId: string;
+  role: "ADMIN" | "MEMBER";
+}
+
+export interface UpdateTeamInput {
+  name?: string;
+  description?: string;
+}
+
+export interface TeamMember {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  teamRole: NullableTeamRole;
+  globalRole: UserRole;
+  joinedAt: string;
+}
+
+export interface TeamMe {
+  userId: string;
+  role: NullableTeamRole;
+}
+
+export type NullableTeamRole = "OWNER" | "ADMIN" | "MEMBER" | null;
+
+export type TeamRole = "OWNER" | "ADMIN" | "MEMBER";

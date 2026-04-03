@@ -1,4 +1,4 @@
-export type TeamRole = "OWNER" | "ADMIN" | "MEMBER";
+import type { TeamRole } from "../../features/teams/types/team.type";
 
 export const TeamRoleLabel: Record<TeamRole, string> = {
   OWNER: "Owner",

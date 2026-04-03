@@ -1,4 +1,4 @@
-import { formatDate } from "../../../common/utils/date";
+import { formatDate } from "../../../common/utils/dateFormat";
 import { useProjectActivity } from "../hooks/useProjectActivity";
 
 import { ActivityItem } from "./ProjectActivityItem";

@@ -1,7 +1,7 @@
 import type { Task } from "../types/taskTypes";
 import UserSelector from "../../../common/components/UserSelector";
 
-import { useTeamMembers } from "../../team-member/hooks/useTeamMembers";
+import { useTeamMembers } from "../../teams/hooks/useTeamMembers";
 import { useAssignUser } from "../hooks/useAssignUser";
 import { useAssignSupportUser } from "../hooks/useAssignSupportUser";
 import PrioritySelect from "../../../common/components/PrioritySelector";

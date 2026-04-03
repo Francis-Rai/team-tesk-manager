@@ -2,7 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { ChevronsUpDown, Plus, Check } from "lucide-react";
 
 import { useAllTeams } from "../hooks/useAllTeams";
-import { setLastTeamId } from "../utils/useTeamStore";
 import { Button } from "../../../components/ui/button";
 import { cn } from "../../../lib/utils";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
@@ -40,7 +39,6 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
   function switchTeam(id: string) {
     if (id === teamId) return;
 
-    setLastTeamId(id);
     setOpen(false);
     navigate(`/teams/${id}`);
   }
@@ -133,8 +131,6 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
         open={createOpen}
         onOpenChange={setCreateOpen}
         onSuccess={(team) => {
-          console.log(team.id, team.name);
-          setLastTeamId(team.id);
           navigate(`/teams/${team.id}`);
         }}
       />

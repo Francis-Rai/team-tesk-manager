@@ -1,7 +1,7 @@
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { useState } from "react";
 import { formatTimelineMessage } from "../../../common/utils/activityFormatter";
-import { formatDateTimeShort } from "../../../common/utils/date";
+import { formatDateTimeShort } from "../../../common/utils/dateFormat";
 import { Button } from "../../../components/ui/button";
 
 export function ActivityItem({

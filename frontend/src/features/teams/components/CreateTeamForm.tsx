@@ -1,4 +1,4 @@
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
 import { Button } from "../../../components/ui/button";
@@ -11,7 +11,7 @@ import {
 } from "../types/createTeamSchema";
 import FormField from "../../../common/components/FormFieldWrapper";
 import { Separator } from "../../../components/ui/separator";
-import type { Team } from "../types/teamTypes";
+import type { Team } from "../types/team.type";
 
 interface Props {
   onSuccess?: (team: Team) => void;
@@ -33,8 +33,11 @@ export function CreateTeamForm({ onSuccess, onCancel }: Props) {
   const MAX_NAME = 100;
   const MAX_DESC = 2000;
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const name = form.watch("name") || "";
+  const name = useWatch({
+    control: form.control,
+    name: "name",
+    defaultValue: "",
+  });
 
   const onSubmit = (data: CreateTeamInput) => {
     createTeamMutation.mutate(data, {

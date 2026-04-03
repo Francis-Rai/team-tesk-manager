@@ -6,7 +6,7 @@ import {
 } from "../../../components/ui/dialog";
 
 import { Button } from "../../../components/ui/button";
-import type { TeamMember } from "../types/memberTypes";
+import type { TeamMember } from "../types/team.type";
 
 interface Props {
   open: boolean;

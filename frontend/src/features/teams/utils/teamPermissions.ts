@@ -1,5 +1,5 @@
 import type { UserRole } from "../../users/types/userRole";
-import type { TeamRole } from "../types/TeamRole";
+import type { NullableTeamRole } from "../types/team.type";
 
 export interface TeamPermissions {
   canCreateTeam: boolean;
@@ -11,7 +11,7 @@ export interface TeamPermissions {
 
 interface Params {
   globalRole?: UserRole;
-  teamRole?: TeamRole;
+  teamRole?: NullableTeamRole;
 }
 
 export function getTeamPermissions({

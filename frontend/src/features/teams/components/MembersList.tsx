@@ -3,7 +3,7 @@ import { MoreHorizontal } from "lucide-react";
 
 import type { PaginationProps } from "../../../common/components/Pagination";
 import Pagination from "../../../common/components/Pagination";
-import { formatDate } from "../../../common/utils/date";
+import { formatDate } from "../../../common/utils/dateFormat";
 
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Badge } from "../../../components/ui/badge";
@@ -39,13 +39,12 @@ import {
 import {
   TeamRoleLabel,
   TeamRoleStyles,
-  type TeamRole,
-} from "../../../common/utils/teamRole";
+} from "../../../common/utils/teamRoleStyles";
 import { cn } from "../../../lib/utils";
-import type { TeamMember } from "../types/memberTypes";
 import TransferOwnershipModal from "./TransferOwnershipModal";
 import type { TeamPermissions } from "../../teams/utils/teamPermissions";
 import { useTeamMe } from "../../teams/hooks/useTeamMe";
+import type { TeamMember, TeamRole } from "../types/team.type";
 
 interface Props {
   permissions: TeamPermissions;

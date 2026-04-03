@@ -20,7 +20,7 @@ interface Props {
   onTeamDeleted?: () => void;
 }
 
-export function DeleteTeamButton({ teamId, teamName, onTeamDeleted }: Props) {
+export function DeleteTeam({ teamId, teamName, onTeamDeleted }: Props) {
   const navigate = useNavigate();
   const deleteTeamMutation = useDeleteTeam();
 

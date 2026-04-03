@@ -1,6 +1,6 @@
 import type { TaskPriority } from "../../features/tasks/utils/taskPriority";
 import { cn } from "../../lib/utils";
-import { TaskPriorityLabel, TaskPriorityStyles } from "../utils/taskPriority";
+import { TaskPriorityLabel, TaskPriorityStyles } from "../utils/taskPriorityStyles";
 
 interface Props {
   priority: TaskPriority;

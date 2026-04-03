@@ -1,6 +1,6 @@
 import { Outlet, useParams } from "react-router-dom";
 import Sidebar from "../features/teams/components/TeamSidebar";
-import TopBar from "../features/teams/components/TopBar";
+import TopBar from "../features/teams/components/TeamTopBar";
 
 export default function WorkspaceLayout() {
   const { teamId } = useParams();

@@ -16,7 +16,10 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import type { User } from "../../users/types/userType";
 import { cn } from "../../../lib/utils";
-import { TeamRoleLabel, TeamRoleStyles } from "../../../common/utils/teamRole";
+import {
+  TeamRoleLabel,
+  TeamRoleStyles,
+} from "../../../common/utils/teamRoleStyles";
 
 const schema = z.object({
   userId: z.string(),

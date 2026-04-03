@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { formatDateTimeShort } from "../../../common/utils/date";
+import { formatDateTimeShort } from "../../../common/utils/dateFormat";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { TaskStatusLabel, TaskStatusStyles } from "../utils/taskStatus";
 import PriorityBadge from "../../../common/components/PriorityBadge";

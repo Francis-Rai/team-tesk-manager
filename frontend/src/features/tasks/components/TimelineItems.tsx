@@ -3,7 +3,7 @@ import { formatTimelineMessage } from "../../../common/utils/activityFormatter";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { Button } from "../../../components/ui/button";
 import { ChevronDown, ChevronUp } from "lucide-react";
-import { formatDateTimeShort } from "../../../common/utils/date";
+import { formatDateTimeShort } from "../../../common/utils/dateFormat";
 
 interface Props {
   name: string;

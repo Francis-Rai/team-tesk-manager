@@ -24,7 +24,7 @@ import DatePicker from "../../../common/components/DatePicker";
 import type { TaskPriority } from "../utils/taskPriority";
 import AutoResizeTextareaBase from "../../../common/components/AutoResizeTextareaBase";
 import FormField from "../../../common/components/FormFieldWrapper";
-import { useTeamMembers } from "../../team-member/hooks/useTeamMembers";
+import { useTeamMembers } from "../../teams/hooks/useTeamMembers";
 
 interface Props {
   teamId: string;

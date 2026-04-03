@@ -6,8 +6,8 @@ import {
 } from "../../../components/ui/dialog";
 import { Button } from "../../../components/ui/button";
 import UserSelector from "../../../common/components/UserSelector";
-import type { TeamMember } from "../types/memberTypes";
 import { useTransferOwnership } from "../hooks/useTransferOwnership";
+import type { TeamMember } from "../types/team.type";
 
 interface Props {
   teamId: string;

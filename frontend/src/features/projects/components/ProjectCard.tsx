@@ -1,4 +1,4 @@
-import { formatDateTimeShort } from "../../../common/utils/date";
+import { formatDateTimeShort } from "../../../common/utils/dateFormat";
 import { Card, CardContent } from "../../../components/ui/card";
 import type { Project } from "../types/projectTypes";
 import {
@@ -21,7 +21,6 @@ export default function ProjectCard({ project, onClick }: Props) {
   "
     >
       <CardContent className="p-4 space-y-3">
-        {/* Top: Title + Status */}
         <div className="flex items-start justify-between gap-2">
           <h3 className="font-semibold text-base leading-tight line-clamp-2">
             {project.name}
@@ -37,12 +36,10 @@ export default function ProjectCard({ project, onClick }: Props) {
           </span>
         </div>
 
-        {/* Description */}
         <p className="text-sm text-muted-foreground line-clamp-2">
           {project.description || "No description"}
         </p>
 
-        {/* Metadata */}
         <div className="flex flex-col gap-1 text-xs text-muted-foreground">
           <span>Updated {formatDateTimeShort(project.updatedAt)}</span>
 

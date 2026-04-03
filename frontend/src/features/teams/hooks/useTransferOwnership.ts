@@ -1,16 +1,20 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { removeMember } from "../api/teamMemberApi";
+import { transferTeam } from "../api/teamApi";
 
-export const useRemoveMember = (teamId: string) => {
+export function useTransferOwnership(teamId: string) {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (memberId: string) => removeMember(teamId, memberId),
+    mutationFn: (userId: string) => transferTeam(teamId, userId),
 
     onSuccess: () => {
       queryClient.invalidateQueries({
         queryKey: ["teamMembers", teamId],
       });
+
+      queryClient.invalidateQueries({
+        queryKey: ["team", teamId],
+      });
     },
   });
-};
+}
