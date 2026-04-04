@@ -1,32 +1,32 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 
-import { useProject } from "../features/projects/hooks/useProject";
+import { useProject } from "../hooks/useProject";
 
-import TaskBoard from "../features/tasks/components/TaskBoard";
-import TaskModal from "../features/tasks/components/TaskModal";
+import TaskBoard from "../../tasks/components/TaskBoard";
+import TaskModal from "../../tasks/components/TaskModal";
 
-import type { Task } from "../features/tasks/types/taskTypes";
-import type { TaskStatus } from "../features/tasks/utils/taskStatus";
+import type { Task } from "../../tasks/types/taskTypes";
+import type { TaskStatus } from "../../tasks/utils/taskStatus";
 
-import TaskFilters from "../features/tasks/components/TaskFilters";
-import ProjectHeader from "../features/projects/components/ProjectHeader";
-import { useDebounce } from "../common/hooks/useDebounce";
-import TaskList from "../features/tasks/components/TaskList";
-import { useUpdateTaskStatus } from "../features/tasks/hooks/useUpdateTaskStatus";
-import { useTasks } from "../features/tasks/hooks/useTasks";
+import TaskFilters from "../../tasks/components/TaskFilters";
+import ProjectHeader from "../../projects/components/ProjectHeader";
+import { useDebounce } from "../../../common/hooks/useDebounce";
+import TaskList from "../../tasks/components/TaskList";
+import { useUpdateTaskStatus } from "../../tasks/hooks/useUpdateTaskStatus";
+import { useTasks } from "../../tasks/hooks/useTasks";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "../components/ui/tabs";
+} from "../../../components/ui/tabs";
 import { Kanban, LayoutList, ListCheck } from "lucide-react";
-import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
-import ProjectActivity from "../features/projects/components/ProjectActivity";
-import { getProjectPermissions } from "../features/projects/utils/projectPermissions";
-import { useTeamMe } from "../features/teams/hooks/useTeamMe";
-import type { DeletedFilter } from "../common/types/deletedFilter.types";
+import { CreateTaskModal } from "../../tasks/components/CreateTaskModal";
+import ProjectActivity from "../../projects/components/ProjectActivity";
+import { getProjectPermissions } from "../../projects/utils/projectPermissions";
+import { useTeamMe } from "../../teams/hooks/useTeamMe";
+import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 export default function ProjectPage() {
   const { teamId, projectId } = useParams<{

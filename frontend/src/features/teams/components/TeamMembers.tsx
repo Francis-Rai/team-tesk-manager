@@ -1,17 +1,17 @@
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 
-import { useTeamMembers } from "../features/teams/hooks/useTeamMembers";
-import { useDebounce } from "../common/hooks/useDebounce";
-import MembersHeader from "../features/teams/components/MembersHeader";
-import MembersToolbar from "../features/teams/components/MembersToolbar";
-import MembersList from "../features/teams/components/MembersList";
-import { useAvailableUsers } from "../features/teams/hooks/useAvailableUsers";
-import AddMemberModal from "../features/teams/components/AddMemberModal";
-import TransferOwnershipModal from "../features/teams/components/TransferOwnershipModal";
-import { getTeamPermissions } from "../features/teams/utils/teamPermissions";
-import { getUserFromToken } from "../features/users/api/userApi";
-import { useTeamMe } from "../features/teams/hooks/useTeamMe";
+import { useTeamMembers } from "../hooks/useTeamMembers";
+import { useDebounce } from "../../../common/hooks/useDebounce";
+import MembersHeader from "./MembersHeader";
+import MembersToolbar from "./MembersToolbar";
+import MembersList from "./MembersList";
+import { useAvailableUsers } from "../hooks/useAvailableUsers";
+import AddMemberModal from "./AddMemberModal";
+import TransferOwnershipModal from "./TransferOwnershipModal";
+import { getTeamPermissions } from "../utils/teamPermissions";
+import { getUserFromToken } from "../../users/api/userApi";
+import { useTeamMe } from "../hooks/useTeamMe";
 
 export default function MembersPage() {
   const { teamId } = useParams<{ teamId: string }>();

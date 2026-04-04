@@ -7,12 +7,12 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
 import TeamSelectionPage from "../pages/TeamSelectionPage";
-import TaskDetailsPage from "../pages/TaskDetailsPage";
-import ProjectDetailsPage from "../pages/ProjectDetailsPage";
+import TaskDetails from "../features/tasks/components/TaskDetails";
+import ProjectDetails from "../features/projects/components/ProjectDetails";
 import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
 import TeamOverview from "../features/teams/components/TeamOverview";
-import TeamMembersPage from "../pages/TeamMembersPage";
+import TeamMembersPage from "../features/teams/components/TeamMembers";
 import AppLayout from "../layout/AppLayout";
 
 export default function AppRoutes() {
@@ -57,12 +57,12 @@ export default function AppRoutes() {
             {/* <Route path="activity" element={<ActivityView />} /> */}
             <Route
               path="/teams/:teamId/projects/:projectId"
-              element={<ProjectDetailsPage />}
+              element={<ProjectDetails />}
             />
 
             <Route
               path="/teams/:teamId/projects/:projectId/tasks/:taskId"
-              element={<TaskDetailsPage />}
+              element={<TaskDetails />}
             />
           </Route>
         </Route>

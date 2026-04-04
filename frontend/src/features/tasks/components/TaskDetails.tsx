@@ -1,12 +1,12 @@
 import { useParams } from "react-router-dom";
-import TaskDescription from "../features/tasks/components/TaskDescription";
-import TaskHeader from "../features/tasks/components/TaskHeader";
-import TaskMetadata from "../features/tasks/components/TaskMetadata";
-import TaskTimeline from "../features/tasks/components/TaskTimeline";
-import TaskUpdateForm from "../features/tasks/components/TaskUpdateForm";
-import { useTask } from "../features/tasks/hooks/useTask";
-import { useTeamMe } from "../features/teams/hooks/useTeamMe";
-import { getTaskPermissions } from "../features/tasks/utils/taskPermissions";
+import TaskDescription from "./TaskDescription";
+import TaskHeader from "./TaskHeader";
+import TaskMetadata from "./TaskMetadata";
+import TaskTimeline from "./TaskTimeline";
+import TaskUpdateForm from "./TaskUpdateForm";
+import { useTask } from "../hooks/useTask";
+import { useTeamMe } from "../../teams/hooks/useTeamMe";
+import { getTaskPermissions } from "../utils/taskPermissions";
 
 export default function TaskDetailsPage() {
   const { teamId, projectId, taskId } = useParams<{
