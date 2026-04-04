@@ -1,6 +1,5 @@
 import { Outlet, useParams } from "react-router-dom";
 import Sidebar from "../features/teams/components/TeamSidebar";
-import TopBar from "../features/teams/components/TeamTopBar";
 
 export default function WorkspaceLayout() {
   const { teamId } = useParams();
@@ -8,16 +7,12 @@ export default function WorkspaceLayout() {
   if (!teamId) return null;
 
   return (
-    <div className="h-screen flex">
+    <div className="h-[90vh] flex">
       <Sidebar teamId={teamId} />
 
-      <div className="flex-1 flex flex-col min-w-0 min-h-0">
-        <TopBar teamId={teamId} />
-
-        <main className="p-6">
-          <Outlet />
-        </main>
-      </div>
+      <main className="w-full min-w-0 min-h-0 p-6">
+        <Outlet />
+      </main>
     </div>
   );
 }

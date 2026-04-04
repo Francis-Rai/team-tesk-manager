@@ -71,7 +71,7 @@ export default function TeamSelectionPage() {
   }
 
   return (
-    <div className="min-h-screen flex justify-center items-center px-6 py-10">
+    <div className="flex justify-center items-center p-2">
       <div className="w-6xl mx-auto space-y-8">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>

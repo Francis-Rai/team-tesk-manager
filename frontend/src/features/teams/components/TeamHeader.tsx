@@ -2,6 +2,7 @@ import EditableField from "../../../common/components/EditableField";
 import { Button } from "../../../components/ui/button";
 import { useUpdateTeam } from "../hooks/useUpdateTeam";
 import type { TeamPermissions } from "../utils/teamPermissions";
+import { DeleteTeam } from "./DeleteTeamModal";
 
 interface Props {
   teamId: string;
@@ -40,6 +41,7 @@ export default function TeamHeader({
           disabled={!permissions.canEditTeamDetails}
         />
       </div>
+      <DeleteTeam teamId={teamId} teamName={name} />
 
       <Button size="sm">Add Member</Button>
     </div>

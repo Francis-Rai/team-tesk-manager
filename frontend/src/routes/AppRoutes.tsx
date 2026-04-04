@@ -13,6 +13,7 @@ import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
 import TeamOverview from "../features/teams/components/TeamOverview";
 import TeamMembersPage from "../pages/TeamMembersPage";
+import AppLayout from "../layout/AppLayout";
 
 export default function AppRoutes() {
   return (
@@ -26,38 +27,45 @@ export default function AppRoutes() {
             </PublicRoute>
           }
         />
-
         <Route
-          path="/teams"
           element={
             <ProtectedRoute>
-              <TeamSelectionPage />
-            </ProtectedRoute>
-          }
-        />
-
-        <Route
-          path="/teams/:teamId"
-          element={
-            <ProtectedRoute>
-              <WorkspaceLayout />
+              <AppLayout />
             </ProtectedRoute>
           }
         >
-          <Route index element={<TeamOverview />} />
-          <Route path="projects" element={<ProjectsView />} />
-          <Route path="members" element={<TeamMembersPage />} />
-          {/* <Route path="activity" element={<ActivityView />} /> */}
           <Route
-            path="/teams/:teamId/projects/:projectId"
-            element={<ProjectDetailsPage />}
+            path="/teams"
+            element={
+              <ProtectedRoute>
+                <TeamSelectionPage />
+              </ProtectedRoute>
+            }
           />
-        </Route>
 
-        <Route
-          path="/teams/:teamId/projects/:projectId/tasks/:taskId"
-          element={<TaskDetailsPage />}
-        />
+          <Route
+            path="/teams/:teamId"
+            element={
+              <ProtectedRoute>
+                <WorkspaceLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<TeamOverview />} />
+            <Route path="projects" element={<ProjectsView />} />
+            <Route path="members" element={<TeamMembersPage />} />
+            {/* <Route path="activity" element={<ActivityView />} /> */}
+            <Route
+              path="/teams/:teamId/projects/:projectId"
+              element={<ProjectDetailsPage />}
+            />
+
+            <Route
+              path="/teams/:teamId/projects/:projectId/tasks/:taskId"
+              element={<TaskDetailsPage />}
+            />
+          </Route>
+        </Route>
 
         <Route path="/" element={<Navigate to="/teams" replace />} />
 

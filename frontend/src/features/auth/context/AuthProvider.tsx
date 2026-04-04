@@ -13,8 +13,9 @@ export const AuthProvider = ({ children }: Props) => {
   const queryClient = useQueryClient();
 
   const logout = () => {
-    authStorage.clear();
-    queryClient.removeQueries({ queryKey: ["me"] });
+    authStorage.clearToken();
+    queryClient.clear();
+    window.location.href = "/login";
   };
 
   const isGlobalAdmin = user?.role === "SUPER_ADMIN" || user?.role === "ADMIN";
