@@ -8,10 +8,8 @@ export const useAllTeams = () => {
 
     queryFn: async () =>
       getAllTeams({
-        baseParams: {
-          page: 0,
-          size: 1000,
-        },
+        page: 0,
+        size: 1000,
         deletedFilter: "ACTIVE",
       }),
     placeholderData: keepPreviousData,

@@ -4,18 +4,20 @@ import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 import type { Team, TeamMe, TeamMember } from "../types/team.type";
 
-export const getTeams = async (params: {
-  baseParams: BaseQueryParams;
-  deletedFilter: DeletedFilter;
-}): Promise<PageResponse<Team>> => {
+export const getTeams = async (
+  params: BaseQueryParams & {
+    deletedFilter: DeletedFilter;
+  },
+): Promise<PageResponse<Team>> => {
   const response = await apiClient.get(`/teams`, { params });
   return response.data;
 };
 
-export const getAllTeams = async (params: {
-  baseParams: Pick<BaseQueryParams, "page" | "size">;
-  deletedFilter: DeletedFilter;
-}): Promise<Team[]> => {
+export const getAllTeams = async (
+  params: Pick<BaseQueryParams, "page" | "size"> & {
+    deletedFilter: DeletedFilter;
+  },
+): Promise<Team[]> => {
   const response = await apiClient.get(`/teams`, { params });
   return response.data.content;
 };

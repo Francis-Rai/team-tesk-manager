@@ -6,6 +6,7 @@ import type { PageResponse } from "../../../common/types/pageResponse.types";
 
 export const useTeams = (params: {
   page: number;
+  size?: number;
   search?: string;
   sort?: string;
   deletedFilter: DeletedFilter;
@@ -20,12 +21,10 @@ export const useTeams = (params: {
     ],
     queryFn: () =>
       getTeams({
-        baseParams: {
-          page: params.page,
-          size: 10,
-          search: params.search,
-          sort: params.sort,
-        },
+        page: params.page,
+        size: params.size,
+        search: params.search,
+        sort: params.sort,
         deletedFilter: params.deletedFilter,
       }),
     placeholderData: keepPreviousData,
