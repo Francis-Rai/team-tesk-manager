@@ -13,22 +13,20 @@ export default function MembersHeader({
   permissions,
 }: Props) {
   return (
-    <div className="flex items-start justify-between border-b pb-4">
+    <div className="flex flex-col sm:flex-row items-center justify-between">
       <div>
-        <h1 className="text-xl font-semibold tracking-tight">Members</h1>
-        <p className="text-sm text-muted-foreground mt-1">
+        <h1 className="text-lg font-semibold tracking-tight">Members</h1>
+        <p className="text-sm text-muted-foreground ">
           Manage your team members and roles
         </p>
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full sm:w-auto">
         {permissions.canAddMember && (
-          <Button onClick={setAddMemberOpen} className="gap-2">
-            Add Member
-          </Button>
+          <Button onClick={setAddMemberOpen}>Add Member</Button>
         )}
         {permissions.canTransferOwnership && (
-          <Button variant="outline" onClick={setTransferOpen} className="h-9">
+          <Button variant="outline" onClick={setTransferOpen}>
             Transfer Ownership
           </Button>
         )}

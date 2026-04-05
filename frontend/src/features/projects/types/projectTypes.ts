@@ -7,14 +7,27 @@ export type Project = {
   createdAt: string;
   updatedAt: string;
   status: ProjectStatus;
-  createdBy: ProjectOwner;
+  createdBy: User;
 };
 
-export type ProjectOwner = {
+type User = {
   id: number;
   firstName: string;
   lastName: string;
   email: string;
+};
+
+type Task = {
+  id: string;
+  title: string;
+};
+
+export type ProjectActivity = {
+  id: string;
+  message: string;
+  user: User;
+  task: Task;
+  createdAt: string;
 };
 
 export interface UpdateProjectInput {

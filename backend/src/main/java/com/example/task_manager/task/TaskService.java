@@ -342,7 +342,7 @@ public class TaskService {
     TaskUpdateEntity update = new TaskUpdateEntity();
     update.setTask(task);
     update.setMessage(request.message());
-    update.setCreatedBy(currentUser);
+    update.setUser(currentUser);
 
     taskUpdateRepository.save(update);
 
@@ -594,11 +594,15 @@ public class TaskService {
    * Maps TaskUpdateEntity to TaskUpdateResponse.
    */
   public TaskUpdateResponse mapToUpdateResponse(TaskUpdateEntity entity) {
+    TaskUpdateResponse.User user = new TaskUpdateResponse.User(
+        entity.getUser().getId(),
+        entity.getUser().getFirstName(),
+        entity.getUser().getLastName(),
+        entity.getUser().getEmail());
     return new TaskUpdateResponse(
         entity.getId(),
         entity.getMessage(),
-        entity.getCreatedBy().getId(),
-        entity.getCreatedBy().getFirstName(),
+        user,
         entity.getCreatedAt());
   }
 
@@ -779,12 +783,12 @@ public class TaskService {
   private void createTaskUpdateEntry(
       TaskEntity task,
       String message,
-      UserEntity actor) {
+      UserEntity user) {
 
     TaskUpdateEntity update = new TaskUpdateEntity();
     update.setTask(task);
     update.setMessage(message);
-    update.setCreatedBy(actor);
+    update.setUser(user);
 
     taskUpdateRepository.save(update);
   }

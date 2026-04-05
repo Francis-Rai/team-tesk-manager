@@ -56,7 +56,7 @@ export default function MembersPage() {
   if (!teamId) return <div className="p-6">Invalid team</div>;
 
   return (
-    <div className="p-6 space-y-6 max-w-6xl mx-auto">
+    <div className="space-y-6 ">
       <MembersHeader
         setAddMemberOpen={() => setAddMemberOpen(true)}
         setTransferOpen={() => setTransferOpen(true)}

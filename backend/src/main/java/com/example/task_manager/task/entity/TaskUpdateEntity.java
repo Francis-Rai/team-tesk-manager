@@ -46,8 +46,8 @@ public class TaskUpdateEntity {
   private String message;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(nullable = false)
-  private UserEntity createdBy;
+  @JoinColumn(name = "user_id", nullable = false)
+  private UserEntity user;
 
   @CreatedDate
   @Column(nullable = false, updatable = false)

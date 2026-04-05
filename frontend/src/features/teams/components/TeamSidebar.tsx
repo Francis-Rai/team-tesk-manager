@@ -13,12 +13,12 @@ import { Button } from "../../../components/ui/button";
 import NavItem from "./TeamNavItem";
 import { cn } from "../../../lib/utils";
 
-export default function Sidebar({ teamId }: { teamId: string }) {
+export default function TeamSidebar({ teamId }: { teamId: string }) {
   const [collapsed, setCollapsed] = useState(false);
   return (
     <aside
       className={cn(
-        "h-screen border-r bg-muted/40 flex flex-col transition-all duration-200",
+        "border-r bg-muted/40 flex flex-col transition-all duration-200",
         collapsed ? "w-16" : "w-fit",
       )}
     >

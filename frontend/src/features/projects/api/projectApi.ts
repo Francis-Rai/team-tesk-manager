@@ -1,6 +1,8 @@
 import { apiClient } from "../../../api/apiClients";
+import type { BaseQueryParams } from "../../../common/types/baseQuery.types";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
-import type { Project } from "../types/projectTypes";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
+import type { Project, ProjectActivity } from "../types/projectTypes";
 
 export const getProjects = async (
   teamId: string,
@@ -34,6 +36,18 @@ export const getProject = async (
   );
 
   return response.data;
+};
+
+export const getProjectActivity = async (
+  teamId: string,
+  projectId: string,
+  params: BaseQueryParams,
+): Promise<PageResponse<ProjectActivity>> => {
+  const res = await apiClient.get(
+    `/teams/${teamId}/projects/${projectId}/activity`,
+    { params },
+  );
+  return res.data;
 };
 
 export const updateProject = async (

@@ -105,22 +105,19 @@ export default function TaskBoard({
   };
 
   return (
-    <div className="w-full h-full overflow-auto">
+    <div className="flex h-full min-h-0 overflow-x-auto gap-6 p-4">
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-6">
-          <BoardColumn id="TODO" {...commonProps} />
-          <BoardColumn id="IN_PROGRESS" {...commonProps} />
-          <BoardColumn id="IN_REVIEW" {...commonProps} />
-          <BoardColumn id="ON_HOLD" {...commonProps} />
-          <BoardColumn id="DONE" {...commonProps} />
-          <BoardColumn id="CANCELLED" {...commonProps} />
-        </div>
-
+        <BoardColumn id="TODO" {...commonProps} />
+        <BoardColumn id="IN_PROGRESS" {...commonProps} />
+        <BoardColumn id="IN_REVIEW" {...commonProps} />
+        <BoardColumn id="ON_HOLD" {...commonProps} />
+        <BoardColumn id="DONE" {...commonProps} />
+        <BoardColumn id="CANCELLED" {...commonProps} />
         <DragOverlay>
           {activeTask ? (
             <TaskCard task={activeTask} onOpen={onOpenTask} />
@@ -167,7 +164,7 @@ function BoardColumn({
   return (
     <div
       ref={setNodeRef}
-      className="flex flex-col w-xs shrink-0 rounded-xl border bg-muted/40 shadow-sm max-h-[calc(85vh-240px)]"
+      className="flex flex-col min-w-70 max-w-95 flex-1 rounded-xl border bg-muted/40 shadow-sm h-full min-h-0"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 sticky top-0 z-10">
         <span
@@ -184,7 +181,7 @@ function BoardColumn({
 
       <div
         onScroll={handleScroll}
-        className="flex flex-col gap-3 p-4 overflow-y-auto"
+        className="flex-1 min-h-0 overflow-y-auto p-4 space-y-3"
       >
         <SortableContext
           items={tasks.map((t) => t.id)}

@@ -1,7 +1,13 @@
 export interface TaskUpdate {
   id: string;
   message: string;
-  createdById: string;
-  createdByName: string;
+  user: User;
   createdAt: string;
 }
+
+type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+};

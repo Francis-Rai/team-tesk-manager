@@ -8,7 +8,8 @@ export const useTasks = (
   teamId: string,
   projectId: string,
   params: {
-    page: number;
+    page?: number;
+    size?: number;
     search?: string;
     status?: string;
     sort?: string;
@@ -21,6 +22,7 @@ export const useTasks = (
       teamId,
       projectId,
       params.page,
+      params.size,
       params.search,
       params.status,
       params.sort,
@@ -30,7 +32,7 @@ export const useTasks = (
     queryFn: () =>
       getTasks(teamId, projectId, {
         page: params.page,
-        size: 10,
+        size: params.size,
         search: params.search,
         status: params.status,
         sort: params.sort,

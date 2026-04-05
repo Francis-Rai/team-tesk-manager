@@ -28,10 +28,7 @@ export default function AddMemberModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent
-        className="sm p-0 overflow-hidden rounded-xl"
-        aria-describedby={undefined}
-      >
+      <DialogContent className="sm p-0 rounded-xl" aria-describedby={undefined}>
         <div className="px-6 pt-6 pb-3 border-b">
           <DialogTitle className="text-base font-semibold">
             Add member

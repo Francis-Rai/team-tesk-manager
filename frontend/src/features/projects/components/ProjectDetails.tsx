@@ -28,7 +28,7 @@ import { getProjectPermissions } from "../../projects/utils/projectPermissions";
 import { useTeamMe } from "../../teams/hooks/useTeamMe";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
-export default function ProjectPage() {
+export default function ProjectDetails() {
   const { teamId, projectId } = useParams<{
     teamId: string;
     projectId: string;
@@ -57,6 +57,7 @@ export default function ProjectPage() {
 
   const { data: tasksData } = useTasks(teamId || "", projectId || "", {
     page,
+    size: 10,
     search: debouncedSearch,
     status,
     sort,
@@ -99,7 +100,7 @@ export default function ProjectPage() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col h-full min-h-0 gap-6 ">
       <div className="text-sm text-muted-foreground">
         Team / {project?.name}
       </div>
@@ -117,7 +118,7 @@ export default function ProjectPage() {
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
-      <Tabs defaultValue="board">
+      <Tabs defaultValue="board" className="flex flex-col flex-1 min-h-0 ">
         <TabsList className="border rounded-md bg-muted/40 p-1 inline-flex gap-1">
           <TabsTrigger
             value="list"
@@ -166,24 +167,9 @@ export default function ProjectPage() {
             <ListCheck className="h-4 w-4" />
             Activity
           </TabsTrigger>
-
-          {/* <TabsTrigger
-            value="settings"
-            className="
-      flex items-center gap-2 px-3 py-1.5 text-sm rounded-md
-      data-[state=active]:bg-background
-      data-[state=active]:shadow-sm
-      data-[state=active]:text-foreground
-      text-muted-foreground
-      hover:bg-muted
-      transition-all
-    "
-          >
-            Settings
-          </TabsTrigger> */}
         </TabsList>
-        <div className="rounded-lg border bg-background p-4">
-          <TabsContent value="board">
+        <div className="rounded-lg border bg-background p-4 flex flex-col flex-1 min-h-0">
+          <TabsContent value="board" className="flex flex-col flex-1 min-h-0">
             <TaskFilters
               search={search}
               status={status}
@@ -204,8 +190,7 @@ export default function ProjectPage() {
               onOpenTask={setSelectedTask}
             />
           </TabsContent>
-
-          <TabsContent value="list">
+          <TabsContent value="list" className="flex flex-col flex-1 min-h-0">
             <TaskFilters
               search={search}
               status={status}
@@ -227,20 +212,16 @@ export default function ProjectPage() {
               onSortChange={setSort}
             />
           </TabsContent>
-
-          <TabsContent value="activity">
+          <TabsContent
+            value="activity"
+            className="flex flex-col flex-1 min-h-0"
+          >
             <ProjectActivity
               teamId={teamId}
               projectId={projectId}
               onOpenTask={(taskId) => setSelectedTask({ id: taskId } as Task)}
             />
           </TabsContent>
-
-          {/* <TabsContent value="settings">
-            <div className="text-sm text-muted-foreground">
-              Settings coming soon...
-            </div>
-          </TabsContent> */}
         </div>
       </Tabs>
       {selectedTask && (

@@ -50,7 +50,7 @@ export default function TaskTimeline({ teamId, projectId, taskId }: Props) {
         {updates.map((update, index) => (
           <TimelineItem
             key={update.id}
-            name={update.createdByName}
+            name={update.user.lastName}
             message={update.message}
             createdAt={update.createdAt}
             isLast={index === updates.length - 1}

@@ -9,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "../../../components/ui/table";
-import { formatDateTimeShort } from "../../../common/utils/dateFormatter";
+import { formatDate } from "../../../common/utils/dateFormatter";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { TaskStatusLabel, TaskStatusStyles } from "../utils/taskStatus";
 import PriorityBadge from "../../../common/components/PriorityBadge";
@@ -52,156 +52,147 @@ export default function TaskList({
   }
 
   return (
-    <div className="border rounded-md">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-20">#</TableHead>
+    <div className=" flex flex-col h-full min-h-0">
+      <div className="flex-1 min-h-0 overflow-auto">
+        <Table>
+          <TableHeader className="sticky top-0 bg-background z-10">
+            <TableRow>
+              <TableHead className="w-20">#</TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("title")}
-            >
-              Title
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("title")}
+              >
+                Title
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("priority")}
-            >
-              Priority
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("priority")}
+              >
+                Priority
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("status")}
-            >
-              Status
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("status")}
+              >
+                Status
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("assignee")}
-            >
-              Assignee
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("assignee")}
+              >
+                Assignee
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("support")}
-            >
-              Support
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("support")}
+              >
+                Support
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("plannedStartDate")}
-            >
-              Start
-            </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("plannedStartDate")}
+              >
+                Start
+              </TableHead>
 
-            <TableHead
-              className="cursor-pointer select-none"
-              onClick={() => handleSort("plannedDueDate")}
-            >
-              Due
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-
-        <TableBody>
-          {tasks.map((task) => (
-            <TableRow
-              key={task.id}
-              onClick={() => openTask(task.id)}
-              className="cursor-pointer hover:bg-muted/50"
-            >
-              <TableCell className="text-muted-foreground">
-                #{task.taskNumber}
-              </TableCell>
-
-              <TableCell className="max-w-[320px]">
-                <div className="font-medium truncate">{task.title}</div>
-
-                {task.description && (
-                  <div className="text-xs text-muted-foreground truncate">
-                    {task.description}
-                  </div>
-                )}
-              </TableCell>
-
-              <TableCell>
-                <PriorityBadge priority={task.priority} />
-              </TableCell>
-
-              <TableCell>
-                <div
-                  className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium ${
-                    TaskStatusStyles[task.status]
-                  }`}
-                >
-                  {TaskStatusLabel[task.status]}
-                </div>
-              </TableCell>
-
-              <TableCell>
-                {task.assignedUser ? (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5">
-                      <AvatarFallback>
-                        {task.assignedUser.firstName[0]}
-                        {task.assignedUser.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>
-                      {task.assignedUser.firstName +
-                        " " +
-                        task.assignedUser.lastName}
-                    </span>
-                  </div>
-                ) : (
-                  "—"
-                )}
-              </TableCell>
-
-              <TableCell>
-                {task.supportUser ? (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="h-5 w-5">
-                      <AvatarFallback>
-                        {task.supportUser.firstName[0]}
-                        {task.supportUser.lastName[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>
-                      {task.supportUser.firstName +
-                        " " +
-                        task.supportUser.lastName}
-                    </span>
-                  </div>
-                ) : (
-                  "—"
-                )}
-              </TableCell>
-
-              <TableCell>
-                {formatDateTimeShort(task.plannedStartDate)}
-              </TableCell>
-
-              <TableCell>{formatDateTimeShort(task.plannedDueDate)}</TableCell>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("plannedDueDate")}
+              >
+                Due
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
 
+          <TableBody>
+            {tasks.map((task) => (
+              <TableRow
+                key={task.id}
+                onClick={() => openTask(task.id)}
+                className="cursor-pointer hover:bg-muted/50"
+              >
+                <TableCell className="text-muted-foreground">
+                  #{task.taskNumber}
+                </TableCell>
+
+                <TableCell className="max-w-40">
+                  <div className="font-medium truncate">{task.title}</div>
+                </TableCell>
+
+                <TableCell>
+                  <PriorityBadge priority={task.priority} />
+                </TableCell>
+
+                <TableCell>
+                  <div
+                    className={`inline-flex items-center rounded-md border px-2 py-1 text-xs font-medium ${
+                      TaskStatusStyles[task.status]
+                    }`}
+                  >
+                    {TaskStatusLabel[task.status]}
+                  </div>
+                </TableCell>
+
+                <TableCell>
+                  {task.assignedUser ? (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarFallback>
+                          {task.assignedUser.firstName[0]}
+                          {task.assignedUser.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>
+                        {task.assignedUser.firstName +
+                          " " +
+                          task.assignedUser.lastName}
+                      </span>
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+
+                <TableCell>
+                  {task.supportUser ? (
+                    <div className="flex items-center gap-2">
+                      <Avatar className="h-5 w-5">
+                        <AvatarFallback>
+                          {task.supportUser.firstName[0]}
+                          {task.supportUser.lastName[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>
+                        {task.supportUser.firstName +
+                          " " +
+                          task.supportUser.lastName}
+                      </span>
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
+
+                <TableCell>{formatDate(task.plannedStartDate)}</TableCell>
+
+                <TableCell>{formatDate(task.plannedDueDate)}</TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
       {pagination.totalPages > 1 && (
-        <div className="border-t p-4">
-          <Pagination
-            page={pagination.page}
-            totalPages={pagination.totalPages}
-            onPageChange={pagination.onPageChange}
-          />
-        </div>
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.onPageChange}
+        />
       )}
     </div>
   );

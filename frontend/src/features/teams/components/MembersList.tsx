@@ -207,7 +207,10 @@ export default function MembersList({
 
                   <TableCell>
                     {member.teamRole === "OWNER" ? (
-                      <Badge variant="outline" className={TEAM_ROLE_STYLES.OWNER}>
+                      <Badge
+                        variant="outline"
+                        className={TEAM_ROLE_STYLES.OWNER}
+                      >
                         {TEAM_ROLE_LABEL.OWNER}
                       </Badge>
                     ) : (

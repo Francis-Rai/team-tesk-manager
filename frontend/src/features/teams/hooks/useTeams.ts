@@ -5,7 +5,7 @@ import type { Team } from "../types/team.type";
 import type { PageResponse } from "../../../common/types/pageResponse.types";
 
 export const useTeams = (params: {
-  page: number;
+  page?: number;
   size?: number;
   search?: string;
   sort?: string;
@@ -15,6 +15,7 @@ export const useTeams = (params: {
     queryKey: [
       "teams",
       params.page,
+      params.size,
       params.search,
       params.sort,
       params.deletedFilter,

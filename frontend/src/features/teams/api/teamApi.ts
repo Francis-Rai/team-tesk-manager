@@ -17,7 +17,7 @@ export const getAllTeams = async (
   params: Pick<BaseQueryParams, "page" | "size"> & {
     deletedFilter: DeletedFilter;
   },
-): Promise<Team[]> => {
+): Promise<PageResponse<Team>> => {
   const response = await apiClient.get(`/teams`, { params });
   return response.data.content;
 };

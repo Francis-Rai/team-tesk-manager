@@ -63,7 +63,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="space-y-6">
       <ProjectsHeader onCreateProject={() => setCreateOpen(true)} />
 
       <CreateProjectModal

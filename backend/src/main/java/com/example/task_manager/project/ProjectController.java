@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
+import com.example.task_manager.project.dto.ProjectActivityResponse;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
@@ -117,6 +118,16 @@ public class ProjectController {
       @PathVariable UUID projectId,
       Authentication authentication) {
     return ResponseEntity.ok(projectService.getExistingProjectById(teamId, projectId, authentication.getName()));
+  }
+
+  /**
+   * Get project's activity.
+   */
+  @GetMapping("/{projectId}/activity")
+  public ResponseEntity<PageResponse<ProjectActivityResponse>> getProjectActivity(
+      @PathVariable UUID projectId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    return ResponseEntity.ok(projectService.getProjectActivity(projectId, pageable));
   }
 
   /**

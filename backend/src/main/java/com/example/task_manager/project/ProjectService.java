@@ -21,12 +21,15 @@ import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.dto.ChangeProjectStatusRequest;
 import com.example.task_manager.project.dto.CreateProjectRequest;
+import com.example.task_manager.project.dto.ProjectActivityResponse;
 import com.example.task_manager.project.dto.ProjectResponse;
 import com.example.task_manager.project.dto.ProjectSearchRequest;
 import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
+import com.example.task_manager.task.TaskUpdateRepository;
+import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.TeamMemberRepository;
 import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -49,6 +52,7 @@ public class ProjectService {
   private final TeamMemberRepository teamMemberRepository;
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
+  private final TaskUpdateRepository taskUpdateRepository;
 
   /**
    * Creates a new project for the authenticated user.
@@ -267,6 +271,26 @@ public class ProjectService {
     return mapToResponse(project);
   }
 
+  /**
+   * Returns an existing projects by id.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<ProjectActivityResponse> getProjectActivity(
+      UUID projectId,
+      Pageable pageable) {
+
+    Page<TaskUpdateEntity> page = taskUpdateRepository.findProjectActivity(projectId, pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToActivityResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
   // ********************
   // HELPERS
   // ********************
@@ -429,6 +453,25 @@ public class ProjectService {
     }
 
     return pageable;
+  }
+
+  public ProjectActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
+    ProjectActivityResponse.User user = new ProjectActivityResponse.User(
+        entity.getUser().getId(),
+        entity.getUser().getFirstName(),
+        entity.getUser().getLastName(),
+        entity.getUser().getEmail());
+
+    ProjectActivityResponse.Task task = new ProjectActivityResponse.Task(
+        entity.getTask().getId(),
+        entity.getTask().getTitle());
+
+    return new ProjectActivityResponse(
+        entity.getId(),
+        entity.getMessage(),
+        user,
+        task,
+        entity.getCreatedAt());
   }
 
 }

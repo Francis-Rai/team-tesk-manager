@@ -7,10 +7,10 @@ export default function WorkspaceLayout() {
   if (!teamId) return null;
 
   return (
-    <div className="h-[90vh] flex">
+    <div className="flex w-full h-full min-h-0">
       <Sidebar teamId={teamId} />
 
-      <main className="w-full min-w-0 min-h-0 p-6">
+      <main className="flex flex-col flex-1 min-h-0 overflow-auto p-6">
         <Outlet />
       </main>
     </div>

@@ -58,9 +58,9 @@ export default function TeamSelectionPage() {
     setPage(0);
   };
 
-  function openTeam(teamId: string) {
+  const openTeam = (teamId: string) => {
     navigate(`/teams/${teamId}`);
-  }
+  };
 
   if (isLoading && !teams.length) {
     return (
@@ -101,7 +101,7 @@ export default function TeamSelectionPage() {
               value={deletedFilter}
               onValueChange={handleDeletedFilterChange}
             >
-              <SelectTrigger className="h-9 w-[130px]">
+              <SelectTrigger className="h-9 w-32.5">
                 <SelectValue placeholder="Visibility" />
               </SelectTrigger>
 
@@ -113,7 +113,7 @@ export default function TeamSelectionPage() {
             </Select>
 
             <Select value={sort} onValueChange={handleSortChange}>
-              <SelectTrigger className="h-9 w-[160px]">
+              <SelectTrigger className="h-9 w-40">
                 <SelectValue placeholder="Sort" />
               </SelectTrigger>
 
