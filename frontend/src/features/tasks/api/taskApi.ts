@@ -78,7 +78,7 @@ export const getTaskUpdates = async (
   teamId: string,
   projectId: string,
   taskId: string,
-  params: { page: number; size: number },
+  params: { page: number; size: number; sort?: string },
 ): Promise<PageResponse<TaskUpdate>> => {
   const res = await apiClient.get(
     `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/updates`,

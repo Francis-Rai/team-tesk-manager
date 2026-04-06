@@ -17,20 +17,66 @@ type ActivityType =
   | "COMMENT";
 
 function getActivityType(message: string): ActivityType {
-  if (message.startsWith("Created Task")) return "CREATED";
-  if (message.startsWith("Updated Task Details")) return "UPDATED";
-  if (message.startsWith("Deleted Task")) return "DELETED";
-  if (message.startsWith("Change Status")) return "STATUS";
-  if (message.includes("Assignee changed")) return "ASSIGNEE_CHANGE";
-  if (message.includes("Support")) return "SUPPORT";
-
+  if (message.startsWith("Created Task")) {
+    return "CREATED";
+  }
+  if (message.startsWith("Updated Task Details")) {
+    return "UPDATED";
+  }
+  if (message.startsWith("Deleted Task")) {
+    return "DELETED";
+  }
+  if (message.startsWith("Change Status")) {
+    return "STATUS";
+  }
+  if (message.includes("Assignee changed")) {
+    return "ASSIGNEE_CHANGE";
+  }
+  if (message.includes("Support")) {
+    return "SUPPORT";
+  }
   return "COMMENT";
 }
+export function getActivityTypeLabel(message: string): string {
+  switch (getActivityType(message)) {
+    case "CREATED":
+      return "Created";
+    case "UPDATED":
+      return "Updated";
+    case "DELETED":
+      return "Deleted";
+    case "STATUS":
+      return "Status";
+    case "ASSIGNEE_CHANGE":
+      return "Assignee";
+    case "SUPPORT":
+      return "Support";
+    case "COMMENT":
+    default:
+      return "Comment";
+  }
+}
 
-function parseStatus(message: string): {
-  from: string;
-  to: string;
-} | null {
+export function getActivityVerb(message: string): string {
+  switch (getActivityType(message)) {
+    case "CREATED":
+      return "created";
+    case "UPDATED":
+      return "updated";
+    case "DELETED":
+      return "deleted";
+    case "STATUS":
+      return "changed";
+    case "ASSIGNEE_CHANGE":
+      return "reassigned";
+    case "SUPPORT":
+      return "updated";
+    case "COMMENT":
+    default:
+      return "commented";
+  }
+}
+function parseStatus(message: string) {
   const match = message.match(/from (\w+) to (\w+)/);
 
   if (!match) return null;
@@ -41,10 +87,18 @@ function parseStatus(message: string): {
   };
 }
 
-function parseAssignee(message: string): {
-  from: string;
-  to: string;
-} | null {
+function parseUpdatedFields(message: string): string[] {
+  const match = message.match(/Task details updated: (.+)$/);
+
+  if (!match) return [];
+
+  return match[1]
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean);
+}
+
+function parseAssignee(message: string) {
   const match = message.match(/from (.+) to (.+)/);
 
   if (!match) return null;
@@ -75,26 +129,41 @@ function getStatusColor(status: string): string {
 }
 
 export function activityFormatter(message: string): React.ReactNode {
-  const type = getActivityType(message);
-
-  switch (type) {
+  switch (getActivityType(message)) {
     case "CREATED":
-      return "created the task";
+      return "Created this task.";
 
-    case "UPDATED":
-      return "updated task details";
+    case "UPDATED": {
+      const fields = parseUpdatedFields(message);
+
+      if (fields.length === 0) {
+        return "Updated task details.";
+      }
+
+      return (
+        <>
+          Updated{" "}
+          <span className="font-medium text-foreground">
+            {fields.join(", ")}
+          </span>
+          .
+        </>
+      );
+    }
 
     case "DELETED":
-      return "deleted the task";
+      return "Deleted this task.";
 
     case "STATUS": {
       const change = parseStatus(message);
 
-      if (!change) return "updated status";
+      if (!change) return "Updated the task status.";
 
       return (
         <>
-          moved → <span className={getStatusColor(change.to)}>{change.to}</span>
+          Moved this task from{" "}
+          <span className={getStatusColor(change.from)}>{change.from}</span> to{" "}
+          <span className={getStatusColor(change.to)}>{change.to}</span>.
         </>
       );
     }
@@ -102,21 +171,20 @@ export function activityFormatter(message: string): React.ReactNode {
     case "ASSIGNEE_CHANGE": {
       const change = parseAssignee(message);
 
-      if (!change) return "changed assignee";
+      if (!change) return "Changed the assignee.";
 
       return (
         <>
-          changed assignee to <span className="font-medium">{change.to}</span>
+          Reassigned this task to{" "}
+          <span className="font-medium text-foreground">{change.to}</span>.
         </>
       );
     }
 
     case "SUPPORT":
-      return <span className="text-muted-foreground">{message}</span>;
-
-    case "COMMENT":
       return message;
 
+    case "COMMENT":
     default:
       return message;
   }

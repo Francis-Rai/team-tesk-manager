@@ -2,7 +2,7 @@ import { useParams } from "react-router-dom";
 import TaskDescription from "./TaskDescription";
 import TaskHeader from "./TaskHeader";
 import TaskMetadata from "./TaskMetadata";
-import TaskTimeline from "./TaskTimeline";
+import TaskTimeline from "./TaskActivity";
 import TaskUpdateForm from "./TaskUpdateForm";
 import { useTask } from "../hooks/useTask";
 import { useTeamMe } from "../../teams/hooks/useTeamMe";

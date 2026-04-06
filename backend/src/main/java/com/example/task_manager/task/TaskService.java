@@ -1,6 +1,8 @@
 package com.example.task_manager.task;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -28,6 +30,7 @@ import com.example.task_manager.task.dto.TaskSearchRequest;
 import com.example.task_manager.task.dto.TaskUpdateResponse;
 import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 import com.example.task_manager.task.entity.TaskEntity;
+import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
 import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.TeamMemberRepository;
@@ -96,7 +99,7 @@ public class TaskService {
         : supportMember.getUser());
 
     taskRepository.save(task);
-    createTaskUpdateEntry(task, "Created Task", requester);
+    createTaskUpdateEntry(task, "Task created", requester);
     project.setNextTaskNumber(taskNumber + 1);
 
     return mapToResponse(task);
@@ -118,6 +121,12 @@ public class TaskService {
     TaskEntity task = getActiveTask(taskId, projectId, teamId);
 
     validateCanManageProjectTask(teamId, requester.getId());
+
+    String currentTitle = task.getTitle();
+    String currentDescription = task.getDescription();
+    TaskPriority currentPriority = task.getPriority();
+    Instant currentPlannedStart = task.getPlannedStartDate();
+    Instant currentPlannedDue = task.getPlannedDueDate();
 
     if (request.title() != null) {
       task.setTitle(request.title());
@@ -144,7 +153,19 @@ public class TaskService {
     task.setPlannedStartDate(newPlannedStart);
     task.setPlannedDueDate(newPlannedDue);
 
-    createTaskUpdateEntry(task, "Updated Task Details", requester);
+    String updateMessage = buildTaskDetailsUpdateMessage(
+        currentTitle,
+        currentDescription,
+        currentPriority == null ? null : currentPriority.name(),
+        currentPlannedStart,
+        currentPlannedDue,
+        task.getTitle(),
+        task.getDescription(),
+        task.getPriority() == null ? null : task.getPriority().name(),
+        task.getPlannedStartDate(),
+        task.getPlannedDueDate());
+
+    createTaskUpdateEntry(task, updateMessage, requester);
 
     return mapToResponse(task);
   }
@@ -166,7 +187,7 @@ public class TaskService {
     validateCanManageProjectTask(teamId, requester.getId());
 
     task.setDeletedAt(Instant.now());
-    createTaskUpdateEntry(task, "Deleted Task", requester);
+    createTaskUpdateEntry(task, "Task deleted", requester);
   }
 
   /**
@@ -201,7 +222,7 @@ public class TaskService {
       task.setActualCompletionDate(null);
     }
 
-    String message = "Change Status from " + current + " to " + newStatus;
+    String message = "Status changed from " + current + " to " + newStatus;
 
     task.setStatus(newStatus);
     createTaskUpdateEntry(task, message, requester);
@@ -241,7 +262,7 @@ public class TaskService {
 
       createTaskUpdateEntry(
           task,
-          "Support promoted to assignee (" + newAssignee.getFullName() + ")",
+          "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName(),
           requester);
 
       return mapToResponse(task);
@@ -599,11 +620,55 @@ public class TaskService {
         entity.getUser().getFirstName(),
         entity.getUser().getLastName(),
         entity.getUser().getEmail());
+    TaskUpdateResponse.Task task = new TaskUpdateResponse.Task(
+        entity.getTask().getId(),
+        entity.getTask().getTitle());
     return new TaskUpdateResponse(
         entity.getId(),
         entity.getMessage(),
         user,
+        task,
         entity.getCreatedAt());
+  }
+
+  private String buildTaskDetailsUpdateMessage(
+      String previousTitle,
+      String previousDescription,
+      String previousPriority,
+      Instant previousPlannedStart,
+      Instant previousPlannedDue,
+      String newTitle,
+      String newDescription,
+      String newPriority,
+      Instant newPlannedStart,
+      Instant newPlannedDue) {
+
+    List<String> changes = new ArrayList<>();
+
+    if (!java.util.Objects.equals(previousTitle, newTitle)) {
+      changes.add("title");
+    }
+
+    if (!java.util.Objects.equals(previousDescription, newDescription)) {
+      changes.add("description");
+    }
+
+    if (!java.util.Objects.equals(previousPriority, newPriority)) {
+      changes.add("priority");
+    }
+
+    boolean scheduleChanged = !java.util.Objects.equals(previousPlannedStart, newPlannedStart) ||
+        !java.util.Objects.equals(previousPlannedDue, newPlannedDue);
+
+    if (scheduleChanged) {
+      changes.add("schedule");
+    }
+
+    if (changes.isEmpty()) {
+      return "Task details updated";
+    }
+
+    return "Task details updated: " + String.join(", ", changes);
   }
 
   /**

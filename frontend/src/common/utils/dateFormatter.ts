@@ -1,5 +1,5 @@
 export function formatDateTimeShort(date?: string | null) {
-  if (!date) return "—";
+  if (!date) return "--";
 
   return new Date(date).toLocaleString(undefined, {
     month: "short",
@@ -11,7 +11,7 @@ export function formatDateTimeShort(date?: string | null) {
 }
 
 export function formatDate(date?: string | null) {
-  if (!date) return "—";
+  if (!date) return "--";
 
   return new Date(date).toLocaleString(undefined, {
     month: "short",

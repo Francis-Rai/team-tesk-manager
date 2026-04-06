@@ -9,7 +9,7 @@ import { getTaskPermissions } from "../utils/taskPermissions";
 import TaskDescription from "./TaskDescription";
 import TaskHeader from "./TaskHeader";
 import TaskMetadata from "./TaskMetadata";
-import TaskTimeline from "./TaskTimeline";
+import TaskTimeline from "./TaskActivity";
 import TaskUpdateForm from "./TaskUpdateForm";
 
 interface Props {

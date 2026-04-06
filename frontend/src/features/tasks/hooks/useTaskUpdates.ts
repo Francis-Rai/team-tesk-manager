@@ -7,6 +7,7 @@ import type { TaskUpdate } from "../types/taskUpdatesTypes";
 interface Params {
   page?: number;
   size?: number;
+  sort?: string;
 }
 
 export const useTaskUpdates = (
@@ -15,15 +16,16 @@ export const useTaskUpdates = (
   taskId: string,
   params: Params = {},
 ) => {
-  const { page = 0, size = 10 } = params;
+  const { page = 0, size = 10, sort } = params;
 
   return useQuery<PageResponse<TaskUpdate>>({
-    queryKey: ["taskUpdates", teamId, projectId, taskId, page, size],
+    queryKey: ["taskUpdates", teamId, projectId, taskId, page, size, sort],
 
     queryFn: () =>
       getTaskUpdates(teamId, projectId, taskId, {
         page,
         size,
+        sort,
       }),
 
     placeholderData: keepPreviousData,
