@@ -272,7 +272,7 @@ public class ProjectService {
   }
 
   /**
-   * Returns an existing projects by id.
+   * Returns all updates by projects.
    */
   @Transactional(readOnly = true)
   public PageResponse<ProjectActivityResponse> getProjectActivity(

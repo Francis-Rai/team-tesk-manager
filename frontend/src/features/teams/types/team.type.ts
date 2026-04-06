@@ -27,6 +27,32 @@ export interface TeamMember {
   joinedAt: string;
 }
 
+type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+};
+
+type Project = {
+  id: string;
+  title: string;
+};
+
+type Task = {
+  id: string;
+  title: string;
+};
+
+export type TeamActivity = {
+  id: string;
+  message: string;
+  user: User;
+  project: Project;
+  task: Task;
+  createdAt: string;
+};
+
 export interface TeamMe {
   userId: string;
   role: NullableTeamRole;

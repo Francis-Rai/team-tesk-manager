@@ -18,12 +18,23 @@ public interface TaskUpdateRepository extends JpaRepository<TaskUpdateEntity, UU
   Page<TaskUpdateEntity> findByTaskId(UUID taskId, Pageable pageable);
 
   @Query("""
-          SELECT u FROM TaskUpdateEntity u
-          JOIN u.task t
-          WHERE t.project.id = :projectId
-          AND t.deletedAt IS NULL
-          ORDER BY u.createdAt DESC
-      """)
-  Page<TaskUpdateEntity> findProjectActivity(UUID projectId, Pageable pageable);
+      SELECT u FROM TaskUpdateEntity u
+      JOIN u.task t
+      WHERE t.project.id = :projectId
+      AND t.deletedAt IS NULL """)
+  Page<TaskUpdateEntity> findProjectActivity(
+      UUID projectId,
+      Pageable pageable);
+
+  @Query("""
+      SELECT u FROM TaskUpdateEntity u
+      JOIN u.task t
+      JOIN t.project p
+      WHERE p.team.id = :teamId
+      AND t.deletedAt IS NULL
+            """)
+  Page<TaskUpdateEntity> findTeamActivity(
+      UUID teamId,
+      Pageable pageable);
 
 }

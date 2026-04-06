@@ -22,8 +22,11 @@ import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.task.TaskRepository;
+import com.example.task_manager.task.TaskUpdateRepository;
+import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
+import com.example.task_manager.team.dto.TeamActivityResponse;
 import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamMemberSearchRequest;
@@ -58,6 +61,7 @@ public class TeamService {
   private final ProjectRepository projectRepository;
   private final TaskRepository taskRepository;
   private final EntityManager entityManager;
+  private final TaskUpdateRepository taskUpdateRepository;
 
   /**
    * Creates a new team for the authenticated user.
@@ -487,6 +491,26 @@ public class TeamService {
     throw new ForbiddenException("User is not a member of this team");
   }
 
+  /**
+   * Returns an existing projects by id.
+   */
+  @Transactional(readOnly = true)
+  public PageResponse<TeamActivityResponse> getTeamActivity(
+      UUID teamId,
+      Pageable pageable) {
+
+    Page<TaskUpdateEntity> page = taskUpdateRepository.findTeamActivity(teamId, pageable);
+
+    return new PageResponse<>(
+        page.map(this::mapToActivityResponse).getContent(),
+        page.getNumber(),
+        page.getSize(),
+        page.getTotalElements(),
+        page.getTotalPages(),
+        page.isFirst(),
+        page.isLast());
+  }
+
   // HELPERS
 
   /**
@@ -683,5 +707,29 @@ public class TeamService {
     }
 
     return pageable;
+  }
+
+  public TeamActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
+    TeamActivityResponse.User user = new TeamActivityResponse.User(
+        entity.getUser().getId(),
+        entity.getUser().getFirstName(),
+        entity.getUser().getLastName(),
+        entity.getUser().getEmail());
+
+    TeamActivityResponse.Project project = new TeamActivityResponse.Project(
+        entity.getTask().getProject().getId(),
+        entity.getTask().getProject().getName());
+
+    TeamActivityResponse.Task task = new TeamActivityResponse.Task(
+        entity.getTask().getId(),
+        entity.getTask().getTitle());
+
+    return new TeamActivityResponse(
+        entity.getId(),
+        entity.getMessage(),
+        user,
+        project,
+        task,
+        entity.getCreatedAt());
   }
 }

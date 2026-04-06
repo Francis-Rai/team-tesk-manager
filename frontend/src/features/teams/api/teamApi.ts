@@ -2,7 +2,12 @@ import { apiClient } from "../../../api/apiClients";
 import type { BaseQueryParams } from "../../../common/types/baseQuery.types";
 import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
-import type { Team, TeamMe, TeamMember } from "../types/team.type";
+import type {
+  Team,
+  TeamActivity,
+  TeamMe,
+  TeamMember,
+} from "../types/team.type";
 
 export const getTeams = async (
   params: BaseQueryParams & {
@@ -20,6 +25,14 @@ export const getAllTeams = async (
 ): Promise<PageResponse<Team>> => {
   const response = await apiClient.get(`/teams`, { params });
   return response.data.content;
+};
+
+export const getTeamActivity = async (
+  teamId: string,
+  params: BaseQueryParams,
+): Promise<PageResponse<TeamActivity>> => {
+  const res = await apiClient.get(`/teams/${teamId}/activity`, { params });
+  return res.data;
 };
 
 export const createTeam = async (data: {

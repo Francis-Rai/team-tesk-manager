@@ -21,6 +21,7 @@ import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
+import com.example.task_manager.team.dto.TeamActivityResponse;
 import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
 import com.example.task_manager.team.dto.TeamMemberSearchRequest;
@@ -195,5 +196,15 @@ public class TeamController {
       @PathVariable UUID teamId,
       Authentication authentication) {
     return ResponseEntity.ok(teamService.getMyTeamRole(teamId, authentication.getName()));
+  }
+
+  /**
+   * Get teams's activity.
+   */
+  @GetMapping("/{teamId}/activity")
+  public ResponseEntity<PageResponse<TeamActivityResponse>> getProjectActivity(
+      @PathVariable UUID teamId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
+    return ResponseEntity.ok(teamService.getTeamActivity(teamId, pageable));
   }
 }
