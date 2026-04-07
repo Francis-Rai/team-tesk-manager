@@ -9,9 +9,18 @@ import java.util.UUID;
 public record TaskUpdateResponse(
     UUID id,
     String message,
+    String type,
+    ActivityDetails details,
     User user,
     Task task,
     Instant createdAt) {
+
+  public record ActivityDetails(
+      java.util.List<String> fields,
+      String from,
+      String to,
+      String target) {
+  }
 
   public record User(
       UUID id,

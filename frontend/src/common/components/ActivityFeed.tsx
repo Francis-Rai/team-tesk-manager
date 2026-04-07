@@ -1,15 +1,7 @@
-import { CalendarDays, Search, Sparkles } from "lucide-react";
+import { CalendarDays, Search } from "lucide-react";
 import { useMemo } from "react";
 
-import { Badge } from "../../components/ui/badge";
 import { Button } from "../../components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../../components/ui/card";
 import { Input } from "../../components/ui/input";
 import {
   Select,
@@ -22,35 +14,81 @@ import { ActivityItem, type ActivityRecord } from "./ActivityItem";
 import { formatDate } from "../utils/dateFormatter";
 import { getActivityTypeLabel } from "../utils/activityFormatter";
 
-type GroupByValue = "date" | "project" | "task" | "person" | "type";
+export type ActivityFeedGroupBy = "date" | "project" | "task" | "person" | "type";
+type ActivityFeedVariant = "team" | "project" | "task";
 
-interface ActivityFeedProps {
+interface ActivityFeedDetails {
   title: string;
   description: string;
   scopeLabel: string;
   emptyTitle: string;
   emptyDescription: string;
-  items: ActivityRecord[];
-  isLoading: boolean;
-  search: string;
-  sort: string;
-  page: number;
-  totalPages: number;
-  totalElements: number;
-  groupBy: GroupByValue;
-  groupByOptions: Array<{
-    value: GroupByValue;
-    label: string;
-  }>;
-  onSearchChange: (value: string) => void;
-  onSortChange: (value: string) => void;
-  onGroupByChange: (value: GroupByValue) => void;
-  onPageChange: (page: number) => void;
-  onOpenTask?: (item: ActivityRecord) => void;
-  interactiveItems?: boolean;
+  searchPlaceholder: string;
 }
 
-function groupActivity(items: ActivityRecord[], groupBy: GroupByValue) {
+interface ActivityFeedProps {
+  variant: ActivityFeedVariant;
+  copy?: Partial<ActivityFeedDetails>;
+  data: {
+    items: ActivityRecord[];
+    isLoading: boolean;
+    page: number;
+    totalPages: number;
+    totalElements: number;
+  };
+  controls: {
+    search: string;
+    sort: string;
+    groupBy: ActivityFeedGroupBy;
+    groupByOptions: Array<{
+      value: ActivityFeedGroupBy;
+      label: string;
+    }>;
+    onSearchChange: (value: string) => void;
+    onSortChange: (value: string) => void;
+    onGroupByChange: (value: ActivityFeedGroupBy) => void;
+    onPageChange: (page: number) => void;
+  };
+  behavior?: {
+    onOpenTask?: (item: ActivityRecord) => void;
+    interactiveItems?: boolean;
+    showHeaderMeta?: boolean;
+  };
+}
+
+const ACTIVITY_FEED_DEFAULTS: Record<ActivityFeedVariant, ActivityFeedDetails> = {
+  team: {
+    title: "Team Activity",
+    description: "Review recent updates across projects and tasks.",
+    scopeLabel: "Team scope",
+    emptyTitle: "No team activity yet",
+    emptyDescription:
+      "Updates across projects and tasks will appear here as your team starts collaborating.",
+    searchPlaceholder: "Search team activity...",
+  },
+  project: {
+    title: "Project Activity",
+    description:
+      "Track task movement, updates, and decisions inside this project.",
+    scopeLabel: "Project scope",
+    emptyTitle: "No project activity yet",
+    emptyDescription:
+      "As work starts moving on this project, updates and task changes will show up here.",
+    searchPlaceholder: "Search project activity...",
+  },
+  task: {
+    title: "Task Activity",
+    description:
+      "A focused stream of updates, comments, and task changes for this work item.",
+    scopeLabel: "Task scope",
+    emptyTitle: "No task activity yet",
+    emptyDescription:
+      "New comments and task changes will appear here as work progresses.",
+    searchPlaceholder: "Search task activity...",
+  },
+};
+
+function groupActivity(items: ActivityRecord[], groupBy: ActivityFeedGroupBy) {
   return items.reduce<Record<string, ActivityRecord[]>>((groups, item) => {
     let key = new Date(item.createdAt).toDateString();
 
@@ -67,7 +105,7 @@ function groupActivity(items: ActivityRecord[], groupBy: GroupByValue) {
     }
 
     if (groupBy === "type") {
-      key = getActivityTypeLabel(item.message);
+      key = getActivityTypeLabel(item);
     }
 
     if (!groups[key]) {
@@ -80,9 +118,37 @@ function groupActivity(items: ActivityRecord[], groupBy: GroupByValue) {
   }, {});
 }
 
+function filterActivity(items: ActivityRecord[], search: string) {
+  const normalizedSearch = search.trim().toLowerCase();
+
+  if (!normalizedSearch) {
+    return items;
+  }
+
+  return items.filter((item) => {
+    const fullName = `${item.user.firstName} ${item.user.lastName}`
+      .trim()
+      .toLowerCase();
+    const taskTitle = (item.task?.title ?? "").toLowerCase();
+    const projectTitle = (
+      "project" in item ? item.project.title : ""
+    ).toLowerCase();
+    const typeLabel = getActivityTypeLabel(item).toLowerCase();
+    const message = item.message.toLowerCase();
+
+    return (
+      fullName.includes(normalizedSearch) ||
+      taskTitle.includes(normalizedSearch) ||
+      projectTitle.includes(normalizedSearch) ||
+      typeLabel.includes(normalizedSearch) ||
+      message.includes(normalizedSearch)
+    );
+  });
+}
+
 function sortGroupedEntries(
   entries: Array<[string, ActivityRecord[]]>,
-  groupBy: GroupByValue,
+  groupBy: ActivityFeedGroupBy,
   sort: string,
 ) {
   if (groupBy === "date") {
@@ -99,112 +165,77 @@ function sortGroupedEntries(
 }
 
 export function ActivityFeed({
-  title,
-  description,
-  scopeLabel,
-  emptyTitle,
-  emptyDescription,
-  items,
-  isLoading,
-  search,
-  sort,
-  page,
-  totalPages,
-  totalElements,
-  groupBy,
-  groupByOptions,
-  onSearchChange,
-  onSortChange,
-  onGroupByChange,
-  onPageChange,
-  onOpenTask,
-  interactiveItems = true,
+  variant,
+  copy,
+  data,
+  controls,
+  behavior,
 }: ActivityFeedProps) {
-  const grouped = useMemo(() => groupActivity(items, groupBy), [items, groupBy]);
-  const groupEntries = useMemo(
-    () => sortGroupedEntries(Object.entries(grouped), groupBy, sort),
-    [grouped, groupBy, sort],
+  const resolvedCopy = { ...ACTIVITY_FEED_DEFAULTS[variant], ...copy };
+  const interactiveItems = behavior?.interactiveItems ?? true;
+
+  const filteredItems = useMemo(
+    () => filterActivity(data.items, controls.search),
+    [data.items, controls.search],
   );
-  const isFirstPage = page === 0;
-  const isLastPage = totalPages === 0 || page + 1 >= totalPages;
+  const grouped = useMemo(
+    () => groupActivity(filteredItems, controls.groupBy),
+    [filteredItems, controls.groupBy],
+  );
+  const groupEntries = useMemo(
+    () =>
+      sortGroupedEntries(
+        Object.entries(grouped),
+        controls.groupBy,
+        controls.sort,
+      ),
+    [grouped, controls.groupBy, controls.sort],
+  );
+  const isFirstPage = data.page === 0;
+  const isLastPage = data.totalPages === 0 || data.page + 1 >= data.totalPages;
 
-  if (isLoading) {
+  if (data.isLoading) {
     return (
-      <Card className="border-0 bg-gradient-to-br from-background via-background to-muted/30 shadow-sm">
-        <CardHeader className="border-b border-border/60">
-          <div className="space-y-2">
-            <div className="h-5 w-40 animate-pulse rounded-md bg-muted" />
-            <div className="h-4 w-72 animate-pulse rounded-md bg-muted" />
-          </div>
-        </CardHeader>
-
-        <CardContent className="space-y-4 py-6">
+      <section className="space-y-6 py-6">
+        <div className="space-y-6 px-0">
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
-              className="h-24 animate-pulse rounded-2xl border border-border/60 bg-muted/40"
+              className="h-24 animate-pulse rounded-xl bg-muted/40"
             />
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
     );
   }
 
   return (
-    <Card className="overflow-auto h-full border-0 bg-gradient-to-br from-background via-background to-muted/20 shadow-sm ring-1 ring-border/60">
-      <CardHeader className="gap-5 border-b border-border/60 pb-5">
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="space-y-3">
-            <div className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1 text-xs font-medium text-muted-foreground backdrop-blur">
-              <Sparkles className="h-3.5 w-3.5 text-primary" />
-              Live activity feed
-            </div>
-
-            <div className="space-y-1">
-              <CardTitle className="text-xl font-semibold tracking-tight">
-                {title}
-              </CardTitle>
-              <p className="max-w-2xl text-sm text-muted-foreground">
-                {description}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="outline" className="h-7 rounded-full px-3">
-              {scopeLabel}
-            </Badge>
-            <Badge variant="secondary" className="h-7 rounded-full px-3">
-              {totalElements} events
-            </Badge>
-            <Badge variant="outline" className="h-7 rounded-full px-3">
-              Page {totalPages === 0 ? 0 : page + 1} of {Math.max(totalPages, 1)}
-            </Badge>
-          </div>
-        </div>
-
+    <section className="flex h-full min-h-0 flex-col">
+      <header className="px-4">
         <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
           <div className="relative w-full max-w-md">
             <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Search activity, updates, or task history..."
-              value={search}
-              onChange={(e) => onSearchChange(e.target.value)}
+              placeholder={resolvedCopy.searchPlaceholder}
+              value={controls.search}
+              onChange={(e) => controls.onSearchChange(e.target.value)}
               className="h-11 rounded-xl border-border/70 bg-background pl-9 shadow-none"
             />
           </div>
 
           <div className="flex w-full flex-col gap-2 sm:flex-row sm:justify-end">
             <Select
-              value={groupBy}
-              onValueChange={(value) => onGroupByChange(value as GroupByValue)}
+              value={controls.groupBy}
+              onValueChange={(value) =>
+                controls.onGroupByChange(value as ActivityFeedGroupBy)
+              }
             >
               <SelectTrigger className="h-11 w-full min-w-40 rounded-xl border-border/70 bg-background shadow-none sm:w-44">
                 <SelectValue placeholder="Group by" />
               </SelectTrigger>
 
               <SelectContent>
-                {groupByOptions.map((option) => (
+                {controls.groupByOptions.map((option) => (
                   <SelectItem key={option.value} value={option.value}>
                     Group: {option.label}
                   </SelectItem>
@@ -212,7 +243,10 @@ export function ActivityFeed({
               </SelectContent>
             </Select>
 
-            <Select value={sort} onValueChange={onSortChange}>
+            <Select
+              value={controls.sort}
+              onValueChange={controls.onSortChange}
+            >
               <SelectTrigger className="h-11 w-full min-w-40 rounded-xl border-border/70 bg-background shadow-none sm:w-44">
                 <SelectValue />
               </SelectTrigger>
@@ -224,42 +258,41 @@ export function ActivityFeed({
             </Select>
           </div>
         </div>
-      </CardHeader>
+      </header>
 
-      <CardContent className="flex-1 space-y-8 py-6">
+      <div className="h-full flex-1 space-y-8 overflow-auto px-4">
         {groupEntries.length === 0 ? (
-          <div className="flex min-h-72 flex-col items-center justify-center rounded-3xl border border-dashed border-border/80 bg-muted/20 px-6 text-center">
-            <div className="mb-4 rounded-2xl bg-background p-4 shadow-sm ring-1 ring-border/60">
+          <div className="flex min-h-72 flex-col items-center justify-center rounded-2xl border border-dashed border-border/80 bg-muted/15 px-6 text-center">
+            <div className="mb-4 rounded-2xl bg-background p-4 shadow-sm">
               <CalendarDays className="h-6 w-6 text-primary" />
             </div>
             <h3 className="text-base font-semibold text-foreground">
-              {emptyTitle}
+              {resolvedCopy.emptyTitle}
             </h3>
             <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              {emptyDescription}
+              {resolvedCopy.emptyDescription}
             </p>
           </div>
         ) : (
           groupEntries.map(([groupLabel, groupItems]) => (
-            <section key={groupLabel} className="space-y-4">
+            <section key={groupLabel} className="m-0 space-y-4 p-4">
               <div className="flex items-center gap-3">
-                <Badge
-                  variant="outline"
-                  className="rounded-full border-border/70 bg-background px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground"
-                >
-                  {groupBy === "date" ? formatDate(groupLabel) : groupLabel}
-                </Badge>
+                <h3 className="text-sm font-semibold text-foreground">
+                  {controls.groupBy === "date" ? formatDate(groupLabel) : groupLabel}
+                </h3>
                 <div className="h-px flex-1 bg-border/60" />
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-0">
                 {groupItems.map((item) => (
                   <ActivityItem
                     key={item.id}
                     item={item}
                     interactive={interactiveItems}
                     onOpenTask={
-                      onOpenTask ? () => onOpenTask(item) : undefined
+                      behavior?.onOpenTask
+                        ? () => behavior.onOpenTask?.(item)
+                        : undefined
                     }
                   />
                 ))}
@@ -267,19 +300,19 @@ export function ActivityFeed({
             </section>
           ))
         )}
-      </CardContent>
+      </div>
 
-      {totalPages > 1 && (
-        <CardFooter className="justify-between border-border/60 bg-muted/20">
+      {data.totalPages > 1 && (
+        <footer className="flex items-center justify-between border-t border-border/50 bg-transparent px-4 pt-4">
           <p className="text-sm text-muted-foreground">
-            Showing page {page + 1} of {totalPages}
+            Showing page {data.page + 1} of {data.totalPages}
           </p>
 
           <div className="flex items-center gap-2">
             <Button
               type="button"
               variant="outline"
-              onClick={() => onPageChange(page - 1)}
+              onClick={() => controls.onPageChange(data.page - 1)}
               disabled={isFirstPage}
               className="rounded-xl"
             >
@@ -288,15 +321,15 @@ export function ActivityFeed({
 
             <Button
               type="button"
-              onClick={() => onPageChange(page + 1)}
+              onClick={() => controls.onPageChange(data.page + 1)}
               disabled={isLastPage}
               className="rounded-xl"
             >
               Next
             </Button>
           </div>
-        </CardFooter>
+        </footer>
       )}
-    </Card>
+    </section>
   );
 }

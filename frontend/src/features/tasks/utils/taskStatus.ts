@@ -51,15 +51,19 @@ export const TaskStatusLabel: Record<TaskStatus, string> = {
 };
 
 export const TaskStatusStyles: Record<TaskStatus, string> = {
-  TODO: "bg-gray-100 text-gray-700 border-gray-200",
+  TODO: "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 border-gray-200",
 
-  IN_PROGRESS: "bg-blue-100 text-blue-700 border-blue-200",
+  IN_PROGRESS:
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-blue-100 text-blue-700 border-blue-200",
 
-  IN_REVIEW: "bg-purple-100 text-purple-700 border-purple-200",
+  IN_REVIEW:
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-purple-100 text-purple-700 border-purple-200",
 
-  ON_HOLD: "bg-yellow-100 text-yellow-700 border-yellow-200",
+  ON_HOLD:
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-yellow-100 text-yellow-700 border-yellow-200",
 
-  DONE: "bg-green-100 text-green-700 border-green-200",
+  DONE: "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-green-100 text-green-700 border-green-200",
 
-  CANCELLED: "bg-red-100 text-red-700 border-red-200",
+  CANCELLED:
+    "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium bg-red-100 text-red-700 border-red-200",
 };

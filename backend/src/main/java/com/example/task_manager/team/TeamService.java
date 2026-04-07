@@ -14,6 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.activity.ActivityEventRepository;
+import com.example.task_manager.activity.ActivityEventService;
+import com.example.task_manager.activity.entity.ActivityEventEntity;
 import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
@@ -22,8 +25,6 @@ import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.task.TaskRepository;
-import com.example.task_manager.task.TaskUpdateRepository;
-import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamActivityResponse;
@@ -61,7 +62,8 @@ public class TeamService {
   private final ProjectRepository projectRepository;
   private final TaskRepository taskRepository;
   private final EntityManager entityManager;
-  private final TaskUpdateRepository taskUpdateRepository;
+  private final ActivityEventRepository activityEventRepository;
+  private final ActivityEventService activityEventService;
 
   /**
    * Creates a new team for the authenticated user.
@@ -499,10 +501,10 @@ public class TeamService {
       UUID teamId,
       Pageable pageable) {
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findTeamActivity(teamId, pageable);
+    Page<ActivityEventEntity> page = activityEventRepository.findTeamActivity(teamId, pageable);
 
     return new PageResponse<>(
-        page.map(this::mapToActivityResponse).getContent(),
+        page.map(activityEventService::toTeamActivityResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -709,27 +711,4 @@ public class TeamService {
     return pageable;
   }
 
-  public TeamActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
-    TeamActivityResponse.User user = new TeamActivityResponse.User(
-        entity.getUser().getId(),
-        entity.getUser().getFirstName(),
-        entity.getUser().getLastName(),
-        entity.getUser().getEmail());
-
-    TeamActivityResponse.Project project = new TeamActivityResponse.Project(
-        entity.getTask().getProject().getId(),
-        entity.getTask().getProject().getName());
-
-    TeamActivityResponse.Task task = new TeamActivityResponse.Task(
-        entity.getTask().getId(),
-        entity.getTask().getTitle());
-
-    return new TeamActivityResponse(
-        entity.getId(),
-        entity.getMessage(),
-        user,
-        project,
-        task,
-        entity.getCreatedAt());
-  }
 }

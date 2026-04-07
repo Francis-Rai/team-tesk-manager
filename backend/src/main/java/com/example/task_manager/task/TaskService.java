@@ -14,6 +14,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.activity.ActivityEventRepository;
+import com.example.task_manager.activity.ActivityEventService;
+import com.example.task_manager.activity.dto.ActivityEventDetails;
+import com.example.task_manager.activity.dto.ActivityEventType;
+import com.example.task_manager.activity.entity.ActivityEventEntity;
 import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
@@ -32,7 +37,6 @@ import com.example.task_manager.task.dto.UpdateTaskDetailsRequest;
 import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
-import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.TeamMemberRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
 import com.example.task_manager.team.entity.TeamRole;
@@ -53,7 +57,8 @@ public class TaskService {
   private final ProjectRepository projectRepository;
   private final TeamMemberRepository teamMemberRepository;
   private final UserRepository userRepository;
-  private final TaskUpdateRepository taskUpdateRepository;
+  private final ActivityEventRepository activityEventRepository;
+  private final ActivityEventService activityEventService;
 
   /**
    * Creates task under a project and optionally add a support user.
@@ -99,7 +104,12 @@ public class TaskService {
         : supportMember.getUser());
 
     taskRepository.save(task);
-    createTaskUpdateEntry(task, "Task created", requester);
+    activityEventService.recordTaskEvent(
+        task,
+        requester,
+        ActivityEventType.TASK_CREATED,
+        emptyActivityDetails(),
+        "Task created");
     project.setNextTaskNumber(taskNumber + 1);
 
     return mapToResponse(task);
@@ -153,7 +163,7 @@ public class TaskService {
     task.setPlannedStartDate(newPlannedStart);
     task.setPlannedDueDate(newPlannedDue);
 
-    String updateMessage = buildTaskDetailsUpdateMessage(
+    TaskDetailsUpdateMessage updateMessage = buildTaskDetailsUpdateMessage(
         currentTitle,
         currentDescription,
         currentPriority == null ? null : currentPriority.name(),
@@ -165,7 +175,12 @@ public class TaskService {
         task.getPlannedStartDate(),
         task.getPlannedDueDate());
 
-    createTaskUpdateEntry(task, updateMessage, requester);
+    activityEventService.recordTaskEvent(
+        task,
+        requester,
+        ActivityEventType.TASK_UPDATED,
+        new ActivityEventDetails(updateMessage.fields(), null, null, null),
+        updateMessage.message());
 
     return mapToResponse(task);
   }
@@ -187,7 +202,12 @@ public class TaskService {
     validateCanManageProjectTask(teamId, requester.getId());
 
     task.setDeletedAt(Instant.now());
-    createTaskUpdateEntry(task, "Task deleted", requester);
+    activityEventService.recordTaskEvent(
+        task,
+        requester,
+        ActivityEventType.TASK_DELETED,
+        emptyActivityDetails(),
+        "Task deleted");
   }
 
   /**
@@ -225,7 +245,12 @@ public class TaskService {
     String message = "Status changed from " + current + " to " + newStatus;
 
     task.setStatus(newStatus);
-    createTaskUpdateEntry(task, message, requester);
+    activityEventService.recordTaskEvent(
+        task,
+        requester,
+        ActivityEventType.TASK_STATUS_CHANGED,
+        new ActivityEventDetails(List.of(), current.name(), newStatus.name(), null),
+        message);
 
     return mapToResponse(task);
   }
@@ -260,20 +285,24 @@ public class TaskService {
       task.setAssignee(newAssignee);
       task.setSupport(null);
 
-      createTaskUpdateEntry(
+      activityEventService.recordTaskEvent(
           task,
-          "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName(),
-          requester);
+          requester,
+          ActivityEventType.TASK_ASSIGNEE_CHANGED,
+          new ActivityEventDetails(List.of(), currentAssignee.getFullName(), newAssignee.getFullName(), null),
+          "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName());
 
       return mapToResponse(task);
     }
 
     task.setAssignee(newAssignee);
 
-    createTaskUpdateEntry(
+    activityEventService.recordTaskEvent(
         task,
-        "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName(),
-        requester);
+        requester,
+        ActivityEventType.TASK_ASSIGNEE_CHANGED,
+        new ActivityEventDetails(List.of(), currentAssignee.getFullName(), newAssignee.getFullName(), null),
+        "Assignee changed from " + currentAssignee.getFullName() + " to " + newAssignee.getFullName());
 
     return mapToResponse(task);
   }
@@ -305,10 +334,12 @@ public class TaskService {
 
       task.setSupport(null);
 
-      createTaskUpdateEntry(
+      activityEventService.recordTaskEvent(
           task,
-          "Support removed (" + currentSupport.getFullName() + ")",
-          currentUser);
+          currentUser,
+          ActivityEventType.TASK_SUPPORT_REMOVED,
+          new ActivityEventDetails(List.of(), currentSupport.getFullName(), null, currentSupport.getFullName()),
+          "Support removed (" + currentSupport.getFullName() + ")");
 
       return mapToResponse(task);
     }
@@ -330,15 +361,19 @@ public class TaskService {
 
     // Assign new Support
     if (currentSupport == null) {
-      createTaskUpdateEntry(
+      activityEventService.recordTaskEvent(
           task,
-          "Support assigned to " + newSupport.getFullName(),
-          currentUser);
+          currentUser,
+          ActivityEventType.TASK_SUPPORT_ASSIGNED,
+          new ActivityEventDetails(List.of(), null, null, newSupport.getFullName()),
+          "Support assigned to " + newSupport.getFullName());
     } else {
-      createTaskUpdateEntry(
+      activityEventService.recordTaskEvent(
           task,
-          "Support changed from " + currentSupport.getFullName() + " to " + newSupport.getFullName(),
-          currentUser);
+          currentUser,
+          ActivityEventType.TASK_SUPPORT_CHANGED,
+          new ActivityEventDetails(List.of(), currentSupport.getFullName(), newSupport.getFullName(), null),
+          "Support changed from " + currentSupport.getFullName() + " to " + newSupport.getFullName());
     }
 
     return mapToResponse(task);
@@ -360,12 +395,10 @@ public class TaskService {
 
     validateCanChangeStatusAndUpdate(teamId, task, currentUser.getId());
 
-    TaskUpdateEntity update = new TaskUpdateEntity();
-    update.setTask(task);
-    update.setMessage(request.message());
-    update.setUser(currentUser);
-
-    taskUpdateRepository.save(update);
+    ActivityEventEntity update = activityEventService.recordTaskComment(
+        task,
+        currentUser,
+        request.message());
 
     return mapToUpdateResponse(update);
   }
@@ -531,7 +564,7 @@ public class TaskService {
 
     validateMembership(teamId, currentUser.getId());
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskIdAndTaskDeletedAtIsNull(
+    Page<ActivityEventEntity> page = activityEventRepository.findActiveTaskActivity(
         taskId,
         pageable);
 
@@ -561,7 +594,7 @@ public class TaskService {
 
     validateMembership(teamId, currentUser.getId());
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findByTaskId(
+    Page<ActivityEventEntity> page = activityEventRepository.findByTaskId(
         taskId,
         pageable);
 
@@ -612,26 +645,13 @@ public class TaskService {
   }
 
   /**
-   * Maps TaskUpdateEntity to TaskUpdateResponse.
+   * Maps ActivityEventEntity to TaskUpdateResponse.
    */
-  public TaskUpdateResponse mapToUpdateResponse(TaskUpdateEntity entity) {
-    TaskUpdateResponse.User user = new TaskUpdateResponse.User(
-        entity.getUser().getId(),
-        entity.getUser().getFirstName(),
-        entity.getUser().getLastName(),
-        entity.getUser().getEmail());
-    TaskUpdateResponse.Task task = new TaskUpdateResponse.Task(
-        entity.getTask().getId(),
-        entity.getTask().getTitle());
-    return new TaskUpdateResponse(
-        entity.getId(),
-        entity.getMessage(),
-        user,
-        task,
-        entity.getCreatedAt());
+  public TaskUpdateResponse mapToUpdateResponse(ActivityEventEntity entity) {
+    return activityEventService.toTaskUpdateResponse(entity);
   }
 
-  private String buildTaskDetailsUpdateMessage(
+  private TaskDetailsUpdateMessage buildTaskDetailsUpdateMessage(
       String previousTitle,
       String previousDescription,
       String previousPriority,
@@ -665,10 +685,12 @@ public class TaskService {
     }
 
     if (changes.isEmpty()) {
-      return "Task details updated";
+      return new TaskDetailsUpdateMessage("Task details updated", List.of());
     }
 
-    return "Task details updated: " + String.join(", ", changes);
+    return new TaskDetailsUpdateMessage(
+        "Task details updated: " + String.join(", ", changes),
+        changes);
   }
 
   /**
@@ -845,17 +867,13 @@ public class TaskService {
    * Creates a log for a task
    * Logs changes for a task
    */
-  private void createTaskUpdateEntry(
-      TaskEntity task,
+  private ActivityEventDetails emptyActivityDetails() {
+    return new ActivityEventDetails(List.of(), null, null, null);
+  }
+
+  private record TaskDetailsUpdateMessage(
       String message,
-      UserEntity user) {
-
-    TaskUpdateEntity update = new TaskUpdateEntity();
-    update.setTask(task);
-    update.setMessage(message);
-    update.setUser(user);
-
-    taskUpdateRepository.save(update);
+      List<String> fields) {
   }
 
   /**

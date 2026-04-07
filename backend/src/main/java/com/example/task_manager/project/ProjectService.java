@@ -13,6 +13,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.activity.ActivityEventRepository;
+import com.example.task_manager.activity.ActivityEventService;
+import com.example.task_manager.activity.entity.ActivityEventEntity;
 import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
@@ -28,8 +31,6 @@ import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
-import com.example.task_manager.task.TaskUpdateRepository;
-import com.example.task_manager.task.entity.TaskUpdateEntity;
 import com.example.task_manager.team.TeamMemberRepository;
 import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -52,7 +53,8 @@ public class ProjectService {
   private final TeamMemberRepository teamMemberRepository;
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
-  private final TaskUpdateRepository taskUpdateRepository;
+  private final ActivityEventRepository activityEventRepository;
+  private final ActivityEventService activityEventService;
 
   /**
    * Creates a new project for the authenticated user.
@@ -279,10 +281,10 @@ public class ProjectService {
       UUID projectId,
       Pageable pageable) {
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findProjectActivity(projectId, pageable);
+    Page<ActivityEventEntity> page = activityEventRepository.findByProjectId(projectId, pageable);
 
     return new PageResponse<>(
-        page.map(this::mapToActivityResponse).getContent(),
+        page.map(activityEventService::toProjectActivityResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -453,25 +455,6 @@ public class ProjectService {
     }
 
     return pageable;
-  }
-
-  public ProjectActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
-    ProjectActivityResponse.User user = new ProjectActivityResponse.User(
-        entity.getUser().getId(),
-        entity.getUser().getFirstName(),
-        entity.getUser().getLastName(),
-        entity.getUser().getEmail());
-
-    ProjectActivityResponse.Task task = new ProjectActivityResponse.Task(
-        entity.getTask().getId(),
-        entity.getTask().getTitle());
-
-    return new ProjectActivityResponse(
-        entity.getId(),
-        entity.getMessage(),
-        user,
-        task,
-        entity.getCreatedAt());
   }
 
 }

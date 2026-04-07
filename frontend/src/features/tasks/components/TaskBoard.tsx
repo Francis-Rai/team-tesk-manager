@@ -30,7 +30,6 @@ import {
   TaskStatusLabel,
   TaskStatusStyles,
 } from "../utils/taskStatus";
-import { cn } from "../../../lib/utils";
 import {
   useInfiniteTasks,
   type TaskQueryParams,
@@ -167,14 +166,7 @@ function BoardColumn({
       className="flex flex-col min-w-70 max-w-95 flex-1 rounded-xl border bg-muted/40 shadow-sm h-full min-h-0"
     >
       <div className="flex items-center justify-between px-4 py-3 border-b bg-background/80 sticky top-0 z-10">
-        <span
-          className={cn(
-            "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
-            TaskStatusStyles[id],
-          )}
-        >
-          {TaskStatusLabel[id]}
-        </span>
+        <span className={TaskStatusStyles[id]}>{TaskStatusLabel[id]}</span>
 
         <span className="text-xs text-muted-foreground">{total}</span>
       </div>

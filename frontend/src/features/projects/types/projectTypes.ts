@@ -1,4 +1,5 @@
 import type { ProjectStatus } from "../utils/projectStatus";
+import type { ActivityDetails, ActivityType } from "../../../common/types/activity.types";
 
 export type Project = {
   id: string;
@@ -25,8 +26,10 @@ type Task = {
 export type ProjectActivity = {
   id: string;
   message: string;
+  type: ActivityType;
+  details: ActivityDetails;
   user: User;
-  task: Task;
+  task?: Task | null;
   createdAt: string;
 };
 

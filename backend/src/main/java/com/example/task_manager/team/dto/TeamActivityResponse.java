@@ -3,9 +3,13 @@ package com.example.task_manager.team.dto;
 import java.time.Instant;
 import java.util.UUID;
 
+import com.example.task_manager.task.dto.TaskUpdateResponse.ActivityDetails;
+
 public record TeamActivityResponse(
     UUID id,
     String message,
+    String type,
+    ActivityDetails details,
     User user,
     Project project,
     Task task,

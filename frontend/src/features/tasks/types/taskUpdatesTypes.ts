@@ -1,6 +1,10 @@
+import type { ActivityDetails, ActivityType } from "../../../common/types/activity.types";
+
 export interface TaskUpdate {
   id: string;
   message: string;
+  type: ActivityType;
+  details: ActivityDetails;
   user: User;
   task?: Task;
   createdAt: string;
