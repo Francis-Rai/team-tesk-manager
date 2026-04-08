@@ -1,6 +1,8 @@
 package com.example.task_manager.project;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 
@@ -13,6 +15,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.activity.ActivityEventRepository;
+import com.example.task_manager.activity.ActivityEventService;
+import com.example.task_manager.activity.dto.ActivityEventDetails;
+import com.example.task_manager.activity.entity.ActivityEventEntity;
+import com.example.task_manager.activity.dto.ActivityEventType;
 import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
@@ -28,8 +35,7 @@ import com.example.task_manager.project.dto.UpdateProjectDetailsRequest;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.task.TaskRepository;
-import com.example.task_manager.task.TaskUpdateRepository;
-import com.example.task_manager.task.entity.TaskUpdateEntity;
+import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.team.TeamMemberRepository;
 import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.entity.TeamMemberEntity;
@@ -52,7 +58,8 @@ public class ProjectService {
   private final TeamMemberRepository teamMemberRepository;
   private final TaskRepository taskRepository;
   private final UserRepository userRepository;
-  private final TaskUpdateRepository taskUpdateRepository;
+  private final ActivityEventRepository activityEventRepository;
+  private final ActivityEventService activityEventService;
 
   /**
    * Creates a new project for the authenticated user.
@@ -89,6 +96,22 @@ public class ProjectService {
       throw new ConflictException("Project name already exists in this team");
     }
 
+    activityEventService.recordProjectEvent(
+        project,
+        requester,
+        ActivityEventType.PROJECT_CREATED,
+        buildProjectActivityDetails(
+            List.of("name", "description", "status"),
+            null,
+            null,
+            null,
+            List.of(
+                activityEventService.change("name", "name", null, project.getName()),
+                activityEventService.change("description", "description", null, project.getDescription()),
+                activityEventService.change("status", "status", null, project.getStatus())),
+            null),
+        null);
+
     return mapToResponse(project);
   }
 
@@ -109,6 +132,9 @@ public class ProjectService {
 
     validateCanManageTeamProject(teamId, requester.getId());
 
+    String previousName = project.getName();
+    String previousDescription = project.getDescription();
+
     if (request.name() != null) {
       String trimmed = request.name().trim();
 
@@ -126,6 +152,27 @@ public class ProjectService {
 
     if (request.description() != null) {
       project.setDescription(request.description().trim());
+    }
+
+    ProjectDetailsUpdateMessage updateMessage = buildProjectUpdateMessage(
+        previousName,
+        previousDescription,
+        project.getName(),
+        project.getDescription());
+
+    if (!updateMessage.fields().isEmpty()) {
+      activityEventService.recordProjectEvent(
+          project,
+          requester,
+          ActivityEventType.PROJECT_UPDATED,
+          buildProjectActivityDetails(
+              updateMessage.fields(),
+              null,
+              null,
+              null,
+              updateMessage.changes(),
+              null),
+          updateMessage.message());
     }
 
     return mapToResponse(project);
@@ -148,10 +195,27 @@ public class ProjectService {
     validateCanManageTeamProject(teamId, requester.getId());
 
     Instant now = Instant.now();
+    List<TaskEntity> activeTasks = taskRepository
+        .findAllByProjectIdAndDeletedAtIsNull(projectId);
+
     project.setDeletedAt(now);
 
-    // cascade soft delete tasks
-    taskRepository.softDeleteByProjectId(projectId, now);
+    for (com.example.task_manager.task.entity.TaskEntity task : activeTasks) {
+      task.setDeletedAt(now);
+      activityEventService.recordTaskEvent(
+          task,
+          requester,
+          ActivityEventType.TASK_DELETED,
+          activityEventService.emptyDetails(),
+          null);
+    }
+
+    activityEventService.recordProjectEvent(
+        project,
+        requester,
+        ActivityEventType.PROJECT_DELETED,
+        activityEventService.emptyDetails(),
+        null);
 
   }
 
@@ -174,7 +238,21 @@ public class ProjectService {
 
     validateStatusChange(project, newStatus.status());
 
+    ProjectStatus currentStatus = project.getStatus();
     project.setStatus(newStatus.status());
+
+    activityEventService.recordProjectEvent(
+        project,
+        requester,
+        ActivityEventType.PROJECT_STATUS_CHANGED,
+        buildProjectActivityDetails(
+            List.of("status"),
+            currentStatus.name(),
+            newStatus.status().name(),
+            null,
+            List.of(activityEventService.change("status", "status", currentStatus, newStatus.status())),
+            null),
+        null);
 
     return mapToResponse(project);
   }
@@ -275,14 +353,14 @@ public class ProjectService {
    * Returns all updates by projects.
    */
   @Transactional(readOnly = true)
-  public PageResponse<ProjectActivityResponse> getProjectActivity(
+  public PageResponse<ProjectActivityResponse> getProjectActivities(
       UUID projectId,
       Pageable pageable) {
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findProjectActivity(projectId, pageable);
+    Page<ActivityEventEntity> page = activityEventRepository.findByProjectId(projectId, pageable);
 
     return new PageResponse<>(
-        page.map(this::mapToActivityResponse).getContent(),
+        page.map(activityEventService::toProjectActivitiesResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -455,23 +533,58 @@ public class ProjectService {
     return pageable;
   }
 
-  public ProjectActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
-    ProjectActivityResponse.User user = new ProjectActivityResponse.User(
-        entity.getUser().getId(),
-        entity.getUser().getFirstName(),
-        entity.getUser().getLastName(),
-        entity.getUser().getEmail());
+  private ActivityEventDetails buildProjectActivityDetails(
+      List<String> fields,
+      String from,
+      String to,
+      String target,
+      List<ActivityEventDetails.ActivityChange> changes,
+      UserEntity subjectUser) {
+    return new ActivityEventDetails(
+        fields,
+        from,
+        to,
+        target,
+        changes,
+        null,
+        null,
+        null,
+        subjectUser == null ? null : activityEventService.reference(subjectUser));
+  }
 
-    ProjectActivityResponse.Task task = new ProjectActivityResponse.Task(
-        entity.getTask().getId(),
-        entity.getTask().getTitle());
+  private ProjectDetailsUpdateMessage buildProjectUpdateMessage(
+      String previousName,
+      String previousDescription,
+      String newName,
+      String newDescription) {
 
-    return new ProjectActivityResponse(
-        entity.getId(),
-        entity.getMessage(),
-        user,
-        task,
-        entity.getCreatedAt());
+    List<String> fields = new ArrayList<>();
+    List<ActivityEventDetails.ActivityChange> changes = new ArrayList<>();
+
+    if (!java.util.Objects.equals(previousName, newName)) {
+      fields.add("name");
+      changes.add(activityEventService.change("name", "name", previousName, newName));
+    }
+
+    if (!java.util.Objects.equals(previousDescription, newDescription)) {
+      fields.add("description");
+      changes.add(activityEventService.change("description", "description", previousDescription, newDescription));
+    }
+
+    if (fields.isEmpty()) {
+      return new ProjectDetailsUpdateMessage("Project updated", List.of(), List.of());
+    }
+
+    return new ProjectDetailsUpdateMessage(
+        "Project updated: " + String.join(", ", fields),
+        fields,
+        changes);
+  }
+
+  private record ProjectDetailsUpdateMessage(
+      String message,
+      List<String> fields,
+      List<ActivityEventDetails.ActivityChange> changes) {
   }
 
 }

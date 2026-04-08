@@ -29,20 +29,28 @@ export default function PrioritySelect({ value, onChange, className }: Props) {
     >
       <SelectTrigger
         className={cn(
-          "h-8 w-35 text-xs font-medium",
-          TASK_PRIORITY_STYLES[value],
+          "h-10 w-full rounded-xl border-border/70 bg-background px-3 text-left text-sm font-medium shadow-none",
           className,
         )}
       >
-        <SelectValue />
+        <SelectValue>
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+              TASK_PRIORITY_STYLES[value],
+            )}
+          >
+            {TASK_PRIORITY_LABEL[value]}
+          </span>
+        </SelectValue>
       </SelectTrigger>
 
-      <SelectContent>
+      <SelectContent className="rounded-xl border-border/70">
         {TASK_PRIORITY_ORDER.map((priority) => (
           <SelectItem key={priority} value={priority}>
             <span
               className={cn(
-                "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+                "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
                 TASK_PRIORITY_STYLES[priority],
               )}
             >

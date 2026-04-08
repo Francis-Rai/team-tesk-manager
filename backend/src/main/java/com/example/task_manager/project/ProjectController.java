@@ -123,11 +123,11 @@ public class ProjectController {
   /**
    * Get project's activity.
    */
-  @GetMapping("/{projectId}/activity")
-  public ResponseEntity<PageResponse<ProjectActivityResponse>> getProjectActivity(
+  @GetMapping("/{projectId}/activities")
+  public ResponseEntity<PageResponse<ProjectActivityResponse>> getProjectActivities(
       @PathVariable UUID projectId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    return ResponseEntity.ok(projectService.getProjectActivity(projectId, pageable));
+    return ResponseEntity.ok(projectService.getProjectActivities(projectId, pageable));
   }
 
   /**

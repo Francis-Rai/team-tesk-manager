@@ -1,6 +1,8 @@
 package com.example.task_manager.team;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -14,6 +16,11 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import com.example.task_manager.activity.ActivityEventRepository;
+import com.example.task_manager.activity.ActivityEventService;
+import com.example.task_manager.activity.dto.ActivityEventDetails;
+import com.example.task_manager.activity.dto.ActivityEventType;
+import com.example.task_manager.activity.entity.ActivityEventEntity;
 import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.common.PageResponse;
 import com.example.task_manager.exception.api.BadRequestInputException;
@@ -21,9 +28,9 @@ import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.project.ProjectRepository;
+import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.task.TaskRepository;
-import com.example.task_manager.task.TaskUpdateRepository;
-import com.example.task_manager.task.entity.TaskUpdateEntity;
+import com.example.task_manager.task.entity.TaskEntity;
 import com.example.task_manager.team.dto.AddTeamMemberRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
 import com.example.task_manager.team.dto.TeamActivityResponse;
@@ -42,8 +49,6 @@ import com.example.task_manager.user.dto.UserResponse;
 import com.example.task_manager.user.entity.UserEntity;
 import com.example.task_manager.user.entity.UserRole;
 
-import jakarta.persistence.EntityManager;
-
 import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
@@ -60,8 +65,8 @@ public class TeamService {
   private final UserRepository userRepository;
   private final ProjectRepository projectRepository;
   private final TaskRepository taskRepository;
-  private final EntityManager entityManager;
-  private final TaskUpdateRepository taskUpdateRepository;
+  private final ActivityEventRepository activityEventRepository;
+  private final ActivityEventService activityEventService;
 
   /**
    * Creates a new team for the authenticated user.
@@ -99,6 +104,22 @@ public class TeamService {
 
     teamMemberRepository.save(ownerMember);
 
+    activityEventService.recordTeamEvent(
+        team,
+        owner,
+        ActivityEventType.TEAM_CREATED,
+        buildTeamActivityDetails(
+            List.of("name", "description", "owner"),
+            null,
+            null,
+            null,
+            List.of(
+                activityEventService.change("name", "name", null, team.getName()),
+                activityEventService.change("description", "description", null, team.getDescription()),
+                activityEventService.change("owner", "owner", null, owner.getFullName())),
+            owner),
+        null);
+
     return mapToResponse(team);
   }
 
@@ -119,6 +140,9 @@ public class TeamService {
 
     validateOwner(teamId, requester.getId());
 
+    String previousName = team.getName();
+    String previousDescription = team.getDescription();
+
     if (request.name() != null) {
 
       String trimmedName = request.name().trim();
@@ -134,6 +158,27 @@ public class TeamService {
 
     if (request.description() != null) {
       team.setDescription(request.description().trim());
+    }
+
+    TeamDetailsUpdateMessage updateMessage = buildTeamUpdateMessage(
+        previousName,
+        previousDescription,
+        team.getName(),
+        team.getDescription());
+
+    if (!updateMessage.fields().isEmpty()) {
+      activityEventService.recordTeamEvent(
+          team,
+          requester,
+          ActivityEventType.TEAM_UPDATED,
+          buildTeamActivityDetails(
+              updateMessage.fields(),
+              null,
+              null,
+              null,
+              updateMessage.changes(),
+              null),
+          updateMessage.message());
     }
 
     return mapToResponse(team);
@@ -156,15 +201,39 @@ public class TeamService {
     validateOwner(teamId, requester.getId());
 
     Instant now = Instant.now();
+    List<TaskEntity> activeTasks = taskRepository
+        .findAllByProjectTeamIdAndDeletedAtIsNull(teamId);
+    List<ProjectEntity> activeProjects = projectRepository
+        .findAllByTeamIdAndDeletedAtIsNull(teamId);
 
     team.setDeletedAt(now);
-    // Bulk repository updates clear persistence context; flush prevents losing
-    // the in-memory team update before the transaction commits.
-    entityManager.flush();
 
-    // Soft-delete tasks and projects owned by this team.
-    taskRepository.softDeleteByTeamId(teamId, now);
-    projectRepository.softDeleteByTeamId(teamId, now);
+    for (com.example.task_manager.task.entity.TaskEntity task : activeTasks) {
+      task.setDeletedAt(now);
+      activityEventService.recordTaskEvent(
+          task,
+          requester,
+          ActivityEventType.TASK_DELETED,
+          activityEventService.emptyDetails(),
+          null);
+    }
+
+    for (com.example.task_manager.project.entity.ProjectEntity project : activeProjects) {
+      project.setDeletedAt(now);
+      activityEventService.recordProjectEvent(
+          project,
+          requester,
+          ActivityEventType.PROJECT_DELETED,
+          activityEventService.emptyDetails(),
+          null);
+    }
+
+    activityEventService.recordTeamEvent(
+        team,
+        requester,
+        ActivityEventType.TEAM_DELETED,
+        activityEventService.emptyDetails(),
+        null);
   }
 
   /**
@@ -206,6 +275,21 @@ public class TeamService {
       throw new ConflictException("User already in team");
     }
 
+    activityEventService.recordTeamEvent(
+        team,
+        requester,
+        ActivityEventType.TEAM_MEMBER_ADDED,
+        buildTeamActivityDetails(
+            List.of("member", "role"),
+            null,
+            role.name(),
+            userToAdd.getFullName(),
+            List.of(
+                activityEventService.change("member", "member", null, userToAdd.getFullName()),
+                activityEventService.change("role", "role", null, role)),
+            userToAdd),
+        null);
+
     return mapToMemberResponse(newMember);
   }
 
@@ -225,6 +309,7 @@ public class TeamService {
     TeamMemberEntity requesterMembership = getMembership(teamId, requester.getId());
 
     TeamMemberEntity memberToRemove = getMembership(teamId, memberUserId);
+    TeamEntity team = memberToRemove.getTeam();
 
     if (memberToRemove.getRole() == TeamRole.OWNER) {
       throw new ForbiddenException("Transfer ownership before removing OWNER");
@@ -234,6 +319,21 @@ public class TeamService {
         memberToRemove.getRole() != TeamRole.MEMBER) {
       throw new ForbiddenException("ADMIN can only remove MEMBER");
     }
+
+    activityEventService.recordTeamEvent(
+        team,
+        requester,
+        ActivityEventType.TEAM_MEMBER_REMOVED,
+        buildTeamActivityDetails(
+            List.of("member", "role"),
+            memberToRemove.getRole().name(),
+            null,
+            memberToRemove.getUser().getFullName(),
+            List.of(
+                activityEventService.change("member", "member", memberToRemove.getUser().getFullName(), null),
+                activityEventService.change("role", "role", memberToRemove.getRole(), null)),
+            memberToRemove.getUser()),
+        null);
 
     teamMemberRepository.delete(memberToRemove);
   }
@@ -270,6 +370,20 @@ public class TeamService {
     owner.setRole(TeamRole.ADMIN);
     newOwner.setRole(TeamRole.OWNER);
 
+    activityEventService.recordTeamEvent(
+        newOwner.getTeam(),
+        requester,
+        ActivityEventType.TEAM_OWNERSHIP_TRANSFERRED,
+        buildTeamActivityDetails(
+            List.of("owner"),
+            owner.getUser().getFullName(),
+            newOwner.getUser().getFullName(),
+            newOwner.getUser().getFullName(),
+            List.of(activityEventService.change("owner", "owner", owner.getUser().getFullName(),
+                newOwner.getUser().getFullName())),
+            newOwner.getUser()),
+        null);
+
     return mapToMemberResponse(newOwner);
   }
 
@@ -304,7 +418,25 @@ public class TeamService {
       throw new ConflictException("Use ownership transfer endpoint.");
     }
 
+    TeamRole previousRole = targetMember.getRole();
+    if (previousRole == newRole) {
+      return mapToMemberResponse(targetMember);
+    }
+
     targetMember.setRole(newRole);
+
+    activityEventService.recordTeamEvent(
+        targetMember.getTeam(),
+        requester,
+        ActivityEventType.TEAM_MEMBER_ROLE_CHANGED,
+        buildTeamActivityDetails(
+            List.of("role"),
+            previousRole.name(),
+            newRole.name(),
+            targetMember.getUser().getFullName(),
+            List.of(activityEventService.change("role", "role", previousRole, newRole)),
+            targetMember.getUser()),
+        null);
 
     return mapToMemberResponse(targetMember);
   }
@@ -495,14 +627,14 @@ public class TeamService {
    * Returns an existing projects by id.
    */
   @Transactional(readOnly = true)
-  public PageResponse<TeamActivityResponse> getTeamActivity(
+  public PageResponse<TeamActivityResponse> getTeamActivities(
       UUID teamId,
       Pageable pageable) {
 
-    Page<TaskUpdateEntity> page = taskUpdateRepository.findTeamActivity(teamId, pageable);
+    Page<ActivityEventEntity> page = activityEventRepository.findTeamActivity(teamId, pageable);
 
     return new PageResponse<>(
-        page.map(this::mapToActivityResponse).getContent(),
+        page.map(activityEventService::toTeamActivitiesResponse).getContent(),
         page.getNumber(),
         page.getSize(),
         page.getTotalElements(),
@@ -709,27 +841,58 @@ public class TeamService {
     return pageable;
   }
 
-  public TeamActivityResponse mapToActivityResponse(TaskUpdateEntity entity) {
-    TeamActivityResponse.User user = new TeamActivityResponse.User(
-        entity.getUser().getId(),
-        entity.getUser().getFirstName(),
-        entity.getUser().getLastName(),
-        entity.getUser().getEmail());
-
-    TeamActivityResponse.Project project = new TeamActivityResponse.Project(
-        entity.getTask().getProject().getId(),
-        entity.getTask().getProject().getName());
-
-    TeamActivityResponse.Task task = new TeamActivityResponse.Task(
-        entity.getTask().getId(),
-        entity.getTask().getTitle());
-
-    return new TeamActivityResponse(
-        entity.getId(),
-        entity.getMessage(),
-        user,
-        project,
-        task,
-        entity.getCreatedAt());
+  private ActivityEventDetails buildTeamActivityDetails(
+      List<String> fields,
+      String from,
+      String to,
+      String target,
+      List<ActivityEventDetails.ActivityChange> changes,
+      UserEntity subjectUser) {
+    return new ActivityEventDetails(
+        fields,
+        from,
+        to,
+        target,
+        changes,
+        null,
+        null,
+        null,
+        subjectUser == null ? null : activityEventService.reference(subjectUser));
   }
+
+  private TeamDetailsUpdateMessage buildTeamUpdateMessage(
+      String previousName,
+      String previousDescription,
+      String newName,
+      String newDescription) {
+
+    List<String> fields = new ArrayList<>();
+    List<ActivityEventDetails.ActivityChange> changes = new ArrayList<>();
+
+    if (!java.util.Objects.equals(previousName, newName)) {
+      fields.add("name");
+      changes.add(activityEventService.change("name", "name", previousName, newName));
+    }
+
+    if (!java.util.Objects.equals(previousDescription, newDescription)) {
+      fields.add("description");
+      changes.add(activityEventService.change("description", "description", previousDescription, newDescription));
+    }
+
+    if (fields.isEmpty()) {
+      return new TeamDetailsUpdateMessage("Team updated", List.of(), List.of());
+    }
+
+    return new TeamDetailsUpdateMessage(
+        "Team updated: " + String.join(", ", fields),
+        fields,
+        changes);
+  }
+
+  private record TeamDetailsUpdateMessage(
+      String message,
+      List<String> fields,
+      List<ActivityEventDetails.ActivityChange> changes) {
+  }
+
 }

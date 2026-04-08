@@ -37,23 +37,30 @@ export default function TaskStatusSelector({
     <Select value={value} onValueChange={(v) => onChange(v as TaskStatus)}>
       <SelectTrigger
         className={cn(
-          "h-8 w-35 text-xs font-medium",
-          TaskStatusStyles[value],
+          "h-10 w-full rounded-xl border-border/70 bg-background px-3 text-left text-sm font-medium shadow-none",
           className,
         )}
       >
-        <SelectValue />
+        <SelectValue>
+          <span
+            className={cn(
+              "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+              TaskStatusStyles[value],
+            )}
+          >
+            {TaskStatusLabel[value]}
+          </span>
+        </SelectValue>
       </SelectTrigger>
 
-      {/* Dropdown */}
-      <SelectContent>
+      <SelectContent className="rounded-xl border-border/70">
         {statuses
           .filter((status) => value === "TODO" || status !== "TODO")
           .map((status) => (
             <SelectItem key={status} value={status}>
               <span
                 className={cn(
-                  "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+                  "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
                   TaskStatusStyles[status],
                 )}
               >

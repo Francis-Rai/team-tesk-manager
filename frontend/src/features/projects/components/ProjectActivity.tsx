@@ -1,17 +1,10 @@
 import { useState } from "react";
 
-import { Input } from "../../../components/ui/input";
+import { useProjectActivity } from "../hooks/useProjectActivities";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../../../components/ui/select";
-
-import { useProjectActivity } from "../hooks/useProjectActivity";
-import { ActivityItem } from "../../../common/components/ActivityItem";
-import type { ProjectActivity } from "../types/projectTypes";
+  ActivityFeed,
+  type ActivityFeedGroupBy,
+} from "../../../common/components/ActivityFeed";
 
 interface Props {
   teamId: string;
@@ -27,6 +20,7 @@ export default function ProjectActivity({
   const [page, setPage] = useState(0);
   const [search, setSearch] = useState("");
   const [sort, setSort] = useState("createdAt,desc");
+  const [groupBy, setGroupBy] = useState<ActivityFeedGroupBy>("date");
 
   const { data, isLoading } = useProjectActivity(teamId, projectId, {
     page: page,
@@ -35,73 +29,48 @@ export default function ProjectActivity({
     sort,
   });
 
-  if (isLoading) {
-    return (
-      <div className="text-sm text-muted-foreground">Loading activity...</div>
-    );
-  }
-
-  function groupActivityByDate(items: ProjectActivity[]) {
-    const groups: Record<string, ProjectActivity[]> = {};
-
-    for (const item of items) {
-      const date = new Date(item.createdAt).toDateString();
-
-      if (!groups[date]) groups[date] = [];
-
-      groups[date].push(item);
-    }
-
-    return groups;
-  }
-
-  const grouped = groupActivityByDate(data?.content ?? []);
-
   return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 overflow-auto space-y-6">
-        <div className="flex flex-col md:flex-row gap-2 md:items-center md:justify-between">
-          <Input
-            placeholder="Search activity..."
-            value={search}
-            onChange={(e) => {
-              setSearch(e.target.value);
-              setPage(0);
-            }}
-            className="max-w-sm"
-          />
-
-          <Select value={sort} onValueChange={setSort}>
-            <SelectTrigger className="w-45">
-              <SelectValue />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="createdAt,desc">Newest</SelectItem>
-              <SelectItem value="createdAt,asc">Oldest</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="space-y-6">
-          {Object.entries(grouped).map(([date, items]) => (
-            <div key={date}>
-              <div className="text-xs text-muted-foreground mb-2">{date}</div>
-
-              <div className="space-y-1">
-                {items.map((item) => (
-                  <ActivityItem
-                    key={item.id}
-                    item={item}
-                    onOpenTask={onOpenTask}
-                  />
-                ))}
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-      <div className="border-t p-4">PAGINATION</div>
-    </div>
+    <ActivityFeed
+      variant="project"
+      copy={{
+        description:
+          "A running project log of task movement, status changes, assignments, and key edits.",
+      }}
+      data={{
+        items: data?.content ?? [],
+        isLoading,
+        page: data?.page ?? page,
+        totalPages: data?.totalPages ?? 0,
+        totalElements: data?.totalElements ?? 0,
+      }}
+      controls={{
+        search,
+        sort,
+        groupBy,
+        groupByOptions: [
+          { value: "date", label: "Date" },
+          { value: "task", label: "Task" },
+          { value: "person", label: "Person" },
+          { value: "type", label: "Type" },
+        ],
+        onSearchChange: (value) => {
+          setSearch(value);
+          setPage(0);
+        },
+        onSortChange: (value) => {
+          setSort(value);
+          setPage(0);
+        },
+        onGroupByChange: setGroupBy,
+        onPageChange: setPage,
+      }}
+      behavior={{
+        onOpenTask: (item) => {
+          if (item.task?.id) {
+            onOpenTask(item.task.id);
+          }
+        },
+      }}
+    />
   );
 }

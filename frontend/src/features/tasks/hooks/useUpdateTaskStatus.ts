@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { updateTaskStatus } from "../api/taskApi";
 
 import type { PageResponse } from "../../../common/types/pageResponse.types";
-import type { Task } from "../types/taskTypes";
+import type { Task } from "../types/task.types";
 import type { TaskStatus } from "../utils/taskStatus";
 
 interface Params {
@@ -71,7 +71,7 @@ export const useUpdateTaskStatus = (teamId: string, projectId: string) => {
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["taskUpdates", teamId, projectId, taskId],
+        queryKey: ["taskActivities", teamId, projectId, taskId],
       });
 
       queryClient.invalidateQueries({

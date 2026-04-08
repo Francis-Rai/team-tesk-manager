@@ -38,13 +38,13 @@ export const getProject = async (
   return response.data;
 };
 
-export const getProjectActivity = async (
+export const getProjectActivities = async (
   teamId: string,
   projectId: string,
   params: BaseQueryParams,
 ): Promise<PageResponse<ProjectActivity>> => {
   const res = await apiClient.get(
-    `/teams/${teamId}/projects/${projectId}/activity`,
+    `/teams/${teamId}/projects/${projectId}/activities`,
     { params },
   );
   return res.data;

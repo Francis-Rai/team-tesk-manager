@@ -1,6 +1,7 @@
 package com.example.task_manager.project;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,5 +41,7 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID>, J
             AND p.deletedAt IS NULL
       """)
   int softDeleteByTeamId(UUID teamId, Instant deletedAt);
+
+  List<ProjectEntity> findAllByTeamIdAndDeletedAtIsNull(UUID teamId);
 
 }

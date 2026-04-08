@@ -1,8 +1,7 @@
 import { apiClient } from "./../../../api/apiClients";
 import type { PageResponse } from "../../../common/types/pageResponse.types";
 import type { CreateTaskInput } from "../types/createTaskSchema";
-import type { TaskUpdate } from "../types/taskUpdatesTypes";
-import type { Task, UpdateTaskInput } from "../types/taskTypes";
+import type { Task, TaskActivity, UpdateTaskInput } from "../types/task.types";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
 
 export const getTasks = async (
@@ -74,14 +73,14 @@ export const deleteTask = async (
   );
 };
 
-export const getTaskUpdates = async (
+export const getTaskActivities = async (
   teamId: string,
   projectId: string,
   taskId: string,
-  params: { page: number; size: number },
-): Promise<PageResponse<TaskUpdate>> => {
+  params: { page: number; size: number; sort?: string },
+): Promise<PageResponse<TaskActivity>> => {
   const res = await apiClient.get(
-    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/updates`,
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/activities`,
     { params },
   );
 
@@ -128,14 +127,14 @@ export const assignSupportUser = async (
   return response.data;
 };
 
-export const createTaskUpdate = async (
+export const createTaskComment = async (
   teamId: string,
   projectId: string,
   taskId: string,
   message: string,
 ) => {
   const response = await apiClient.post(
-    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/updates`,
+    `/teams/${teamId}/projects/${projectId}/tasks/${taskId}/activities`,
     { message },
   );
 

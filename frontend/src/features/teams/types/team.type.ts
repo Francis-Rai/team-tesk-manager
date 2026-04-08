@@ -1,4 +1,5 @@
 import type { UserRole } from "../../users/types/userRole";
+import type { ActivityDetails, ActivityType } from "../../../common/types/activity.types";
 
 export interface Team {
   id: string;
@@ -47,9 +48,11 @@ type Task = {
 export type TeamActivity = {
   id: string;
   message: string;
+  type: ActivityType;
+  details: ActivityDetails;
   user: User;
-  project: Project;
-  task: Task;
+  project?: Project | null;
+  task?: Task | null;
   createdAt: string;
 };
 

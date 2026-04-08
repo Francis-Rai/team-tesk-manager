@@ -1,6 +1,6 @@
 import { useNavigate } from "react-router-dom";
 
-import type { Task } from "../types/taskTypes";
+import type { Task } from "../types/task.types";
 import {
   Table,
   TableBody,
@@ -52,7 +52,7 @@ export default function TaskList({
   }
 
   return (
-    <div className=" flex flex-col h-full min-h-0">
+    <div className=" flex flex-col h-full min-h-0 p-4 rounded-xl border border-border/60 bg-background/70">
       <div className="flex-1 min-h-0 overflow-auto">
         <Table>
           <TableHeader className="sticky top-0 bg-background z-10">

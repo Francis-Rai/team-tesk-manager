@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useCreateTask } from "../hooks/useCreateTask";
 
 import UserSelector from "../../../common/components/UserSelector";
+import PrioritySelect from "../../../common/components/PrioritySelector";
 
 import {
   createTaskSchema,
@@ -11,13 +12,6 @@ import {
 } from "../types/createTaskSchema";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import {
-  SelectTrigger,
-  SelectValue,
-  SelectContent,
-  SelectItem,
-  Select,
-} from "../../../components/ui/select";
 import { Label } from "../../../components/ui/label";
 import { Separator } from "../../../components/ui/separator";
 import DatePicker from "../../../common/components/DatePicker";
@@ -146,25 +140,15 @@ export function CreateTaskForm({
         <div className="space-y-1">
           <Label className="text-xs text-muted-foreground">Priority</Label>
 
-          <Select
+          <PrioritySelect
             value={priority}
-            onValueChange={(value) =>
+            onChange={(value) =>
               form.setValue("priority", value as TaskPriority, {
                 shouldValidate: true,
                 shouldDirty: true,
               })
             }
-          >
-            <SelectTrigger className="w-full border rounded-md px-3 py-2 text-sm">
-              <SelectValue placeholder="Priority" />
-            </SelectTrigger>
-
-            <SelectContent>
-              <SelectItem value="LOW">Low</SelectItem>
-              <SelectItem value="MEDIUM">Medium</SelectItem>
-              <SelectItem value="HIGH">High</SelectItem>
-            </SelectContent>
-          </Select>
+          />
         </div>
 
         <div className="space-y-1">
@@ -173,6 +157,7 @@ export function CreateTaskForm({
           <UserSelector
             users={members}
             value={assigneeId}
+            excludedUserIds={supportId ? [supportId] : []}
             onChange={(id) =>
               form.setValue("assigneeId", id ?? "", {
                 shouldValidate: true,
@@ -190,6 +175,7 @@ export function CreateTaskForm({
             users={members}
             allowClear
             value={supportId}
+            excludedUserIds={assigneeId ? [assigneeId] : []}
             onChange={(id) => form.setValue("supportId", id ?? undefined)}
             placeholder="Optional"
           />

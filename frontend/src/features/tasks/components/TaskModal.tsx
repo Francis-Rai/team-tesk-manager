@@ -9,8 +9,8 @@ import { getTaskPermissions } from "../utils/taskPermissions";
 import TaskDescription from "./TaskDescription";
 import TaskHeader from "./TaskHeader";
 import TaskMetadata from "./TaskMetadata";
-import TaskTimeline from "./TaskTimeline";
-import TaskUpdateForm from "./TaskUpdateForm";
+import TaskActivity from "./TaskActivity";
+import TaskCommentForm from "./TaskCommentForm";
 
 interface Props {
   open: boolean;
@@ -42,44 +42,55 @@ export default function TaskModal({
     assigneeId: task?.assignedUser?.id,
     supportId: task?.supportUser?.id,
   });
+
   return (
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent
-        className="sm:min-w-[70vw] xl:min-w-[40vw] max-h-[90vh] sm:h-full lg:h-fit lg:max-h-[80vh] p-0 overflow-auto"
+        className="flex h-[min(92vh,860px)] max-w-[calc(100%-1.5rem)] flex-col overflow-hidden rounded-[1.75rem] border border-border/60 bg-background p-0 shadow-2xl sm:max-w-5xl"
         aria-describedby={undefined}
       >
-        <div className="flex flex-col h-full">
-          <DialogTitle>
-            <TaskHeader
-              task={task}
-              teamId={teamId}
-              projectId={projectId}
-              permissions={permissions}
-              onTaskDeleted={onTaskDeleted}
-            />
-          </DialogTitle>
-          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-8">
-            <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
+        <DialogTitle>
+          <TaskHeader
+            task={task}
+            teamId={teamId}
+            projectId={projectId}
+            permissions={permissions}
+            onTaskDeleted={onTaskDeleted}
+          />
+        </DialogTitle>
 
-            <TaskDescription
-              teamId={teamId}
-              projectId={projectId}
-              task={task}
-              permissions={permissions}
-            />
+        <div className="flex-1 min-h-0 bg-muted/10">
+          <div className="flex h-full min-h-0 flex-col overflow-y-auto px-4 py-4 sm:px-6 sm:py-5 xl:grid xl:grid-cols-[minmax(0,1fr)_18rem] xl:gap-4 xl:overflow-hidden">
+            <div className="order-2 flex min-h-0 flex-col gap-4 xl:order-1">
+              <TaskDescription
+                teamId={teamId}
+                projectId={projectId}
+                task={task}
+                permissions={permissions}
+              />
 
-            <TaskUpdateForm
-              teamId={teamId}
-              projectId={projectId}
-              taskId={task.id}
-              permissions={permissions}
-            />
+              <TaskCommentForm
+                teamId={teamId}
+                projectId={projectId}
+                taskId={task.id}
+                permissions={permissions}
+              />
 
-            <TaskTimeline
-              teamId={teamId}
-              projectId={projectId}
-              taskId={task.id}
-            />
+              <TaskActivity
+                teamId={teamId}
+                projectId={projectId}
+                taskId={task.id}
+                className="min-h-[22rem] xl:min-h-0 xl:flex-1"
+              />
+            </div>
+
+            <aside className="order-1 xl:order-2 xl:min-h-0 xl:overflow-y-auto">
+              <TaskMetadata
+                teamId={teamId}
+                projectId={projectId}
+                task={task}
+              />
+            </aside>
           </div>
         </div>
       </DialogContent>

@@ -39,3 +39,25 @@ export interface UpdateTaskInput {
   plannedStartDate?: string | null;
   plannedDueDate?: string | null;
 }
+
+import type {
+  ActivityDetails,
+  ActivityType,
+} from "../../../common/types/activity.types";
+
+export interface TaskActivity {
+  id: string;
+  message: string;
+  type: ActivityType;
+  details: ActivityDetails;
+  user: User;
+  task?: Task;
+  createdAt: string;
+}
+
+type User = {
+  id: number;
+  firstName: string;
+  lastName: string;
+  email: string;
+};

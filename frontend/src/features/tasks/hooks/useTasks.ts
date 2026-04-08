@@ -2,7 +2,7 @@ import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import type { PageResponse } from "../../../common/types/pageResponse.types";
 import { getTasks } from "../api/taskApi";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
-import type { Task } from "../types/taskTypes";
+import type { Task } from "../types/task.types";
 
 export const useTasks = (
   teamId: string,

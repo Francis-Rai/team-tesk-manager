@@ -6,6 +6,6 @@ import jakarta.validation.constraints.Size;
 /**
  * DTO for creating a task update.
  */
-public record CreateTaskUpdateRequest(
+public record CreateTaskCommentRequest(
     @NotBlank @Size(max = 2000) String message) {
 }

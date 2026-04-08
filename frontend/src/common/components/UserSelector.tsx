@@ -15,12 +15,16 @@ import {
 import { Button } from "../../components/ui/button";
 import { useState } from "react";
 import type { User } from "../../features/users/types/userType";
+import { Avatar, AvatarFallback } from "../../components/ui/avatar";
 
 interface Props {
   users: User[];
   value?: string;
   placeholder: string;
   allowClear?: boolean;
+  excludedUserIds?: string[];
+  className?: string;
+  popoverClassName?: string;
   onChange: (id: string | null) => void;
 }
 
@@ -29,11 +33,19 @@ export default function UserSelector({
   value,
   placeholder = "Select user",
   allowClear = false,
+  excludedUserIds = [],
+  className,
+  popoverClassName,
   onChange,
 }: Props) {
   const [open, setOpen] = useState(false);
 
+  const excludedIds = new Set(excludedUserIds.filter(Boolean));
+  const availableUsers = users.filter(
+    (user) => user.id === value || !excludedIds.has(user.id),
+  );
   const selectedUser = users.find((u) => u.id === value);
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
@@ -41,19 +53,46 @@ export default function UserSelector({
           variant="outline"
           role="combobox"
           className={cn(
-            "w-full justify-between overflow-x-hidden",
+            "h-auto min-h-10 w-full rounded-xl border-border/70 bg-background px-3 py-2 text-left font-normal shadow-none hover:bg-muted/20",
             !value && "text-muted-foreground",
+            className,
           )}
         >
-          {selectedUser
-            ? `${selectedUser.lastName} ${selectedUser.firstName}`
-            : placeholder}
+          <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden pr-2">
+            {selectedUser ? (
+              <>
+                <Avatar className="h-6 w-6 shrink-0 ring-1 ring-border/60">
+                  <AvatarFallback className="text-[10px]">
+                    {selectedUser.lastName?.[0]}
+                    {selectedUser.firstName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1 text-sm leading-5 text-foreground">
+                  <span className="line-clamp-2 break-words">
+                    {selectedUser.firstName} {selectedUser.lastName}
+                  </span>
+                </span>
+              </>
+            ) : (
+              <span className="block min-w-0 truncate text-sm leading-5">
+                {placeholder}
+              </span>
+            )}
+          </span>
 
-          <ChevronsUpDown className="ml-2 h-4 w-4 opacity-50" />
+          <span className="flex shrink-0 items-start pt-0.5">
+            <ChevronsUpDown className="h-4 w-4 opacity-50" />
+          </span>
         </Button>
       </PopoverTrigger>
 
-      <PopoverContent className="w-full p-0">
+      <PopoverContent
+        align="start"
+        className={cn(
+          "w-[min(26rem,calc(100vw-2rem))] min-w-[18rem] rounded-xl border-border/70 p-0",
+          popoverClassName,
+        )}
+      >
         <Command>
           <CommandInput placeholder="Search user..." />
 
@@ -64,6 +103,7 @@ export default function UserSelector({
             {allowClear && (
               <CommandItem
                 value="none"
+                className="gap-2"
                 onSelect={() => {
                   onChange(null);
                   setOpen(false);
@@ -73,19 +113,34 @@ export default function UserSelector({
               </CommandItem>
             )}
 
-            {users.map((user) => {
-              const label = `${user.lastName} ${user.firstName}`;
+            {availableUsers.map((user) => {
+              const label = `${user.firstName} ${user.lastName}`;
 
               return (
                 <CommandItem
                   key={user.id}
+                  className="items-start gap-2 py-2"
                   value={label}
                   onSelect={() => {
                     onChange(user.id);
                     setOpen(false);
                   }}
                 >
-                  {label}
+                  <Avatar className="h-7 w-7 ring-1 ring-border/50">
+                    <AvatarFallback className="text-[10px]">
+                      {user.lastName?.[0]}
+                      {user.firstName?.[0]}
+                    </AvatarFallback>
+                  </Avatar>
+
+                  <div className="min-w-0 flex-1">
+                    <div className="break-words text-sm font-medium leading-5">
+                      {label}
+                    </div>
+                    <div className="break-all text-xs text-muted-foreground">
+                      {user.email}
+                    </div>
+                  </div>
 
                   <Check
                     className={cn(

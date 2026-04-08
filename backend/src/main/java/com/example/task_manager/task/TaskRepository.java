@@ -1,6 +1,7 @@
 package com.example.task_manager.task;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -68,4 +69,9 @@ public interface TaskRepository extends JpaRepository<TaskEntity, UUID>, JpaSpec
       UUID projectId,
       UUID userId,
       Pageable pageable);
+
+  List<TaskEntity> findAllByProjectTeamIdAndDeletedAtIsNull(UUID teamId);
+
+  List<TaskEntity> findAllByProjectIdAndDeletedAtIsNull(UUID projectId);
+
 }

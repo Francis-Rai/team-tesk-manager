@@ -27,11 +27,11 @@ export const getAllTeams = async (
   return response.data.content;
 };
 
-export const getTeamActivity = async (
+export const getTeamActivities = async (
   teamId: string,
   params: BaseQueryParams,
 ): Promise<PageResponse<TeamActivity>> => {
-  const res = await apiClient.get(`/teams/${teamId}/activity`, { params });
+  const res = await apiClient.get(`/teams/${teamId}/activities`, { params });
   return res.data;
 };
 

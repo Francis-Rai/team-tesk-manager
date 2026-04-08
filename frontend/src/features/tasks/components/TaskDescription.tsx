@@ -1,6 +1,6 @@
 import EditableField from "../../../common/components/EditableField";
 import { useUpdateTask } from "../hooks/useUpdateTask";
-import type { Task } from "../types/taskTypes";
+import type { Task } from "../types/task.types";
 import type { TaskPermissions } from "../utils/taskPermissions";
 
 interface Props {
@@ -19,18 +19,20 @@ export default function TaskDescription({
   const updateTask = useUpdateTask(teamId, projectId, task.id);
 
   return (
-    <div className="space-y-2">
-      <h2 className="text-sm font-medium text-muted-foreground">Description</h2>
+    <section className="space-y-2 rounded-2xl border border-border/60 bg-background p-5 shadow-xs">
+      <div>
+        <h2 className="text-sm font-semibold text-foreground">Description</h2>
+      </div>
 
       <EditableField
         value={task.description}
-        displayClassName="text-sm leading-relaxed text-muted-foreground"
+        displayClassName="text-sm leading-7 text-foreground/90"
         multiline
         maxLength={2000}
-        inputClassName="text-sm font-medium"
+        inputClassName="text-sm leading-7 text-foreground"
         onSave={(value) => updateTask.mutate({ description: value })}
         disabled={!permissions.canEditTaskDetails}
       />
-    </div>
+    </section>
   );
 }

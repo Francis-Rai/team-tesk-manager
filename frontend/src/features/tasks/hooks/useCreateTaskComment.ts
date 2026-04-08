@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createTaskUpdate } from "../api/taskApi";
+import { createTaskComment } from "../api/taskApi";
 
-export const useCreateTaskUpdate = (
+export const useCreateTaskComment = (
   teamId: string,
   projectId: string,
   taskId: string,
@@ -10,7 +10,7 @@ export const useCreateTaskUpdate = (
 
   return useMutation({
     mutationFn: (message: string) =>
-      createTaskUpdate(teamId, projectId, taskId, message),
+      createTaskComment(teamId, projectId, taskId, message),
 
     onSuccess: () => {
       queryClient.invalidateQueries({

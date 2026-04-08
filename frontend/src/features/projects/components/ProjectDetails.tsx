@@ -6,7 +6,7 @@ import { useProject } from "../hooks/useProject";
 import TaskBoard from "../../tasks/components/TaskBoard";
 import TaskModal from "../../tasks/components/TaskModal";
 
-import type { Task } from "../../tasks/types/taskTypes";
+import type { Task } from "../../tasks/types/task.types";
 import type { TaskStatus } from "../../tasks/utils/taskStatus";
 
 import TaskFilters from "../../tasks/components/TaskFilters";
@@ -118,8 +118,8 @@ export default function ProjectDetails() {
         open={createOpen}
         onOpenChange={setCreateOpen}
       />
-      <Tabs defaultValue="board" className="flex flex-col flex-1 min-h-0 ">
-        <TabsList className="border rounded-md bg-muted/40 p-1 inline-flex gap-1">
+      <Tabs defaultValue="board" className="flex flex-col flex-1 min-h-0">
+        <TabsList className="inline-flex gap-1 rounded-xl border border-border/60 bg-background/70 p-1 shadow-sm">
           <TabsTrigger
             value="list"
             className="
@@ -168,8 +168,8 @@ export default function ProjectDetails() {
             Activity
           </TabsTrigger>
         </TabsList>
-        <div className="rounded-lg border bg-background p-4 flex flex-col flex-1 min-h-0">
-          <TabsContent value="board" className="flex flex-col flex-1 min-h-0">
+        <div className="flex flex-col flex-1 min-h-0">
+          <TabsContent value="board" className="flex flex-col flex-1 min-h-0 gap-3">
             <TaskFilters
               search={search}
               status={status}
@@ -190,7 +190,7 @@ export default function ProjectDetails() {
               onOpenTask={setSelectedTask}
             />
           </TabsContent>
-          <TabsContent value="list" className="flex flex-col flex-1 min-h-0">
+          <TabsContent value="list" className="flex flex-col flex-1 min-h-0 gap-3">
             <TaskFilters
               search={search}
               status={status}

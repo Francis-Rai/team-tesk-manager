@@ -201,10 +201,10 @@ public class TeamController {
   /**
    * Get teams's activity.
    */
-  @GetMapping("/{teamId}/activity")
+  @GetMapping("/{teamId}/activities")
   public ResponseEntity<PageResponse<TeamActivityResponse>> getProjectActivity(
       @PathVariable UUID teamId,
       @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable) {
-    return ResponseEntity.ok(teamService.getTeamActivity(teamId, pageable));
+    return ResponseEntity.ok(teamService.getTeamActivities(teamId, pageable));
   }
 }

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import type { UpdateTaskInput } from "../types/taskTypes";
+import type { UpdateTaskInput } from "../types/task.types";
 import { updateTask } from "../api/taskApi";
 
 export function useUpdateTask(
@@ -27,7 +27,7 @@ export function useUpdateTask(
       });
 
       queryClient.invalidateQueries({
-        queryKey: ["taskUpdates", teamId, projectId, taskId],
+        queryKey: ["taskActivities", teamId, projectId, taskId],
       });
 
       queryClient.invalidateQueries({

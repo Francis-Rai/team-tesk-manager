@@ -1,7 +1,7 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getTeamActivity } from "../api/teamApi";
+import { getTeamActivities } from "../api/teamApi";
 
-export const useTeamActivity = (
+export const useTeamActivities = (
   teamId: string,
   params: {
     page?: number;
@@ -20,7 +20,7 @@ export const useTeamActivity = (
       params.sort,
     ],
     queryFn: async () =>
-      getTeamActivity(teamId, {
+      getTeamActivities(teamId, {
         page: params.page,
         size: params.size,
         search: params.search,
