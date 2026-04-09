@@ -136,46 +136,59 @@ export default function MembersList({
   };
 
   if (isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading...</div>;
+    return (
+      <div className="rounded-2xl border border-border/60 bg-background/92 p-6 text-sm text-muted-foreground shadow-sm">
+        Loading members...
+      </div>
+    );
   }
 
   if (!filtered.length) {
     return (
-      <div className="text-sm text-muted-foreground">No members found.</div>
+      <div className="rounded-2xl border border-dashed border-border/70 bg-background/70 px-6 py-14 text-center">
+        <h2 className="text-base font-semibold text-foreground">
+          No members found
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Try adjusting the search or role filter.
+        </p>
+      </div>
     );
   }
   return (
     <>
-      <div className="rounded-lg border">
+      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/92 shadow-sm">
         <Table>
-          <TableHeader>
+          <TableHeader className="bg-muted/20">
             <TableRow>
               <TableHead
                 onClick={() => handleSort("user.lastName")}
-                className="cursor-pointer"
+                className="cursor-pointer px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
               >
                 Name
               </TableHead>
               <TableHead
                 onClick={() => handleSort("role")}
-                className="cursor-pointer"
+                className="cursor-pointer px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
               >
                 Role
               </TableHead>
               <TableHead
                 onClick={() => handleSort("user.email")}
-                className="cursor-pointer"
+                className="cursor-pointer px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
               >
                 Email
               </TableHead>
               <TableHead
                 onClick={() => handleSort("joinedAt")}
-                className="cursor-pointer"
+                className="cursor-pointer px-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground"
               >
                 Joined Date
               </TableHead>
               {(isOwner || isAdmin) && (
-                <TableHead className="text-right">Actions</TableHead>
+                <TableHead className="px-4 text-right text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                  Actions
+                </TableHead>
               )}
             </TableRow>
           </TableHeader>
@@ -189,27 +202,32 @@ export default function MembersList({
                   member.globalRole === "SUPER_ADMIN");
               const canRemove = member.teamRole !== "OWNER";
               return (
-                <TableRow key={member.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback>
+                <TableRow key={member.id} className="hover:bg-muted/20">
+                  <TableCell className="px-4 py-3">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8 ring-1 ring-border/60">
+                        <AvatarFallback className="text-[11px]">
                           {member.lastName[0]}
                           {member.firstName[0]}
                         </AvatarFallback>
                       </Avatar>
 
-                      <span className="font-medium">
-                        {member.lastName}, {member.firstName}
-                      </span>
+                      <div className="min-w-0">
+                        <div className="truncate font-medium text-foreground">
+                          {member.firstName} {member.lastName}
+                        </div>
+                        <div className="truncate text-xs text-muted-foreground">
+                          {member.globalRole}
+                        </div>
+                      </div>
                     </div>
                   </TableCell>
 
-                  <TableCell>
+                  <TableCell className="px-4 py-3">
                     {member.teamRole === "OWNER" ? (
                       <Badge
                         variant="outline"
-                        className={TEAM_ROLE_STYLES.OWNER}
+                        className={`rounded-full px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em] ${TEAM_ROLE_STYLES.OWNER}`}
                       >
                         {TEAM_ROLE_LABEL.OWNER}
                       </Badge>
@@ -222,7 +240,7 @@ export default function MembersList({
                         disabled={isUpdating}
                       >
                         <SelectTrigger
-                          className={`h-8 w-35 text-xs font-medium ${TEAM_ROLE_STYLES[(member.teamRole ?? "MEMBER") as TeamRole]}`}
+                          className={`h-9 w-34 rounded-xl border px-3 text-[11px] font-semibold uppercase tracking-[0.12em] shadow-none ${TEAM_ROLE_STYLES[(member.teamRole ?? "MEMBER") as TeamRole]}`}
                         >
                           <SelectValue />
                         </SelectTrigger>
@@ -231,7 +249,7 @@ export default function MembersList({
                           <SelectItem value="ADMIN">
                             <span
                               className={cn(
-                                "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+                                "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
                                 TEAM_ROLE_STYLES.ADMIN,
                               )}
                             >
@@ -242,7 +260,7 @@ export default function MembersList({
                           <SelectItem value="MEMBER">
                             <span
                               className={cn(
-                                "inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium",
+                                "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
                                 TEAM_ROLE_STYLES.MEMBER,
                               )}
                             >
@@ -254,17 +272,21 @@ export default function MembersList({
                     )}
                   </TableCell>
 
-                  <TableCell>{member.email}</TableCell>
-                  <TableCell>{formatDate(member.joinedAt)}</TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {member.email}
+                  </TableCell>
+                  <TableCell className="px-4 py-3 text-sm text-muted-foreground">
+                    {formatDate(member.joinedAt)}
+                  </TableCell>
 
                   {(isOwner || isAdmin) && (
-                    <TableCell className="text-right">
+                    <TableCell className="px-4 py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-8 w-8 p-0"
+                            className="h-8 w-8 rounded-full p-0"
                           >
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
@@ -283,7 +305,7 @@ export default function MembersList({
                             </>
                           )}
                           <DropdownMenuItem
-                            disabled={canRemove}
+                            disabled={!canRemove}
                             onClick={() => onOpenRemove(member)}
                             className="
           flex items-center justify-between
@@ -304,7 +326,7 @@ export default function MembersList({
         </Table>
 
         {pagination.totalPages > 1 && (
-          <div className="border-t p-4">
+          <div className="border-t border-border/60 bg-background px-4 py-3">
             <Pagination
               page={pagination.page}
               totalPages={pagination.totalPages}

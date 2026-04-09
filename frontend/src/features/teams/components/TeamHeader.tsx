@@ -1,14 +1,17 @@
+import type { ReactNode } from "react";
+
 import EditableField from "../../../common/components/EditableField";
-import { Button } from "../../../components/ui/button";
 import { useUpdateTeam } from "../hooks/useUpdateTeam";
 import type { TeamPermissions } from "../utils/teamPermissions";
 import { DeleteTeam } from "./DeleteTeamModal";
+import { cn } from "../../../lib/utils";
 
 interface Props {
   teamId: string;
   name: string;
   description?: string;
   permissions: TeamPermissions;
+  actions?: ReactNode;
 }
 
 export default function TeamHeader({
@@ -16,34 +19,46 @@ export default function TeamHeader({
   name,
   description,
   permissions,
+  actions,
 }: Props) {
   const updateTeam = useUpdateTeam(teamId);
 
   return (
-    <div className="flex items-start justify-between">
-      <div className="flex-1 space-y-2">
-        <EditableField
-          displayClassName="w-full text-2xl font-semibold tracking-tight"
-          inputClassName="w-full text-2xl font-semibold"
-          value={name}
-          maxLength={100}
-          onSave={(value) => updateTeam.mutate({ name: value })}
-          disabled={!permissions.canEditTeamDetails}
-        />
+    <section className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="flex-1 space-y-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            Team workspace
+          </p>
 
-        <EditableField
-          displayClassName="w-full text-sm leading-relaxed text-muted-foreground"
-          inputClassName="w-full text-sm"
-          multiline
-          value={description}
-          maxLength={2000}
-          onSave={(value) => updateTeam.mutate({ description: value })}
-          disabled={!permissions.canEditTeamDetails}
-        />
+          <EditableField
+            displayClassName="w-full text-xl font-semibold tracking-tight sm:text-2xl"
+            inputClassName="w-full text-xl font-semibold sm:text-2xl"
+            value={name}
+            maxLength={100}
+            onSave={(value) => updateTeam.mutate({ name: value })}
+            disabled={!permissions.canEditTeamDetails}
+          />
+
+          <EditableField
+            displayClassName="w-full max-w-3xl text-sm leading-6 text-muted-foreground"
+            inputClassName="w-full text-sm"
+            multiline
+            value={description}
+            maxLength={2000}
+            onSave={(value) => updateTeam.mutate({ description: value })}
+            disabled={!permissions.canEditTeamDetails}
+          />
+        </div>
+
+        <div className={cn("flex flex-wrap items-center gap-2 lg:justify-end lg:self-start")}>
+          {actions}
+
+          {permissions.canDeleteTeam && (
+            <DeleteTeam teamId={teamId} teamName={name} />
+          )}
+        </div>
       </div>
-      <DeleteTeam teamId={teamId} teamName={name} />
-
-      <Button size="sm">Add Member</Button>
-    </div>
+    </section>
   );
 }

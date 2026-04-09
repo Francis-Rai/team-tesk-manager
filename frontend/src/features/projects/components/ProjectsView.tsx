@@ -1,6 +1,7 @@
 import { useNavigate, useParams } from "react-router-dom";
 import { useState } from "react";
 import { useDebounce } from "../../../common/hooks/useDebounce";
+import Pagination from "../../../common/components/Pagination";
 import { useProjects } from "../hooks/useProjects";
 import { CreateProjectModal } from "./CreateProjectModal";
 import ProjectCard from "./ProjectCard";
@@ -58,10 +59,6 @@ export default function ProjectsPage() {
     return <div className="p-6">Invalid project</div>;
   }
 
-  if (isLoading) {
-    return <div className="p-6">Loading projects...</div>;
-  }
-
   return (
     <div className="space-y-6">
       <ProjectsHeader onCreateProject={() => setCreateOpen(true)} />
@@ -83,23 +80,45 @@ export default function ProjectsPage() {
         deletedFilter={deletedFilter}
       />
 
-      <div
-        className="
-            grid gap-5
-            grid-cols-1
-            sm:grid-cols-2
-            lg:grid-cols-3
-            xl:grid-cols-4
-          "
-      >
-        {projects?.map((project) => (
-          <ProjectCard
-            key={project.id}
-            project={project}
-            onClick={() => openProject(project.id)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-44 animate-pulse rounded-2xl border border-border/60 bg-muted/25"
+            />
+          ))}
+        </div>
+      ) : projects.length === 0 ? (
+        <div className="rounded-2xl border border-dashed border-border/70 bg-background/70 px-6 py-14 text-center">
+          <h2 className="text-base font-semibold text-foreground">
+            No projects found
+          </h2>
+          <p className="mt-2 text-sm text-muted-foreground">
+            Try changing the filters, or create a new project for this team.
+          </p>
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+            {projects.map((project) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                onClick={() => openProject(project.id)}
+              />
+            ))}
+          </div>
+
+          {(data?.totalPages ?? 0) > 1 && (
+            <Pagination
+              page={page}
+              totalPages={data?.totalPages ?? 0}
+              onPageChange={setPage}
+            />
+          )}
+        </>
+      )}
     </div>
   );
 }

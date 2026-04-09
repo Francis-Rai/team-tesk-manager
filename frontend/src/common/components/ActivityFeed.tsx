@@ -223,7 +223,7 @@ export function ActivityFeed({
     <section className="flex h-full min-h-0 flex-col gap-2">
       <header className="space-y-3">
         {showHeaderMeta && (
-          <div className="rounded-2xl border border-border/60 bg-linear-to-br from-background via-background to-muted/20 px-4 py-4 space-y-1.5">
+          <div className="rounded-2xl border border-border/60 bg-linear-to-br from-background via-background to-muted/20 px-4 py-4 space-y-1.5 shadow-sm">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               {resolvedCopy.scopeLabel}
             </p>
