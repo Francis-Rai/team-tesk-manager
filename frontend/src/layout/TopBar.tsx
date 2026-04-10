@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus, Sparkles } from "lucide-react";
 import { Button } from "../components/ui/button";
 import {
   DropdownMenu,
@@ -25,26 +26,27 @@ export default function TopBar() {
   return (
     <>
       <div
-        className="
-          h-14 px-4 flex items-center justify-between
-          border-b bg-background/80 backdrop-blur
-          sticky top-0 z-30
-        "
+        className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-background/85 px-4 backdrop-blur supports-backdrop-filter:bg-background/75"
       >
         <div className="flex items-center gap-4">
-          <span
-            className="font-semibold text-sm cursor-pointer"
+          <button
+            type="button"
+            className="inline-flex items-center gap-2 rounded-full border border-border/60 bg-background/80 px-3 py-1.5 text-sm font-semibold text-foreground transition hover:border-border hover:bg-muted/20"
             onClick={() => (window.location.href = "/teams")}
           >
+            <span className="rounded-full bg-primary/10 p-1 text-primary">
+              <Sparkles className="h-3.5 w-3.5" />
+            </span>
             TeamTaskManager
-          </span>
+          </button>
         </div>
 
         <div className="flex items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button size="sm" className="h-9 px-3">
-                + Create
+              <Button size="sm" className="h-9 rounded-xl px-3.5">
+                <Plus className="h-4 w-4" />
+                Create
               </Button>
             </DropdownMenuTrigger>
 

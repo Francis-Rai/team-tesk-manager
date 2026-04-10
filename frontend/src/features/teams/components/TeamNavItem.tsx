@@ -23,10 +23,11 @@ export default function NavItem({
       end={end}
       className={({ isActive }) =>
         cn(
-          "flex items-center gap-3 px-3 py-2 rounded-md text-sm transition",
+          "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-all",
+          collapsed && "justify-center px-0",
           isActive
-            ? "bg-background shadow-sm font-medium"
-            : "hover:bg-muted text-muted-foreground",
+            ? "bg-muted/70 font-medium text-foreground shadow-sm"
+            : "text-muted-foreground hover:bg-muted/35 hover:text-foreground",
         )
       }
     >

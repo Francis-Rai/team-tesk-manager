@@ -18,22 +18,18 @@ export default function TeamSidebar({ teamId }: { teamId: string }) {
   return (
     <aside
       className={cn(
-        "border-r bg-muted/40 flex flex-col transition-all duration-200",
-        collapsed ? "w-16" : "w-fit",
+        "relative flex h-full flex-col border-r border-border/60 bg-background/85 backdrop-blur transition-all duration-200",
+        collapsed ? "w-[4.5rem]" : "w-72",
       )}
     >
-      <div className="relative border-b p-3">
-        {!collapsed && <TeamSwitcher teamId={teamId} />}
+      <div className="relative border-b border-border/60 px-3 py-3">
+        <TeamSwitcher teamId={teamId} collapsed={collapsed} />
 
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setCollapsed((prev) => !prev)}
-          className="
-      absolute -right-3 top-1/2 -translate-y-1/2
-      h-6 w-6 rounded-full border bg-background shadow-sm
-      hover:bg-muted
-    "
+          className="absolute -right-3 top-1/2 h-7 w-7 -translate-y-1/2 rounded-full border border-border/60 bg-background shadow-sm hover:bg-muted"
         >
           {collapsed ? (
             <ChevronRight className="h-3 w-3" />
@@ -43,7 +39,7 @@ export default function TeamSidebar({ teamId }: { teamId: string }) {
         </Button>
       </div>
 
-      <nav className="flex-1 p-2 space-y-1">
+      <nav className="flex-1 space-y-1 p-2">
         <NavItem
           to={`/teams/${teamId}`}
           label="Overview"

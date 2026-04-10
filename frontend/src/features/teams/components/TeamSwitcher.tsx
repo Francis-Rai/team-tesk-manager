@@ -58,19 +58,26 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
           <Button
             variant="ghost"
             className={cn(
-              "w-full h-10 px-2 transition",
-              collapsed ? "justify-center" : "justify-between",
+              "h-11 w-full rounded-xl border border-border/60 bg-background/75 px-2.5 transition hover:bg-muted/25",
+              collapsed ? "justify-center px-0" : "justify-between",
             )}
           >
             <div className="flex items-center gap-2 min-w-0">
-              <Avatar className="h-6 w-6 shrink-0">
-                <AvatarFallback>{currentTeam?.name?.[0] || "T"}</AvatarFallback>
+              <Avatar className="h-7 w-7 shrink-0 ring-1 ring-border/60">
+                <AvatarFallback className="text-[11px] font-semibold">
+                  {currentTeam?.name?.[0] || "T"}
+                </AvatarFallback>
               </Avatar>
 
               {!collapsed && (
-                <span className="text-sm font-medium truncate">
-                  {currentTeam?.name || "Select Team"}
-                </span>
+                <div className="min-w-0 text-left">
+                  <div className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+                    Team
+                  </div>
+                  <span className="block truncate text-sm font-medium">
+                    {currentTeam?.name || "Select Team"}
+                  </span>
+                </div>
               )}
             </div>
 
@@ -80,7 +87,10 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
           </Button>
         </DropdownMenuTrigger>
 
-        <DropdownMenuContent align="start" className="w-64 p-2 space-y-2">
+        <DropdownMenuContent
+          align="start"
+          className="w-72 rounded-2xl border border-border/60 p-2 shadow-lg"
+        >
           <Command className="space-y-2">
             <CommandInput placeholder="Search teams..." />
 
@@ -96,12 +106,14 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
                     value={team.id}
                     onSelect={() => switchTeam(team.id)}
                     className={cn(
-                      "flex items-center gap-2 rounded-md",
-                      isActive && "bg-muted font-medium",
+                      "flex items-center gap-2 rounded-xl px-2 py-2",
+                      isActive && "bg-muted/60 font-medium",
                     )}
                   >
-                    <Avatar className="h-5 w-5">
-                      <AvatarFallback>{team.name[0]}</AvatarFallback>
+                    <Avatar className="h-6 w-6 ring-1 ring-border/50">
+                      <AvatarFallback className="text-[10px]">
+                        {team.name[0]}
+                      </AvatarFallback>
                     </Avatar>
 
                     <span className="flex-1 text-sm truncate">{team.name}</span>
@@ -118,7 +130,7 @@ export default function TeamSwitcher({ teamId, collapsed }: Props) {
           <Button
             variant="secondary"
             size="sm"
-            className="w-full justify-start gap-2"
+            className="mt-2 w-full justify-start gap-2 rounded-xl"
             onClick={handleCreate}
           >
             <Plus className="h-4 w-4" />
