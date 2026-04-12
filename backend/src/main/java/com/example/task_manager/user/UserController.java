@@ -43,8 +43,9 @@ public class UserController {
   @PatchMapping("/{userId}")
   public ResponseEntity<UserResponse> updateUserDetails(
       @PathVariable UUID userId,
+      Authentication authentication,
       @Valid @RequestBody UpdateUserProfileRequest request) {
-    return ResponseEntity.ok(userService.updateProfile(userId, request));
+    return ResponseEntity.ok(userService.updateProfile(userId, request, authentication.getName()));
   }
 
   /*
@@ -53,8 +54,9 @@ public class UserController {
   @PatchMapping("/{userId}/password")
   public ResponseEntity<Void> updateUserPassword(
       @PathVariable UUID userId,
+      Authentication authentication,
       @Valid @RequestBody UpdatePasswordRequest request) {
-    userService.updatePassword(userId, request);
+    userService.updatePassword(userId, request, authentication.getName());
     return ResponseEntity.noContent().build();
   }
 

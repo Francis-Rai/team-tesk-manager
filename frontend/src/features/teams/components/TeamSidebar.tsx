@@ -19,7 +19,7 @@ export default function TeamSidebar({ teamId }: { teamId: string }) {
     <aside
       className={cn(
         "relative flex h-full flex-col border-r border-border/60 bg-background/85 backdrop-blur transition-all duration-200",
-        collapsed ? "w-[4.5rem]" : "w-72",
+        collapsed ? "w-18" : "w-50",
       )}
     >
       <div className="relative border-b border-border/60 px-3 py-3">

@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.task_manager.user.dto.AdminResetPasswordRequest;
 import com.example.task_manager.user.dto.UpdateUserRoleRequest;
 
 import jakarta.validation.Valid;
@@ -37,6 +38,17 @@ public class AdminUserController {
       Authentication authentication) {
 
     userService.updateUserRole(id, request, authentication.getName());
+
+    return ResponseEntity.noContent().build();
+  }
+
+  @PatchMapping("/{id}/password")
+  public ResponseEntity<Void> resetUserPassword(
+      @PathVariable UUID id,
+      @Valid @RequestBody AdminResetPasswordRequest request,
+      Authentication authentication) {
+
+    userService.resetPasswordByAdmin(id, request, authentication.getName());
 
     return ResponseEntity.noContent().build();
   }

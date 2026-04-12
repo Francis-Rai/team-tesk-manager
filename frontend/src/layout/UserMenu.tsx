@@ -1,4 +1,5 @@
-import { LogOut, Settings, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { LogOut, Settings, Shield, User } from "lucide-react";
 import { Avatar, AvatarFallback } from "../components/ui/avatar";
 import {
   DropdownMenuContent,
@@ -15,8 +16,9 @@ interface Props {
 }
 
 export default function UserMenu({ onLogout }: Props) {
+  const navigate = useNavigate();
   const { data: user, isLoading } = useCurrentUser();
-  if (isLoading) return null;
+  if (isLoading || !user) return null;
 
   return (
     <DropdownMenu>
@@ -44,10 +46,17 @@ export default function UserMenu({ onLogout }: Props) {
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuItem>
+        <DropdownMenuItem onClick={() => navigate("/profile")}>
           <User className="mr-2 h-4 w-4" />
           Profile
         </DropdownMenuItem>
+
+        {(user.role === "ADMIN" || user.role === "SUPER_ADMIN") && (
+          <DropdownMenuItem onClick={() => navigate("/users")}>
+            <Shield className="mr-2 h-4 w-4" />
+            Manage users
+          </DropdownMenuItem>
+        )}
 
         <DropdownMenuItem>
           <Settings className="mr-2 h-4 w-4" />

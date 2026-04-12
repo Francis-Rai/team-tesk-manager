@@ -12,6 +12,36 @@ export const getUsers = async (): Promise<User[]> => {
   return data;
 };
 
+export const updateUserProfile = async (
+  userId: string,
+  payload: {
+    firstName?: string;
+    lastName?: string;
+    email?: string;
+  },
+): Promise<User> => {
+  const { data } = await apiClient.patch<User>(`/users/${userId}`, payload);
+  return data;
+};
+
+export const updateUserRole = async (
+  userId: string,
+  payload: {
+    role: UserRole;
+  },
+): Promise<void> => {
+  await apiClient.patch(`/admin/users/${userId}/role`, payload);
+};
+
+export const resetUserPasswordByAdmin = async (
+  userId: string,
+  payload: {
+    newPassword: string;
+  },
+): Promise<void> => {
+  await apiClient.patch(`/admin/users/${userId}/password`, payload);
+};
+
 type TokenPayload = {
   role: UserRole;
   exp: number;

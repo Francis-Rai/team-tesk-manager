@@ -1,6 +1,7 @@
 package com.example.task_manager.user;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -14,6 +15,7 @@ import com.example.task_manager.exception.api.ConflictException;
 import com.example.task_manager.exception.api.ForbiddenException;
 import com.example.task_manager.exception.api.ResourceNotFoundException;
 import com.example.task_manager.exception.api.UserNotFoundException;
+import com.example.task_manager.user.dto.AdminResetPasswordRequest;
 import com.example.task_manager.user.dto.UpdatePasswordRequest;
 import com.example.task_manager.user.dto.UpdateUserProfileRequest;
 import com.example.task_manager.user.dto.UpdateUserRoleRequest;
@@ -74,16 +76,20 @@ public class UserService {
 
   /*
    * Update profile for users
-   * User and Super Admin can update profile
+   * User, Admin, and Super Admin can update profile
    */
-  @PreAuthorize("#userId == authentication.principal.id or hasRole('SUPER_ADMIN')")
+  @PreAuthorize("#userId == authentication.principal.id or hasAnyRole('ADMIN', 'SUPER_ADMIN')")
   @Transactional
   public UserResponse updateProfile(
       UUID userId,
-      UpdateUserProfileRequest request) {
+      UpdateUserProfileRequest request,
+      String requesterEmail) {
 
+    UserEntity requester = getUserByEmail(requesterEmail);
     UserEntity user = userRepository.findById(userId)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    assertCanManageTargetUser(requester, user);
 
     if (request.firstName() != null) {
       user.setFirstName(request.firstName());
@@ -94,7 +100,8 @@ public class UserService {
     }
 
     if (request.email() != null) {
-      if (userRepository.existsByEmail(request.email())) {
+      if (!request.email().equalsIgnoreCase(user.getEmail())
+          && userRepository.existsByEmail(request.email())) {
         throw new ConflictException("Email already exists");
       }
       user.setEmail(request.email());
@@ -105,16 +112,22 @@ public class UserService {
 
   /*
    * Update profile for users
-   * User and Super Admin can update profile
+   * User and Super Admin can update their password
    */
   @PreAuthorize("#userId == authentication.principal.id or hasRole('SUPER_ADMIN')")
   @Transactional
   public void updatePassword(
       UUID userId,
-      UpdatePasswordRequest request) {
+      UpdatePasswordRequest request,
+      String requesterEmail) {
 
+    UserEntity requester = getUserByEmail(requesterEmail);
     UserEntity target = userRepository.findById(userId)
         .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    if (!requester.getId().equals(target.getId())) {
+      assertCanManageTargetUser(requester, target);
+    }
 
     if (!passwordEncoder.matches(request.currentPassword(),
         target.getPassword())) {
@@ -125,11 +138,58 @@ public class UserService {
 
   }
 
+  /*
+   * Reset password for users
+   * Admin and Super Admin can reset another user's password
+   */
+  @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
+  @Transactional
+  public void resetPasswordByAdmin(
+      UUID targetUserId,
+      AdminResetPasswordRequest request,
+      String requesterEmail) {
+
+    UserEntity requester = getUserByEmail(requesterEmail);
+    UserEntity target = userRepository.findById(targetUserId)
+        .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+    if (requester.getId().equals(target.getId())) {
+      throw new ForbiddenException("Use the regular password change flow for your own account.");
+    }
+
+    assertCanManageTargetUser(requester, target);
+
+    target.setPassword(passwordEncoder.encode(request.newPassword()));
+  }
+
   public UserResponse getByEmail(String email) {
-    UserEntity user = userRepository.findByEmail(email)
-        .orElseThrow(() -> new RuntimeException("User not found"));
+    UserEntity user = getUserByEmail(email);
 
     return mapToResponse(user);
+  }
+
+  private UserEntity getUserByEmail(String email) {
+    return userRepository.findByEmail(email)
+        .orElseThrow(UserNotFoundException::new);
+  }
+
+  private void assertCanManageTargetUser(UserEntity requester, UserEntity target) {
+    if (Objects.equals(requester.getId(), target.getId())) {
+      return;
+    }
+
+    if (requester.getRole() == UserRole.SUPER_ADMIN) {
+      return;
+    }
+
+    if (requester.getRole() == UserRole.ADMIN) {
+      if (target.getRole() == UserRole.SUPER_ADMIN) {
+        throw new ForbiddenException("ADMIN cannot manage SUPER_ADMIN accounts.");
+      }
+      return;
+    }
+
+    throw new ForbiddenException("You do not have permission to manage this user.");
   }
 
   // HELPER

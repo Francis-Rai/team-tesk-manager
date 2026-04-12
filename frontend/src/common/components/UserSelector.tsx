@@ -16,9 +16,10 @@ import { Button } from "../../components/ui/button";
 import { useState } from "react";
 import type { User } from "../../features/users/types/userType";
 import { Avatar, AvatarFallback } from "../../components/ui/avatar";
+import type { TeamMember } from "../../features/teams/types/team.type";
 
 interface Props {
-  users: User[];
+  users: User[] | TeamMember[];
   value?: string;
   placeholder: string;
   allowClear?: boolean;

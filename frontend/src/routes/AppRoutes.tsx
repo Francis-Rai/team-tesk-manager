@@ -7,6 +7,8 @@ import ProtectedRoute from "./ProtectedRoute";
 import PublicRoute from "./PublicRoute";
 
 import TeamSelectionPage from "../pages/TeamSelectionPage";
+import ProfilePage from "../pages/ProfilePage";
+import UsersPage from "../pages/UsersPage";
 import TaskDetails from "../features/tasks/components/TaskDetails";
 import ProjectDetails from "../features/projects/components/ProjectDetails";
 import ProjectsView from "../features/projects/components/ProjectsView";
@@ -43,6 +45,8 @@ export default function AppRoutes() {
               </ProtectedRoute>
             }
           />
+          <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/users" element={<UsersPage />} />
 
           <Route
             path="/teams/:teamId"
