@@ -20,7 +20,7 @@ export default function ProjectCard({ project, onClick }: Props) {
   return (
     <Card
       onClick={onClick}
-      className="w-xs group cursor-pointer overflow-hidden border-border/60 bg-background/95 transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md"
+      className="group cursor-pointer overflow-hidden border-border/60 bg-background/95 transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md"
     >
       <CardContent className="space-y-3 p-3.5">
         <div className="flex items-start justify-between gap-3">
