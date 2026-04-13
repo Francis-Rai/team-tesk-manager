@@ -8,6 +8,7 @@ export const useProjects = (
   teamId: string,
   params: {
     page: number;
+    size: number;
     search?: string;
     status?: string;
     sort?: string;
@@ -19,6 +20,7 @@ export const useProjects = (
       "projects",
       teamId,
       params.page,
+      params.size,
       params.search,
       params.status,
       params.sort,
@@ -27,7 +29,7 @@ export const useProjects = (
     queryFn: () =>
       getProjects(teamId, {
         page: params.page,
-        size: 10,
+        size: params.size,
         search: params.search,
         status: params.status,
         sort: params.sort,

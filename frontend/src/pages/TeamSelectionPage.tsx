@@ -1,19 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ArrowUpRight,
-  CalendarDays,
-  Plus,
-  Search,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Plus, Search, Sparkles } from "lucide-react";
 
 import { useTeams } from "../features/teams/hooks/useTeams";
 import { useDebounce } from "../common/hooks/useDebounce";
 
 import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
 import { Input } from "../components/ui/input";
 
 import {
@@ -27,7 +19,7 @@ import {
 import Pagination from "../common/components/Pagination";
 import { CreateTeamModal } from "../features/teams/components/CreateTeamModal";
 import type { DeletedFilter } from "../common/types/deletedFilter.types";
-import { formatDate } from "../common/utils/dateFormatter";
+import TeamCard from "../features/teams/components/TeamCard";
 
 export default function TeamSelectionPage() {
   const navigate = useNavigate();
@@ -43,7 +35,7 @@ export default function TeamSelectionPage() {
 
   const { data, isLoading } = useTeams({
     page,
-    size: 12,
+    size: 8,
     search: debouncedSearch,
     sort,
     deletedFilter,
@@ -73,8 +65,8 @@ export default function TeamSelectionPage() {
   };
 
   return (
-    <div className="min-h-full bg-muted/10 px-4 py-6 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-7xl space-y-5">
+    <div className="min-h-0 h-full bg-muted/10 px-4 py-6 sm:px-6 lg:px-8">
+      <div className="flex flex-1 flex-col h-full mx-auto max-w-7xl gap-6">
         <section className="rounded-3xl border border-border/60 bg-linear-to-br from-background via-background to-muted/20 p-5 shadow-sm sm:p-6">
           <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div className="space-y-2">
@@ -87,7 +79,8 @@ export default function TeamSelectionPage() {
                   Choose a team
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Open an existing workspace or create a new team to start organizing projects, members, and activity.
+                  Open an existing workspace or create a new team to start
+                  organizing projects, members, and activity.
                 </p>
               </div>
             </div>
@@ -122,7 +115,7 @@ export default function TeamSelectionPage() {
               />
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-[22rem]">
+            <div className="grid gap-2 sm:grid-cols-2 lg:min-w-88">
               <div className="space-y-1">
                 <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
                   Visibility
@@ -175,46 +168,16 @@ export default function TeamSelectionPage() {
           </div>
         ) : teams.length > 0 ? (
           <>
-            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-              {teams.map((team) => (
-                <Card
-                  key={team.id}
-                  onClick={() => openTeam(team.id)}
-                  className="group cursor-pointer overflow-hidden border-border/60 bg-background/95 transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md"
-                >
-                  <CardContent className="space-y-4 p-4">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="flex min-w-0 items-start gap-3">
-                        <div className="rounded-2xl border border-border/60 bg-muted/25 p-2 text-muted-foreground transition group-hover:border-border group-hover:text-foreground">
-                          <Users className="h-4 w-4" />
-                        </div>
-
-                        <div className="min-w-0 space-y-1">
-                          <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-                            Team
-                          </p>
-                          <h3 className="truncate text-base font-semibold text-foreground">
-                            {team.name}
-                          </h3>
-                        </div>
-                      </div>
-
-                      <ArrowUpRight className="h-4 w-4 shrink-0 text-muted-foreground transition group-hover:text-foreground" />
-                    </div>
-
-                    <p className="line-clamp-2 text-sm leading-6 text-muted-foreground">
-                      {team.description?.trim() || "No description provided for this team."}
-                    </p>
-
-                    <div className="flex items-center gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-                      <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 px-2.5 py-1">
-                        <CalendarDays className="h-3 w-3" />
-                        Created {formatDate(team.createdAt)}
-                      </span>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+            <div className="flex flex-col h-full min-h-0 overflow-y-auto p-1">
+              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+                {teams.map((team) => (
+                  <TeamCard
+                    key={team.id}
+                    team={team}
+                    onClick={() => openTeam(team.id)}
+                  />
+                ))}
+              </div>
             </div>
 
             {totalPages > 1 && (
@@ -231,7 +194,8 @@ export default function TeamSelectionPage() {
               No teams found
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-              Try changing the search or filters, or create a new team to get started.
+              Try changing the search or filters, or create a new team to get
+              started.
             </p>
             <Button className="mt-5 rounded-xl" onClick={() => setOpen(true)}>
               <Plus className="h-4 w-4" />

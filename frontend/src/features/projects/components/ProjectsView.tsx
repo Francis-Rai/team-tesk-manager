@@ -26,6 +26,7 @@ export default function ProjectsPage() {
 
   const { data, isLoading } = useProjects(teamId || "", {
     page,
+    size: 8,
     search: debouncedSearch,
     status,
     sort,
@@ -60,7 +61,7 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 flex flex-1 flex-col min-h-0 h-full">
       <ProjectsHeader onCreateProject={() => setCreateOpen(true)} />
 
       <CreateProjectModal
@@ -100,14 +101,16 @@ export default function ProjectsPage() {
         </div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {projects.map((project) => (
-              <ProjectCard
-                key={project.id}
-                project={project}
-                onClick={() => openProject(project.id)}
-              />
-            ))}
+          <div className="flex flex-col h-full min-h-0 overflow-y-auto p-1">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {projects.map((project) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onClick={() => openProject(project.id)}
+                />
+              ))}
+            </div>
           </div>
 
           {(data?.totalPages ?? 0) > 1 && (

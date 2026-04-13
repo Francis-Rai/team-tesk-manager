@@ -22,7 +22,7 @@ export default function ProjectCard({ project, onClick }: Props) {
       onClick={onClick}
       className="group cursor-pointer overflow-hidden border-border/60 bg-background/95 transition-all hover:-translate-y-0.5 hover:border-border hover:shadow-md"
     >
-      <CardContent className="space-y-3 p-3.5">
+      <CardContent className="flex flex-col h-full justify-around space-y-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-start gap-3">
             <div className="rounded-xl border border-border/60 bg-muted/25 p-1.5 text-muted-foreground transition group-hover:border-border group-hover:text-foreground">
@@ -47,7 +47,8 @@ export default function ProjectCard({ project, onClick }: Props) {
         </div>
 
         <p className="line-clamp-2 text-[13px] leading-5 text-muted-foreground">
-          {project.description?.trim() || "No description provided for this project."}
+          {project.description?.trim() ||
+            "No description provided for this project."}
         </p>
 
         <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
