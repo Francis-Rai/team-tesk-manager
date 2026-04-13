@@ -30,6 +30,7 @@ export default function MembersPage() {
     teamId || "",
     {
       page,
+      size: 10,
       search: debouncedSearch,
       sort,
     },
@@ -56,7 +57,7 @@ export default function MembersPage() {
   if (!teamId) return <div className="p-6">Invalid team</div>;
 
   return (
-    <div className="space-y-6 ">
+    <div className="flex flex-col h-full min-h-0 gap-6">
       <MembersHeader
         setAddMemberOpen={() => setAddMemberOpen(true)}
         setTransferOpen={() => setTransferOpen(true)}

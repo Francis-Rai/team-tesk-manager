@@ -5,6 +5,7 @@ import type { TeamMember } from "../types/team.type";
 
 interface Params {
   page: number;
+  size?: number;
   search?: string;
   sort?: string;
 }
@@ -15,13 +16,14 @@ export const useTeamMembers = (teamId: string, params?: Params) => {
       "teamMembers",
       teamId,
       params?.page,
+      params?.size,
       params?.search,
       params?.sort,
     ],
     queryFn: () =>
       getTeamMembers(teamId, {
         page: params?.page,
-        size: 10,
+        size: params?.size,
         search: params?.search,
         sort: params?.sort,
       }),

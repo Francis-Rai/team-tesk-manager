@@ -49,6 +49,7 @@ export default function TeamOverview() {
   });
   const { data: membersData } = useTeamMembers(teamId || "", {
     page: 0,
+    size: 10,
     sort: "joinedAt,desc",
   });
   const { data: activitiesData } = useTeamActivities(teamId || "", {

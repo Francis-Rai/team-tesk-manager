@@ -156,10 +156,10 @@ export default function MembersList({
     );
   }
   return (
-    <>
-      <div className="overflow-hidden rounded-2xl border border-border/60 bg-background/92 shadow-sm">
-        <Table>
-          <TableHeader className="bg-muted/20">
+    <div className="flex flex-col h-full min-h-0 gap-6">
+      <div className="flex h-full min-h-0 rounded-2xl border border-border/60 bg-background/92 shadow-sm overflow-hidden">
+        <Table className="overflow-auto">
+          <TableHeader className="sticky top-0 z-30 rounded-2xl bg-background/85 px-4 backdrop-blur supports-backdrop-filter:bg-background/75">
             <TableRow>
               <TableHead
                 onClick={() => handleSort("user.lastName")}
@@ -307,11 +307,7 @@ export default function MembersList({
                           <DropdownMenuItem
                             disabled={!canRemove}
                             onClick={() => onOpenRemove(member)}
-                            className="
-          flex items-center justify-between
-          text-destructive
-          focus:text-destructive
-        "
+                            className="flex items-center justify-between text-destructive focus:text-destructive"
                           >
                             <span>Remove Member</span>
                           </DropdownMenuItem>
@@ -324,17 +320,14 @@ export default function MembersList({
             })}
           </TableBody>
         </Table>
-
-        {pagination.totalPages > 1 && (
-          <div className="border-t border-border/60 bg-background px-4 py-3">
-            <Pagination
-              page={pagination.page}
-              totalPages={pagination.totalPages}
-              onPageChange={pagination.onPageChange}
-            />
-          </div>
-        )}
       </div>
+      {pagination.totalPages > 1 && (
+        <Pagination
+          page={pagination.page}
+          totalPages={pagination.totalPages}
+          onPageChange={pagination.onPageChange}
+        />
+      )}
 
       <TransferOwnershipModal
         teamId={teamId}
@@ -351,6 +344,6 @@ export default function MembersList({
         onConfirm={handleRemove}
         isLoading={removeMember.isPending}
       />
-    </>
+    </div>
   );
 }
