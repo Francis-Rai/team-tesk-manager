@@ -38,11 +38,13 @@ export default function TeamOverview() {
   const { data: teamMe } = useTeamMe(teamId || "");
   const { data: projectsData } = useProjects(teamId || "", {
     page: 0,
+    size: 10,
     sort: "updatedAt,desc",
     deletedFilter: "ACTIVE",
   });
   const { data: activeProjectsData } = useProjects(teamId || "", {
     page: 0,
+    size: 10,
     status: "ACTIVE",
     sort: "updatedAt,desc",
     deletedFilter: "ACTIVE",
@@ -54,7 +56,7 @@ export default function TeamOverview() {
   });
   const { data: activitiesData } = useTeamActivities(teamId || "", {
     page: 0,
-    size: 6,
+    size: 5,
     sort: "createdAt,desc",
   });
   const { data: availableUsersData } = useAvailableUsers(teamId || "", {});
@@ -182,7 +184,7 @@ export default function TeamOverview() {
                   key={project.id}
                   type="button"
                   onClick={() => navigate(`/teams/${team.id}/projects/${project.id}`)}
-                  className="flex w-full items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background px-4 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
+                  className="cursor-pointer flex w-full items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background px-4 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
                 >
                   <div className="min-w-0 space-y-1">
                     <div className="truncate font-medium text-foreground">

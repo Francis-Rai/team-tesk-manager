@@ -46,7 +46,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class DemoDataSeederService {
 
-  private static final String SHARED_PASSWORD = "SeedDemo123!";
+  private static final String SHARED_PASSWORD = "Admin123@";
 
   private final AuthService authService;
   private final UserRepository userRepository;
@@ -214,7 +214,7 @@ public class DemoDataSeederService {
       }
 
       Instant plannedStart = Instant.now().plus(number, ChronoUnit.DAYS);
-      Instant plannedDue = plannedStart.plus(3 + (number % 6), ChronoUnit.DAYS);
+      Instant plannedDue = plannedStart.plus(3 + (number % 5), ChronoUnit.DAYS);
 
       TaskResponse task = taskService.createTask(
           project.teamId(),
