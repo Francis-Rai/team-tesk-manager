@@ -8,12 +8,24 @@ import PrioritySelect from "../../../common/components/PrioritySelector";
 import { useUpdateTask } from "../hooks/useUpdateTask";
 import DatePicker from "../../../common/components/DatePicker";
 import StatusSelect from "../../../common/components/TaskStatusSelector";
-import type { TaskStatus } from "../utils/taskStatus";
+import {
+  TaskStatusLabel,
+  TaskStatusStyles,
+  type TaskStatus,
+} from "../utils/taskStatus";
 import { useUpdateTaskStatus } from "../hooks/useUpdateTaskStatus";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
+import type { TaskPermissions } from "../utils/taskPermissions";
+import { cn } from "../../../lib/utils";
+import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
+import {
+  TASK_PRIORITY_LABEL,
+  TASK_PRIORITY_STYLES,
+} from "../../../common/constants/task.constants";
 
 interface Props {
+  permissions: TaskPermissions;
   teamId: string;
   projectId: string;
   task: Task;
@@ -30,7 +42,12 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
   );
 }
 
-export default function TaskMetadata({ teamId, projectId, task }: Props) {
+export default function TaskMetadata({
+  permissions,
+  teamId,
+  projectId,
+  task,
+}: Props) {
   const { data } = useTeamMembers(teamId);
   const members = data?.content ?? [];
   const currentAssigneeId = task.assignedUser?.id;
@@ -112,79 +129,165 @@ export default function TaskMetadata({ teamId, projectId, task }: Props) {
         <Row
           label="Status"
           value={
-            <StatusSelect
-              value={task.status}
-              onChange={(status) => handleStatusChange(task.id, status)}
-            />
+            permissions.canChangeStatus ? (
+              <StatusSelect
+                value={task.status}
+                onChange={(status) => handleStatusChange(task.id, status)}
+              />
+            ) : (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+                  TaskStatusStyles[task.status],
+                )}
+              >
+                {TaskStatusLabel[task.status]}
+              </span>
+            )
           }
         />
         <Row
           label="Assignee"
           value={
-            <UserSelector
-              key={"assignee"}
-              users={members}
-              value={currentAssigneeId}
-              placeholder="Select assignee"
-              excludedUserIds={currentSupportId ? [currentSupportId] : []}
-              onChange={handleAssignUser}
-            />
+            permissions.canAssign ? (
+              <UserSelector
+                key={"assignee"}
+                users={members}
+                value={currentAssigneeId}
+                placeholder="Select assignee"
+                excludedUserIds={currentSupportId ? [currentSupportId] : []}
+                onChange={handleAssignUser}
+              />
+            ) : (
+              <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden pr-2">
+                <Avatar className="h-6 w-6 shrink-0 ring-1 ring-border/60">
+                  <AvatarFallback className="text-[10px]">
+                    {task.assignedUser?.lastName?.[0]}
+                    {task.assignedUser?.firstName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="min-w-0 flex-1 text-sm leading-5 text-foreground">
+                  <span className="line-clamp-2 break-words">
+                    {task.assignedUser?.firstName} {task.assignedUser?.lastName}
+                  </span>
+                </span>
+              </span>
+            )
           }
         />
         <Row
           label="Priority"
           value={
-            <PrioritySelect
-              value={task.priority ?? "LOW"}
-              onChange={(priority) => handleUpdatePriority(priority)}
-            />
+            permissions.canChangePriority ? (
+              <PrioritySelect
+                value={task.priority ?? "LOW"}
+                onChange={(priority) => handleUpdatePriority(priority)}
+              />
+            ) : (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+                  TASK_PRIORITY_STYLES[task.priority],
+                )}
+              >
+                {TASK_PRIORITY_LABEL[task.priority]}
+              </span>
+            )
           }
         />
         <Row
           label="Support"
           value={
-            <UserSelector
-              key={"support"}
-              users={members}
-              value={currentSupportId}
-              placeholder="Select support"
-              allowClear
-              excludedUserIds={currentAssigneeId ? [currentAssigneeId] : []}
-              onChange={handleAssignSupport}
-            />
+            permissions.canAssign ? (
+              <UserSelector
+                key={"support"}
+                users={members}
+                value={currentSupportId}
+                placeholder="Select support"
+                allowClear
+                excludedUserIds={currentAssigneeId ? [currentAssigneeId] : []}
+                onChange={handleAssignSupport}
+              />
+            ) : (
+              <span className="flex min-w-0 flex-1 items-center gap-2 overflow-hidden pr-2">
+                {task.supportUser ? (
+                  <>
+                    <Avatar className="h-6 w-6 shrink-0 ring-1 ring-border/60">
+                      <AvatarFallback className="text-[10px]">
+                        {task.supportUser?.lastName?.[0]}
+                        {task.supportUser?.firstName?.[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="min-w-0 flex-1 text-sm leading-5 text-foreground">
+                      <span className="line-clamp-2 break-words">
+                        {task.supportUser?.firstName}{" "}
+                        {task.supportUser?.lastName}
+                      </span>
+                    </span>
+                  </>
+                ) : (
+                  <span className="block min-w-0 truncate text-sm leading-5">
+                    None
+                  </span>
+                )}
+              </span>
+            )
           }
         />
+
         <Row
           label="Planned Start Date"
           value={
-            <DatePicker
-              value={
-                task.plannedStartDate
-                  ? new Date(task.plannedStartDate)
-                  : undefined
-              }
-              onChange={(date) =>
-                handleUpdatePlannedStartDate(date ? date.toISOString() : null)
-              }
-            />
+            permissions.canChangeSchedule ? (
+              <DatePicker
+                value={
+                  task.plannedStartDate
+                    ? new Date(task.plannedStartDate)
+                    : undefined
+                }
+                onChange={(date) =>
+                  handleUpdatePlannedStartDate(date ? date.toISOString() : null)
+                }
+              />
+            ) : (
+              <span className="flex w-fit max-w-full flex-wrap items-center rounded-lg bg-muted/25 px-3 py-2 text-left text-muted-foreground">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+
+                {task.plannedStartDate
+                  ? format(task.plannedStartDate, "MMM dd, yyyy")
+                  : "-"}
+              </span>
+            )
           }
         />
         <Row
           label="Planned Due Date"
           value={
-            <DatePicker
-              value={
-                task.plannedDueDate ? new Date(task.plannedDueDate) : undefined
-              }
-              onChange={(date) =>
-                handleUpdatePlannedDueDate(date ? date.toISOString() : null)
-              }
-              disabled={(date) =>
-                task.plannedStartDate
-                  ? date < new Date(task.plannedStartDate)
-                  : false
-              }
-            />
+            permissions.canChangeSchedule ? (
+              <DatePicker
+                value={
+                  task.plannedDueDate
+                    ? new Date(task.plannedDueDate)
+                    : undefined
+                }
+                onChange={(date) =>
+                  handleUpdatePlannedDueDate(date ? date.toISOString() : null)
+                }
+                disabled={(date) =>
+                  task.plannedStartDate
+                    ? date < new Date(task.plannedStartDate)
+                    : false
+                }
+              />
+            ) : (
+              <span className="flex w-fit max-w-full flex-wrap items-center rounded-lg bg-muted/25 px-3 py-2 text-left text-muted-foreground">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+
+                {task.plannedDueDate
+                  ? format(task.plannedDueDate, "MMM dd, yyyy")
+                  : "-"}
+              </span>
+            )
           }
         />
 

@@ -1,52 +1,58 @@
+import { resolveRoles } from "../../../common/utils/roleHelpers";
 import type { NullableTeamRole } from "../../teams/types/team.type";
+import type { UserRole } from "../../users/types/userRole";
 
 export interface TaskPermissions {
   canEditTaskDetails: boolean;
   canDeleteTask: boolean;
   canChangeStatus: boolean;
+  canChangePriority: boolean;
+  canAssign: boolean;
+  canChangeSchedule: boolean;
   canComment: boolean;
 }
 
 interface Params {
-  role: NullableTeamRole;
+  globalRole?: UserRole;
+  teamRole?: NullableTeamRole;
   userId?: string;
   assigneeId?: string;
   supportId?: string;
 }
 
 export function getTaskPermissions({
-  role,
+  globalRole,
+  teamRole,
   userId,
   assigneeId,
   supportId,
 }: Params): TaskPermissions {
-  // Global admin / super admin not in team
-  if (role === null) {
-    return {
-      canEditTaskDetails: false,
-      canDeleteTask: false,
-      canChangeStatus: false,
-      canComment: false,
-    };
-  }
+  const {
+    // isSuperAdmin, isGlobalAdmin,
+    isOwner,
+    isAdmin,
+  } = resolveRoles(globalRole, teamRole);
 
-  const isOwner = role === "OWNER";
-  const isAdmin = role === "ADMIN";
   const isAssignee = userId === assigneeId;
   const isSupport = userId === supportId;
 
-  const canEditTaskDetails = isOwner || isAdmin;
+  // const isSystemAdmin = isSuperAdmin || isGlobalAdmin;
 
-  const canDeleteTask = isOwner || isAdmin;
-
-  const canChangeStatus = isOwner || isAdmin || isAssignee || isSupport;
-
-  const canComment = isOwner || isAdmin || isAssignee || isSupport;
+  const canManage = isOwner || isAdmin;
 
   return {
-    canEditTaskDetails,
-    canDeleteTask,
-    canChangeStatus,
-    canComment,
+    canEditTaskDetails: canManage,
+
+    canDeleteTask: canManage,
+
+    canChangeStatus: canManage || isAssignee || isSupport,
+
+    canChangePriority: canManage,
+
+    canAssign: canManage,
+
+    canChangeSchedule: canManage,
+
+    canComment: canManage || isAssignee || isSupport,
   };
 }

@@ -11,6 +11,7 @@ import TaskHeader from "./TaskHeader";
 import TaskMetadata from "./TaskMetadata";
 import TaskActivity from "./TaskActivity";
 import TaskCommentForm from "./TaskCommentForm";
+import { getUserFromToken } from "../../users/api/userApi";
 
 interface Props {
   open: boolean;
@@ -30,18 +31,20 @@ export default function TaskModal({
   onTaskDeleted,
 }: Props) {
   const { data: task, isLoading } = useTask(teamId, projectId, taskId);
+  const user = getUserFromToken();
   const { data: teamMe } = useTeamMe(teamId);
 
-  if (isLoading || !task) {
-    return <div className="p-6">Loading task...</div>;
-  }
-
   const permissions = getTaskPermissions({
-    role: teamMe?.role ?? null,
+    globalRole: user?.role,
+    teamRole: teamMe?.role,
     userId: teamMe?.userId,
     assigneeId: task?.assignedUser?.id,
     supportId: task?.supportUser?.id,
   });
+
+  if (isLoading || !task) {
+    return <div className="p-6">Loading task...</div>;
+  }
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -69,12 +72,13 @@ export default function TaskModal({
                 permissions={permissions}
               />
 
-              <TaskCommentForm
-                teamId={teamId}
-                projectId={projectId}
-                taskId={task.id}
-                permissions={permissions}
-              />
+              {permissions.canComment && (
+                <TaskCommentForm
+                  teamId={teamId}
+                  projectId={projectId}
+                  taskId={task.id}
+                />
+              )}
 
               <TaskActivity
                 teamId={teamId}
@@ -86,6 +90,7 @@ export default function TaskModal({
 
             <aside className="order-1 xl:order-2 xl:min-h-0 xl:overflow-y-auto">
               <TaskMetadata
+                permissions={permissions}
                 teamId={teamId}
                 projectId={projectId}
                 task={task}

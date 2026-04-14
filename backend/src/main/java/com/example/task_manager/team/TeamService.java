@@ -603,15 +603,12 @@ public class TeamService {
     UserEntity requester = getUserByEmail(requesterEmail);
     UserRole globalRole = requester.getRole();
 
-    System.out.println(requester.toString());
-    System.out.println(globalRole);
-
     Optional<TeamMemberEntity> member = teamMemberRepository
         .findByTeamIdAndUserId(teamId, requester.getId());
 
     // Case 1: User is a team member
     if (member.isPresent()) {
-      return new TeamMeResponse(member.get().getId(), member.get().getRole());
+      return new TeamMeResponse(member.get().getUser().getId(), member.get().getRole());
     }
 
     // Case 2: Global / Super admin but not team member

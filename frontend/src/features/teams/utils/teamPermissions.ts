@@ -1,3 +1,4 @@
+import { resolveRoles } from "../../../common/utils/roleHelpers";
 import type { UserRole } from "../../users/types/userRole";
 import type { NullableTeamRole } from "../types/team.type";
 
@@ -5,8 +6,10 @@ export interface TeamPermissions {
   canCreateTeam: boolean;
   canEditTeamDetails: boolean;
   canDeleteTeam: boolean;
+  canViewDeleteTeam: boolean;
   canTransferOwnership: boolean;
   canAddMember: boolean;
+  canCreateProject: boolean;
 }
 
 interface Params {
@@ -18,26 +21,27 @@ export function getTeamPermissions({
   globalRole,
   teamRole,
 }: Params): TeamPermissions {
-  const isSuperAdmin = globalRole === "SUPER_ADMIN";
-  const isGlobalAdmin = globalRole === "ADMIN";
-  const isTeamOwner = teamRole === "OWNER";
-  const isTeamAdmin = teamRole === "ADMIN";
+  const { isSuperAdmin, isGlobalAdmin, isOwner, isAdmin } = resolveRoles(
+    globalRole,
+    teamRole,
+  );
 
-  const canCreateTeam = isSuperAdmin;
-
-  const canEditTeamDetails = isSuperAdmin || isGlobalAdmin;
-
-  const canDeleteTeam = isSuperAdmin;
-
-  const canTransferOwnership = isTeamOwner && (isGlobalAdmin || isSuperAdmin);
-
-  const canAddMember = isTeamOwner || isTeamAdmin;
+  const isSystemAdmin = isSuperAdmin || isGlobalAdmin;
+  const canManage = isOwner || isAdmin;
 
   return {
-    canCreateTeam,
-    canEditTeamDetails,
-    canDeleteTeam,
-    canTransferOwnership,
-    canAddMember,
+    canCreateTeam: isSuperAdmin,
+
+    canEditTeamDetails: isSystemAdmin,
+
+    canDeleteTeam: isSuperAdmin,
+
+    canViewDeleteTeam: isSystemAdmin && canManage,
+
+    canTransferOwnership: isOwner && isSystemAdmin,
+
+    canAddMember: canManage,
+
+    canCreateProject: canManage,
   };
 }

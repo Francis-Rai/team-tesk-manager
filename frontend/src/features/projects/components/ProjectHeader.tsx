@@ -5,11 +5,11 @@ import type { ProjectPermissions } from "../utils/projectPermissions";
 import { DeleteProjectButton } from "./DeleteProjectButton";
 
 interface Props {
+  permissions: ProjectPermissions;
   teamId: string;
   projectId: string;
   name: string;
   description?: string;
-  permissions: ProjectPermissions;
   onCreateTask: () => void;
   onProjectDeleted?: () => void;
 }
@@ -49,13 +49,17 @@ export default function ProjectHeader({
       </div>
 
       <div className="flex items-center gap-2">
-        <Button onClick={onCreateTask}>Create Task</Button>
-        <DeleteProjectButton
-          teamId={teamId}
-          projectId={projectId}
-          projectName={name}
-          onProjectDeleted={onProjectDeleted}
-        />
+        {permissions.canCreateTask && (
+          <Button onClick={onCreateTask}>Create Task</Button>
+        )}
+        {permissions.canDeleteProject && (
+          <DeleteProjectButton
+            teamId={teamId}
+            projectId={projectId}
+            projectName={name}
+            onProjectDeleted={onProjectDeleted}
+          />
+        )}
       </div>
     </div>
   );

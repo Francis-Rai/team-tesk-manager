@@ -1,12 +1,14 @@
 import { FolderKanban, Plus } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
+import type { ProjectPermissions } from "../utils/projectPermissions";
 
 interface Props {
   onCreateProject: () => void;
+  permissions: ProjectPermissions;
 }
 
-export function ProjectsHeader({ onCreateProject }: Props) {
+export function ProjectsHeader({ onCreateProject, permissions }: Props) {
   return (
     <section className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -23,10 +25,12 @@ export function ProjectsHeader({ onCreateProject }: Props) {
           </p>
         </div>
 
-        <Button className="rounded-xl" onClick={onCreateProject}>
-          <Plus className="h-4 w-4" />
-          Create project
-        </Button>
+        {permissions.canCreateProject && (
+          <Button className="rounded-xl" onClick={onCreateProject}>
+            <Plus className="h-4 w-4" />
+            Create project
+          </Button>
+        )}
       </div>
     </section>
   );

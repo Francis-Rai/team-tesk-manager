@@ -1,19 +1,21 @@
 import { useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-  Activity,
-  FolderKanban,
-  Plus,
-  Sparkles,
-  Users,
-} from "lucide-react";
+import { Activity, FolderKanban, Plus, Sparkles, Users } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "../../../components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "../../../components/ui/card";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 import { formatDate } from "../../../common/utils/dateFormatter";
 import { ActivityItem } from "../../../common/components/ActivityItem";
-import { ProjectStatusLabel, ProjectStatusStyles } from "../../projects/utils/projectStatus";
+import {
+  ProjectStatusLabel,
+  ProjectStatusStyles,
+} from "../../projects/utils/projectStatus";
 import { CreateProjectModal } from "../../projects/components/CreateProjectModal";
 import { getUserFromToken } from "../../users/api/userApi";
 import { useProjects } from "../../projects/hooks/useProjects";
@@ -22,10 +24,10 @@ import { useTeam } from "../hooks/useTeam";
 import { useTeamActivities } from "../hooks/useTeamActivities";
 import { useTeamMe } from "../hooks/useTeamMe";
 import { useTeamMembers } from "../hooks/useTeamMembers";
-import { getTeamPermissions } from "../utils/teamPermissions";
 import AddMemberModal from "./AddMemberModal";
 import TeamHeader from "./TeamHeader";
 import TeamOverviewCard from "./TeamOverviewCard";
+import { getTeamPermissions } from "../utils/teamPermissions";
 
 export default function TeamOverview() {
   const navigate = useNavigate();
@@ -107,14 +109,15 @@ export default function TeamOverview() {
                 Add member
               </Button>
             )}
-
-            <Button
-              className="rounded-xl"
-              onClick={() => setCreateOpen(true)}
-            >
-              <Plus className="h-4 w-4" />
-              Create project
-            </Button>
+            {permissions.canCreateProject && (
+              <Button
+                className="rounded-xl"
+                onClick={() => setCreateOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                Create project
+              </Button>
+            )}
           </>
         }
       />
@@ -176,14 +179,17 @@ export default function TeamOverview() {
           <CardContent className="space-y-2.5">
             {projects.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-border/70 bg-muted/15 px-4 py-8 text-sm text-muted-foreground">
-                No projects yet. Create the first project to start organizing work for this team.
+                No projects yet. Create the first project to start organizing
+                work for this team.
               </div>
             ) : (
               projects.slice(0, 4).map((project) => (
                 <button
                   key={project.id}
                   type="button"
-                  onClick={() => navigate(`/teams/${team.id}/projects/${project.id}`)}
+                  onClick={() =>
+                    navigate(`/teams/${team.id}/projects/${project.id}`)
+                  }
                   className="cursor-pointer flex w-full items-start justify-between gap-4 rounded-2xl border border-border/60 bg-background px-4 py-2.5 text-left transition hover:border-border hover:bg-muted/20"
                 >
                   <div className="min-w-0 space-y-1">
@@ -191,7 +197,8 @@ export default function TeamOverview() {
                       {project.name}
                     </div>
                     <div className="line-clamp-2 text-sm text-muted-foreground">
-                      {project.description?.trim() || "No description provided."}
+                      {project.description?.trim() ||
+                        "No description provided."}
                     </div>
                     <div className="text-xs text-muted-foreground">
                       Updated {formatDate(project.updatedAt)}
@@ -291,7 +298,9 @@ export default function TeamOverview() {
                 <ActivityItem
                   key={activity.id}
                   item={activity}
-                  interactive={Boolean(activity.project?.id && activity.task?.id)}
+                  interactive={Boolean(
+                    activity.project?.id && activity.task?.id,
+                  )}
                   onOpenTask={
                     activity.project?.id && activity.task?.id
                       ? () =>

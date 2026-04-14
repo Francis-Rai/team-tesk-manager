@@ -8,6 +8,9 @@ import ProjectCard from "./ProjectCard";
 import { ProjectsHeader } from "./ProjectsHeader";
 import ProjectsToolbar from "./ProjectsToolBar";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
+import { useTeamMe } from "../../teams/hooks/useTeamMe";
+import { getProjectPermissions } from "../utils/projectPermissions";
+import { getUserFromToken } from "../../users/api/userApi";
 
 export default function ProjectsPage() {
   const { teamId } = useParams<{
@@ -56,13 +59,24 @@ export default function ProjectsPage() {
     navigate(`/teams/${teamId}/projects/${projectId}`);
   }
 
+  const user = getUserFromToken();
+  const { data: teamMe } = useTeamMe(teamId || "");
+
+  const permissions = getProjectPermissions({
+    globalRole: user?.role,
+    teamRole: teamMe?.role,
+  });
+
   if (!teamId) {
     return <div className="p-6">Invalid project</div>;
   }
 
   return (
     <div className="space-y-6 flex flex-1 flex-col min-h-0 h-full">
-      <ProjectsHeader onCreateProject={() => setCreateOpen(true)} />
+      <ProjectsHeader
+        permissions={permissions}
+        onCreateProject={() => setCreateOpen(true)}
+      />
 
       <CreateProjectModal
         teamId={teamId}
@@ -71,6 +85,7 @@ export default function ProjectsPage() {
       />
 
       <ProjectsToolbar
+        permissions={permissions}
         search={search}
         onSearchChange={handleSearchChange}
         onStatusChange={handleStatusFilterChange}

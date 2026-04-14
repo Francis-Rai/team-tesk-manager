@@ -20,6 +20,8 @@ import Pagination from "../common/components/Pagination";
 import { CreateTeamModal } from "../features/teams/components/CreateTeamModal";
 import type { DeletedFilter } from "../common/types/deletedFilter.types";
 import TeamCard from "../features/teams/components/TeamCard";
+import { getTeamPermissions } from "../features/teams/utils/teamPermissions";
+import { getUserFromToken } from "../features/users/api/userApi";
 
 export default function TeamSelectionPage() {
   const navigate = useNavigate();
@@ -64,6 +66,12 @@ export default function TeamSelectionPage() {
     navigate(`/teams/${teamId}`);
   };
 
+  const user = getUserFromToken();
+
+  const permissions = getTeamPermissions({
+    globalRole: user?.role,
+  });
+
   return (
     <div className="min-h-0 h-full bg-muted/10 px-4 py-6 sm:px-6 lg:px-8">
       <div className="flex flex-1 flex-col h-full mx-auto max-w-7xl gap-6">
@@ -94,11 +102,12 @@ export default function TeamSelectionPage() {
                   {totalElements}
                 </div>
               </div>
-
-              <Button className="rounded-xl" onClick={() => setOpen(true)}>
-                <Plus className="h-4 w-4" />
-                Create team
-              </Button>
+              {permissions.canCreateTeam && (
+                <Button className="rounded-xl" onClick={() => setOpen(true)}>
+                  <Plus className="h-4 w-4" />
+                  Create team
+                </Button>
+              )}
             </div>
           </div>
         </section>
@@ -116,25 +125,27 @@ export default function TeamSelectionPage() {
             </div>
 
             <div className="grid gap-2 sm:grid-cols-2 lg:min-w-88">
-              <div className="space-y-1">
-                <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-                  Visibility
-                </label>
-                <Select
-                  value={deletedFilter}
-                  onValueChange={handleDeletedFilterChange}
-                >
-                  <SelectTrigger className="h-10 rounded-xl border-border/70 bg-background shadow-none">
-                    <SelectValue placeholder="Visibility" />
-                  </SelectTrigger>
+              {permissions.canViewDeleteTeam && (
+                <div className="space-y-1">
+                  <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                    Visibility
+                  </label>
+                  <Select
+                    value={deletedFilter}
+                    onValueChange={handleDeletedFilterChange}
+                  >
+                    <SelectTrigger className="h-10 rounded-xl border-border/70 bg-background shadow-none">
+                      <SelectValue placeholder="Visibility" />
+                    </SelectTrigger>
 
-                  <SelectContent>
-                    <SelectItem value="ACTIVE">Active</SelectItem>
-                    <SelectItem value="DELETED">Deleted</SelectItem>
-                    <SelectItem value="ALL">All</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                    <SelectContent>
+                      <SelectItem value="ACTIVE">Active</SelectItem>
+                      <SelectItem value="DELETED">Deleted</SelectItem>
+                      <SelectItem value="ALL">All</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
 
               <div className="space-y-1">
                 <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">

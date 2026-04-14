@@ -7,6 +7,7 @@ import TaskCommentForm from "./TaskCommentForm";
 import { useTask } from "../hooks/useTask";
 import { useTeamMe } from "../../teams/hooks/useTeamMe";
 import { getTaskPermissions } from "../utils/taskPermissions";
+import { getUserFromToken } from "../../users/api/userApi";
 
 export default function TaskDetailsPage() {
   const { teamId, projectId, taskId } = useParams<{
@@ -21,6 +22,7 @@ export default function TaskDetailsPage() {
     taskId || "",
   );
 
+  const user = getUserFromToken();
   const { data: teamMe } = useTeamMe(teamId || "");
 
   if (!teamId || !projectId || !taskId) {
@@ -32,7 +34,8 @@ export default function TaskDetailsPage() {
   }
 
   const permissions = getTaskPermissions({
-    role: teamMe?.role ?? null,
+    globalRole: user?.role,
+    teamRole: teamMe?.role,
     userId: teamMe?.userId,
     assigneeId: task?.assignedUser?.id,
     supportId: task?.supportUser?.id,
@@ -56,13 +59,13 @@ export default function TaskDetailsPage() {
               task={task}
               permissions={permissions}
             />
-
-            <TaskCommentForm
-              teamId={teamId}
-              projectId={projectId}
-              taskId={task.id}
-              permissions={permissions}
-            />
+            {permissions.canComment && (
+              <TaskCommentForm
+                teamId={teamId}
+                projectId={projectId}
+                taskId={task.id}
+              />
+            )}
 
             <TaskActivity
               teamId={teamId}
@@ -73,7 +76,12 @@ export default function TaskDetailsPage() {
           </div>
 
           <aside className="order-1 xl:order-2 xl:min-h-0 xl:overflow-y-auto">
-            <TaskMetadata teamId={teamId} projectId={projectId} task={task} />
+            <TaskMetadata
+              permissions={permissions}
+              teamId={teamId}
+              projectId={projectId}
+              task={task}
+            />
           </aside>
         </div>
       </div>

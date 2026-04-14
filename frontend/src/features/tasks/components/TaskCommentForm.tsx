@@ -6,21 +6,13 @@ import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
 
 import AutoResizeTextarea from "../../../common/components/AutoResizeTextareaForm";
 
-import type { TaskPermissions } from "../utils/taskPermissions";
-
 interface Props {
   teamId: string;
   projectId: string;
   taskId: string;
-  permissions: TaskPermissions;
 }
 
-export default function TaskUCommentForm({
-  teamId,
-  projectId,
-  taskId,
-  permissions,
-}: Props) {
+export default function TaskUCommentForm({ teamId, projectId, taskId }: Props) {
   const [message, setMessage] = useState("");
 
   const createUpdate = useCreateTaskComment(teamId, projectId, taskId);
@@ -58,7 +50,6 @@ export default function TaskUCommentForm({
             onCancel={handleCancel}
             placeholder="Write a comment..."
             maxLength={2000}
-            disabled={!permissions.canEditTaskDetails}
             isLoading={createUpdate.isPending}
           />
         </div>

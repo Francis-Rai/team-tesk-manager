@@ -27,6 +27,7 @@ import ProjectActivity from "../../projects/components/ProjectActivity";
 import { getProjectPermissions } from "../../projects/utils/projectPermissions";
 import { useTeamMe } from "../../teams/hooks/useTeamMe";
 import type { DeletedFilter } from "../../../common/types/deletedFilter.types";
+import { getUserFromToken } from "../../users/api/userApi";
 
 export default function ProjectDetails() {
   const { teamId, projectId } = useParams<{
@@ -49,10 +50,12 @@ export default function ProjectDetails() {
     projectId || "",
   );
 
+  const user = getUserFromToken();
   const { data: teamMe } = useTeamMe(teamId || "");
 
   const permissions = getProjectPermissions({
-    role: teamMe?.role ?? null,
+    globalRole: user?.role,
+    teamRole: teamMe?.role,
   });
 
   const { data: tasksData } = useTasks(teamId || "", projectId || "", {
@@ -169,7 +172,10 @@ export default function ProjectDetails() {
           </TabsTrigger>
         </TabsList>
         <div className="flex flex-col flex-1 min-h-0">
-          <TabsContent value="board" className="flex flex-col flex-1 min-h-0 gap-3">
+          <TabsContent
+            value="board"
+            className="flex flex-col flex-1 min-h-0 gap-3"
+          >
             <TaskFilters
               search={search}
               status={status}
@@ -190,7 +196,10 @@ export default function ProjectDetails() {
               onOpenTask={setSelectedTask}
             />
           </TabsContent>
-          <TabsContent value="list" className="flex flex-col flex-1 min-h-0 gap-3">
+          <TabsContent
+            value="list"
+            className="flex flex-col flex-1 min-h-0 gap-3"
+          >
             <TaskFilters
               search={search}
               status={status}

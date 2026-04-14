@@ -9,8 +9,10 @@ import {
   SelectItem,
   SelectValue,
 } from "../../../components/ui/select";
+import type { ProjectPermissions } from "../utils/projectPermissions";
 
 interface Props {
+  permissions: ProjectPermissions;
   search: string;
   status: string;
   sort: string;
@@ -23,6 +25,7 @@ interface Props {
 }
 
 export default function ProjectsToolbar({
+  permissions,
   search,
   status,
   sort,
@@ -63,21 +66,26 @@ export default function ProjectsToolbar({
             </Select>
           </div>
 
-          <div className="space-y-1">
-            <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
-              Visibility
-            </label>
-            <Select value={deletedFilter} onValueChange={onDeletedFilterChange}>
-              <SelectTrigger className="h-10 rounded-xl border-border/70 bg-background shadow-none">
-                <SelectValue placeholder="Visibility" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ACTIVE">Active</SelectItem>
-                <SelectItem value="DELETED">Deleted</SelectItem>
-                <SelectItem value="ALL">All</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {permissions.canViewDeleteProject && (
+            <div className="space-y-1">
+              <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+                Visibility
+              </label>
+              <Select
+                value={deletedFilter}
+                onValueChange={onDeletedFilterChange}
+              >
+                <SelectTrigger className="h-10 rounded-xl border-border/70 bg-background shadow-none">
+                  <SelectValue placeholder="Visibility" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ACTIVE">Active</SelectItem>
+                  <SelectItem value="DELETED">Deleted</SelectItem>
+                  <SelectItem value="ALL">All</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           <div className="space-y-1">
             <label className="text-[11px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
