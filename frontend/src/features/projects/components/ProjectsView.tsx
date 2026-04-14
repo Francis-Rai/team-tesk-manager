@@ -26,7 +26,7 @@ export default function ProjectsPage() {
 
   const { data, isLoading } = useProjects(teamId || "", {
     page,
-    size: 8,
+    size: 12,
     search: debouncedSearch,
     status,
     sort,

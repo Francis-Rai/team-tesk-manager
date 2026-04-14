@@ -1,9 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import type { Team } from "../types/team.type";
 import { getAllTeams } from "../api/teamApi";
+import type { PageResponse } from "../../../common/types/pageResponse.types";
 
 export const useAllTeams = () => {
-  return useQuery<Team[]>({
+  return useQuery<PageResponse<Team>>({
     queryKey: ["teams", "all"],
 
     queryFn: async () =>

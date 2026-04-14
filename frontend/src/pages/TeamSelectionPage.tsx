@@ -35,7 +35,7 @@ export default function TeamSelectionPage() {
 
   const { data, isLoading } = useTeams({
     page,
-    size: 8,
+    size: 12,
     search: debouncedSearch,
     sort,
     deletedFilter,

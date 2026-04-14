@@ -29,7 +29,9 @@ interface Props {
 
 export default function TeamSwitcher({ teamId, collapsed }: Props) {
   const navigate = useNavigate();
-  const { data: teams = [] } = useAllTeams();
+  const { data } = useAllTeams();
+  
+  const teams = data?.content ?? [];
 
   const [open, setOpen] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);

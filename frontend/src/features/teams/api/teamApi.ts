@@ -24,7 +24,7 @@ export const getAllTeams = async (
   },
 ): Promise<PageResponse<Team>> => {
   const response = await apiClient.get(`/teams`, { params });
-  return response.data.content;
+  return response.data;
 };
 
 export const getTeamActivities = async (
