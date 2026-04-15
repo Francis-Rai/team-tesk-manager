@@ -77,6 +77,8 @@ public class TaskEntity {
   @Column(nullable = false)
   private Instant updatedAt;
 
+  private Instant lastActivityAt;
+
   private Instant deletedAt;
 
   @Version

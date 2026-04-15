@@ -707,7 +707,8 @@ public class TaskService {
         task.getActualStartDate(),
         task.getActualCompletionDate(),
         task.getCreatedAt(),
-        task.getUpdatedAt());
+        task.getUpdatedAt(),
+        task.getLastActivityAt());
   }
 
   /**
@@ -969,7 +970,8 @@ public class TaskService {
       "plannedStartDate",
       "plannedDueDate",
       "createdAt",
-      "updatedAt");
+      "updatedAt",
+      "lastActivityAt");
 
   /*
    * Check sort request

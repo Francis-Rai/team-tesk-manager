@@ -13,6 +13,7 @@ public record TeamResponse(
     User owner,
     Instant createdAt,
     Instant updatedAt,
+    Instant lastActivityAt,
     Boolean isDeleted) {
 
   // Owner Info

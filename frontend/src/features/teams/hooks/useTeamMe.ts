@@ -6,5 +6,6 @@ export function useTeamMe(teamId: string) {
     queryKey: ["team-me", teamId],
     queryFn: () => getTeamMe(teamId),
     staleTime: 1000 * 60 * 10,
+    enabled: !!teamId,
   });
 }

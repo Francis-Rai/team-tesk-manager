@@ -1,4 +1,4 @@
-import { ArrowUpRight, Clock3, FolderKanban } from "lucide-react";
+import { ArrowUpRight, CalendarDays, FolderKanban } from "lucide-react";
 
 import { formatDateTimeShort } from "../../../common/utils/dateFormatter";
 import { Avatar, AvatarFallback } from "../../../components/ui/avatar";
@@ -51,11 +51,20 @@ export default function ProjectCard({ project, onClick }: Props) {
             "No description provided for this project."}
         </p>
 
-        <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 px-2 py-1">
-            <Clock3 className="h-3 w-3" />
-            Updated {formatDateTimeShort(project.updatedAt)}
-          </span>
+        <div className="space-y-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 ">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 ">
+              <CalendarDays className="h-3 w-3" />
+              Last Activity: {formatDateTimeShort(project.lastActivityAt)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 ">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 ">
+              <CalendarDays className="h-3 w-3" />
+              Created: {formatDateTimeShort(project.updatedAt)}
+            </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between gap-3 border-t border-border/60 pt-2.5">

@@ -159,6 +159,7 @@ export default function TeamSelectionPage() {
                   <SelectContent>
                     <SelectItem value="createdAt,desc">Newest</SelectItem>
                     <SelectItem value="createdAt,asc">Oldest</SelectItem>
+                    <SelectItem value="lastActivityAt,desc">Last Activity</SelectItem>
                     <SelectItem value="name,asc">Name (A-Z)</SelectItem>
                     <SelectItem value="name,desc">Name (Z-A)</SelectItem>
                   </SelectContent>

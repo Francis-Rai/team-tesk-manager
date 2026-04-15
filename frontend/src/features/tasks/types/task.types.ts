@@ -3,26 +3,20 @@ import type { TaskStatus } from "../utils/taskStatus";
 
 export type Task = {
   id: string;
-
   taskNumber: number;
-
   title: string;
   description?: string;
-
   status: TaskStatus;
   priority: TaskPriority;
-
   assignedUser?: TaskUser;
   supportUser?: TaskUser;
-
   plannedStartDate?: string;
   plannedDueDate?: string;
-
   actualStartDate?: string;
   actualCompletionDate?: string;
-
   createdAt: string;
   updatedAt: string;
+  lastActivityAt: string;
 };
 
 export interface TaskUser {

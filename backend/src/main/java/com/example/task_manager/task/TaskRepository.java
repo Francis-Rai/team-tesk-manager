@@ -74,4 +74,12 @@ public interface TaskRepository extends JpaRepository<TaskEntity, UUID>, JpaSpec
 
   List<TaskEntity> findAllByProjectIdAndDeletedAtIsNull(UUID projectId);
 
+  @Modifying
+  @Query("""
+      UPDATE TaskEntity t
+      SET t.lastActivityAt = :timestamp
+      WHERE t.id = :taskId
+      AND (t.lastActivityAt IS NULL OR t.lastActivityAt < :timestamp)
+      """)
+  void updateLastActivity(UUID taskId, Instant timestamp);
 }

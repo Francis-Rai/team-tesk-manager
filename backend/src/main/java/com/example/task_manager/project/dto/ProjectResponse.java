@@ -17,6 +17,7 @@ public record ProjectResponse(
     ProjectUserSummary createdBy,
     Instant createdAt,
     Instant updatedAt,
+    Instant lastActivityAt,
     boolean deleted) {
 
   /**

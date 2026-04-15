@@ -1,11 +1,17 @@
 import type { UserRole } from "../../users/types/userRole";
-import type { ActivityDetails, ActivityType } from "../../../common/types/activity.types";
+import type {
+  ActivityDetails,
+  ActivityType,
+} from "../../../common/types/activity.types";
 
 export interface Team {
   id: string;
   name: string;
   description?: string;
+  owner?: User;
   createdAt: string;
+  updatedAt: string;
+  lastActivityAt: string;
 }
 
 export interface AddMemberInput {

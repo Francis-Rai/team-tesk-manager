@@ -11,9 +11,12 @@ import com.example.task_manager.activity.dto.ActivityEventDetails;
 import com.example.task_manager.activity.dto.ActivityEventType;
 import com.example.task_manager.activity.entity.ActivityEventEntity;
 import com.example.task_manager.project.entity.ProjectEntity;
+import com.example.task_manager.project.ProjectRepository;
 import com.example.task_manager.project.dto.ProjectActivityResponse;
+import com.example.task_manager.task.TaskRepository;
 import com.example.task_manager.task.dto.TaskActivityResponse;
 import com.example.task_manager.task.entity.TaskEntity;
+import com.example.task_manager.team.TeamRepository;
 import com.example.task_manager.team.dto.TeamActivityResponse;
 import com.example.task_manager.team.entity.TeamEntity;
 import com.example.task_manager.user.entity.UserEntity;
@@ -29,6 +32,9 @@ public class ActivityEventService {
 
   private final ActivityEventRepository activityEventRepository;
   private final ActivityEventMessageBuilder messageBuilder;
+  private final TeamRepository teamRepository;
+  private final ProjectRepository projectRepository;
+  private final TaskRepository taskRepository;
 
   public ActivityEventEntity recordTeamEvent(
       TeamEntity team,
@@ -43,7 +49,7 @@ public class ActivityEventService {
         null,
         null);
 
-    return saveEvent(
+    ActivityEventEntity event = saveEvent(
         team.getId(),
         null,
         null,
@@ -55,6 +61,12 @@ public class ActivityEventService {
         eventType,
         enrichedDetails,
         message);
+
+    teamRepository.updateLastActivity(
+        team.getId(),
+        event.getCreatedAt());
+
+    return event;
   }
 
   public ActivityEventEntity recordProjectEvent(
@@ -70,7 +82,7 @@ public class ActivityEventService {
         reference(project.getId(), project.getName()),
         null);
 
-    return saveEvent(
+    ActivityEventEntity event = saveEvent(
         project.getTeam().getId(),
         project.getId(),
         null,
@@ -82,6 +94,12 @@ public class ActivityEventService {
         eventType,
         enrichedDetails,
         message);
+
+    projectRepository.updateLastActivity(
+        project.getId(),
+        event.getCreatedAt());
+
+    return event;
   }
 
   public ActivityEventEntity recordTaskEvent(
@@ -97,7 +115,7 @@ public class ActivityEventService {
         reference(task.getProject().getId(), task.getProject().getName()),
         reference(task.getId(), task.getTitle()));
 
-    return saveEvent(
+    ActivityEventEntity event = saveEvent(
         task.getProject().getTeam().getId(),
         task.getProject().getId(),
         task.getId(),
@@ -109,6 +127,12 @@ public class ActivityEventService {
         eventType,
         enrichedDetails,
         message);
+
+    taskRepository.updateLastActivity(
+        task.getId(),
+        event.getCreatedAt());
+
+    return event;
   }
 
   private ActivityEventEntity saveEvent(

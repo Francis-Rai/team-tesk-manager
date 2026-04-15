@@ -44,4 +44,12 @@ public interface ProjectRepository extends JpaRepository<ProjectEntity, UUID>, J
 
   List<ProjectEntity> findAllByTeamIdAndDeletedAtIsNull(UUID teamId);
 
+  @Modifying
+  @Query("""
+      UPDATE ProjectEntity p
+      SET p.lastActivityAt = :timestamp
+      WHERE p.id = :projectId
+      AND (p.lastActivityAt IS NULL OR p.lastActivityAt < :timestamp)
+      """)
+  void updateLastActivity(UUID projectId, Instant timestamp);
 }

@@ -39,7 +39,7 @@ export function getTeamPermissions({
 
     canDeleteTeam: isSuperAdmin,
 
-    canViewDeleteTeam: isSystemAdmin && canManage,
+    canViewDeleteTeam: isSystemAdmin || canManage,
 
     canTransferOwnership: isOwner && isSystemAdmin,
 

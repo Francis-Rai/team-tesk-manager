@@ -70,6 +70,8 @@ public class TeamEntity {
   @LastModifiedDate
   private Instant updatedAt;
 
+  private Instant lastActivityAt;
+
   private Instant deletedAt;
 
   @Version

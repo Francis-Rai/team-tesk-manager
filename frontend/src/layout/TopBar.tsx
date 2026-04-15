@@ -14,12 +14,14 @@ import UserMenu from "./UserMenu";
 import { useWorkspaceContext } from "../common/hooks/useWorkspaceContext";
 import { CreateProjectModal } from "../features/projects/components/CreateProjectModal";
 import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
+import { CreateTeamModal } from "../features/teams/components/CreateTeamModal";
 
 export default function TopBar() {
   const { logout } = useAuth();
   const { teamId, projectId, teamIdPresent, projectIdPresent, permissions } =
     useWorkspaceContext();
 
+  const [openTeam, setOpenTeam] = useState(false);
   const [openProject, setOpenProject] = useState(false);
   const [openTask, setOpenTask] = useState(false);
 
@@ -52,6 +54,12 @@ export default function TopBar() {
 
               <DropdownMenuContent align="end" className="w-44">
                 <DropdownMenuItem
+                  disabled={!permissions.canCreateTeam}
+                  onClick={() => setOpenTeam(true)}
+                >
+                  New Team
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   disabled={!permissions.canCreateProject || !teamIdPresent}
                   onClick={() => setOpenProject(true)}
                 >
@@ -71,6 +79,8 @@ export default function TopBar() {
           <UserMenu onLogout={logout} />
         </div>
       </div>
+
+      <CreateTeamModal open={openTeam} onOpenChange={setOpenTeam} />
 
       {teamId && (
         <CreateProjectModal

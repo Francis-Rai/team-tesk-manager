@@ -107,6 +107,12 @@ export default function TaskList({
               >
                 Due
               </TableHead>
+              <TableHead
+                className="cursor-pointer select-none"
+                onClick={() => handleSort("lastActivityAt")}
+              >
+                Last Activity
+              </TableHead>
             </TableRow>
           </TableHeader>
 
@@ -182,6 +188,8 @@ export default function TaskList({
                 <TableCell>{formatDate(task.plannedStartDate)}</TableCell>
 
                 <TableCell>{formatDate(task.plannedDueDate)}</TableCell>
+
+                <TableCell>{formatDate(task.lastActivityAt)}</TableCell>
               </TableRow>
             ))}
           </TableBody>

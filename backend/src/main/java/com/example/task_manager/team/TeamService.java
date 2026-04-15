@@ -664,6 +664,7 @@ public class TeamService {
         user,
         team.getCreatedAt(),
         team.getUpdatedAt(),
+        team.getLastActivityAt(),
         isDeleted);
   }
 
@@ -819,6 +820,7 @@ public class TeamService {
       "name",
       "lastName",
       "ownerId",
+      "lastActivityAt",
       "joinedAt",
       "createdAt",
       "updatedAt",

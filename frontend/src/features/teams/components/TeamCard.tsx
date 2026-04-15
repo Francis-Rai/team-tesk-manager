@@ -38,11 +38,20 @@ export default function TeamCard({ team, onClick }: Props) {
           {team.description?.trim() || "No description provided for this team."}
         </p>
 
-        <div className="flex items-center gap-2 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 ">
-            <CalendarDays className="h-3 w-3" />
-            Created {formatDate(team.createdAt)}
-          </span>
+        <div className="border-t border-border/60 pt-3 space-y-2 text-xs text-muted-foreground">
+          <div className="flex items-center gap-2 ">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 ">
+              <CalendarDays className="h-3 w-3" />
+              Last Activity: {formatDate(team.lastActivityAt)}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2 ">
+            <span className="inline-flex items-center gap-1 rounded-full bg-muted/25 ">
+              <CalendarDays className="h-3 w-3" />
+              Created: {formatDate(team.createdAt)}
+            </span>
+          </div>
         </div>
       </CardContent>
     </Card>

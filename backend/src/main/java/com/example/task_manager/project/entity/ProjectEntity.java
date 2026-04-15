@@ -61,6 +61,8 @@ public class ProjectEntity {
   @Column(nullable = false)
   private Instant updatedAt;
 
+  private Instant lastActivityAt;
+
   private Instant deletedAt;
 
   @Version

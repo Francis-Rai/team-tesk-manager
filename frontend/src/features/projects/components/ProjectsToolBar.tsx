@@ -98,6 +98,9 @@ export default function ProjectsToolbar({
               <SelectContent>
                 <SelectItem value="createdAt,desc">Newest</SelectItem>
                 <SelectItem value="createdAt,asc">Oldest</SelectItem>
+                <SelectItem value="lastActivityAt,desc">
+                  Last Activity
+                </SelectItem>
                 <SelectItem value="name,asc">Name (A-Z)</SelectItem>
                 <SelectItem value="updatedAt,desc">Last Updated</SelectItem>
               </SelectContent>

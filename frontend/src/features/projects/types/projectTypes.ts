@@ -6,6 +6,7 @@ export type Project = {
   description?: string;
   createdAt: string;
   updatedAt: string;
+  lastActivityAt: string;
   status: ProjectStatus;
   createdBy: User;
 };

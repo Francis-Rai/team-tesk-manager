@@ -394,6 +394,7 @@ public class ProjectService {
         createdBy,
         project.getCreatedAt(),
         project.getUpdatedAt(),
+        project.getLastActivityAt(),
         isDeleted);
   }
 
@@ -515,6 +516,7 @@ public class ProjectService {
       "name",
       "status",
       "createdBy",
+      "lastActivityAt",
       "createdAt",
       "updatedAt");
 
