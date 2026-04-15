@@ -548,11 +548,14 @@ public class TeamService {
         .stream()
         .anyMatch(a -> a.getAuthority().equals("ROLE_SUPER_ADMIN") || a.getAuthority().equals("ROLE_ADMIN"));
 
+    boolean isTeamMember = teamMemberRepository.existsByTeamIdAndUserId(teamId, requester.getId());
+
     Specification<TeamMemberEntity> spec = TeamMemberSpecification.build(
         teamId,
         request.search(),
         requester.getId(),
-        isGlobalAdmin);
+        isGlobalAdmin,
+        isTeamMember);
 
     pageable = validateSorting(pageable);
 

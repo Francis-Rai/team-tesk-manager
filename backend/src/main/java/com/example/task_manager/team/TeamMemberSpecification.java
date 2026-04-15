@@ -19,12 +19,13 @@ public class TeamMemberSpecification {
       UUID teamId,
       String search,
       UUID requesterId,
-      boolean isGlobalAdmin) {
+      boolean isGlobalAdmin,
+      boolean isTeamMember) {
 
     return Specification
         .where(belongsToTeam(teamId))
         .and(search(search))
-        .and(isAccessibleByUser(requesterId, isGlobalAdmin));
+        .and(isAccessibleByUser(teamId, isGlobalAdmin, isTeamMember));
   }
 
   /**
@@ -67,8 +68,9 @@ public class TeamMemberSpecification {
    * - Otherwise → only members of the team
    */
   private static Specification<TeamMemberEntity> isAccessibleByUser(
-      UUID requesterId,
-      boolean isGlobalAdmin) {
+      UUID teamId,
+      boolean isGlobalAdmin,
+      boolean isTeamMember) {
 
     return (root, query, cb) -> {
 
@@ -76,12 +78,11 @@ public class TeamMemberSpecification {
         return cb.conjunction();
       }
 
-      Join<TeamMemberEntity, UserEntity> userJoin = root.join("user", JoinType.LEFT);
+      if (isTeamMember) {
+        return cb.equal(root.get("team").get("id"), teamId);
+      }
 
-      // Ensure user is part of the team
-      return cb.or(
-          cb.equal(root.get("team").get("owner").get("id"), requesterId),
-          cb.equal(userJoin.get("id"), requesterId));
+      return cb.disjunction();
     };
   }
 }

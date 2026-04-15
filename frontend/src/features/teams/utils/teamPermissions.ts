@@ -8,8 +8,11 @@ export interface TeamPermissions {
   canDeleteTeam: boolean;
   canViewDeleteTeam: boolean;
   canTransferOwnership: boolean;
+  canChangeRole: boolean;
   canAddMember: boolean;
+  canRemoveMember: boolean;
   canCreateProject: boolean;
+  canCreateTask: boolean;
 }
 
 interface Params {
@@ -40,8 +43,14 @@ export function getTeamPermissions({
 
     canTransferOwnership: isOwner && isSystemAdmin,
 
+    canChangeRole: canManage,
+
     canAddMember: canManage,
 
+    canRemoveMember: canManage,
+
     canCreateProject: canManage,
+
+    canCreateTask: canManage,
   };
 }

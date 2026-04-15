@@ -192,15 +192,8 @@ export default function MembersList({
               )}
             </TableRow>
           </TableHeader>
-
           <TableBody>
             {filtered.map((member) => {
-              const canTransfer =
-                permissions.canTransferOwnership &&
-                member.teamRole !== "OWNER" &&
-                (member.globalRole === "ADMIN" ||
-                  member.globalRole === "SUPER_ADMIN");
-              const canRemove = member.teamRole !== "OWNER";
               return (
                 <TableRow key={member.id} className="hover:bg-muted/20">
                   <TableCell className="px-4 py-3">
@@ -231,7 +224,7 @@ export default function MembersList({
                       >
                         {TEAM_ROLE_LABEL.OWNER}
                       </Badge>
-                    ) : (
+                    ) : permissions.canChangeRole ? (
                       <Select
                         value={(member.teamRole ?? "MEMBER") as TeamRole}
                         onValueChange={(value) =>
@@ -269,6 +262,24 @@ export default function MembersList({
                           </SelectItem>
                         </SelectContent>
                       </Select>
+                    ) : member.teamRole === "ADMIN" ? (
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+                          TEAM_ROLE_STYLES.ADMIN,
+                        )}
+                      >
+                        {TEAM_ROLE_LABEL.ADMIN}
+                      </span>
+                    ) : (
+                      <span
+                        className={cn(
+                          "inline-flex items-center rounded-full border px-2.5 py-1 text-[11px] font-semibold uppercase tracking-[0.12em]",
+                          TEAM_ROLE_STYLES.MEMBER,
+                        )}
+                      >
+                        {TEAM_ROLE_LABEL.MEMBER}
+                      </span>
                     )}
                   </TableCell>
 
@@ -279,7 +290,7 @@ export default function MembersList({
                     {formatDate(member.joinedAt)}
                   </TableCell>
 
-                  {(isOwner || isAdmin) && (
+                  {(isOwner || isAdmin) && member.teamRole != "OWNER" && (
                     <TableCell className="px-4 py-3 text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
@@ -291,9 +302,8 @@ export default function MembersList({
                             <MoreHorizontal className="h-4 w-4" />
                           </Button>
                         </DropdownMenuTrigger>
-
                         <DropdownMenuContent align="end" className="w-fit">
-                          {canTransfer && (
+                          {permissions.canTransferOwnership && (
                             <>
                               <DropdownMenuItem
                                 onClick={() => onOpenTransfer(member)}
@@ -305,7 +315,7 @@ export default function MembersList({
                             </>
                           )}
                           <DropdownMenuItem
-                            disabled={!canRemove}
+                            disabled={!permissions.canRemoveMember}
                             onClick={() => onOpenRemove(member)}
                             className="flex items-center justify-between text-destructive focus:text-destructive"
                           >

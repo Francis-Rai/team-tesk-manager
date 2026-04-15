@@ -17,7 +17,7 @@ import { CreateTaskModal } from "../features/tasks/components/CreateTaskModal";
 
 export default function TopBar() {
   const { logout } = useAuth();
-  const { teamId, projectId, canCreateProject, canCreateTask } =
+  const { teamId, projectId, teamIdPresent, projectIdPresent, permissions } =
     useWorkspaceContext();
 
   const [openProject, setOpenProject] = useState(false);
@@ -25,9 +25,7 @@ export default function TopBar() {
 
   return (
     <>
-      <div
-        className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-background/85 px-4 backdrop-blur supports-backdrop-filter:bg-background/75"
-      >
+      <div className="sticky top-0 z-30 flex h-14 items-center justify-between border-b border-border/60 bg-background/85 px-4 backdrop-blur supports-backdrop-filter:bg-background/75">
         <div className="flex items-center gap-4">
           <button
             type="button"
@@ -40,32 +38,35 @@ export default function TopBar() {
             TeamTaskManager
           </button>
         </div>
-
         <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button size="sm" className="h-9 rounded-xl px-3.5">
-                <Plus className="h-4 w-4" />
-                Create
-              </Button>
-            </DropdownMenuTrigger>
+          {(permissions.canCreateTeam ||
+            permissions.canCreateProject ||
+            permissions.canCreateTask) && (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button size="sm" className="h-9 rounded-xl px-3.5">
+                  <Plus className="h-4 w-4" />
+                  Create
+                </Button>
+              </DropdownMenuTrigger>
 
-            <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuItem
-                disabled={!canCreateProject}
-                onClick={() => setOpenProject(true)}
-              >
-                New Project
-              </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-44">
+                <DropdownMenuItem
+                  disabled={!permissions.canCreateProject || !teamIdPresent}
+                  onClick={() => setOpenProject(true)}
+                >
+                  New Project
+                </DropdownMenuItem>
 
-              <DropdownMenuItem
-                disabled={!canCreateTask}
-                onClick={() => setOpenTask(true)}
-              >
-                New Task
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                <DropdownMenuItem
+                  disabled={!permissions.canCreateTask || !projectIdPresent}
+                  onClick={() => setOpenTask(true)}
+                >
+                  New Task
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
 
           <UserMenu onLogout={logout} />
         </div>

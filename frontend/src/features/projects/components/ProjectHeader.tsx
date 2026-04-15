@@ -40,6 +40,7 @@ export default function ProjectHeader({
         <EditableField
           displayClassName="w-full text-sm leading-relaxed text-muted-foreground"
           inputClassName="w-full text-sm"
+          placeholder="No Description Yet"
           multiline
           value={description}
           maxLength={2000}

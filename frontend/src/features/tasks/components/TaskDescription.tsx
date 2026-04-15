@@ -27,6 +27,7 @@ export default function TaskDescription({
       <EditableField
         value={task.description}
         displayClassName="text-sm leading-7 text-foreground/90"
+        placeholder="No Description Yet"
         multiline
         maxLength={2000}
         inputClassName="text-sm leading-7 text-foreground"
