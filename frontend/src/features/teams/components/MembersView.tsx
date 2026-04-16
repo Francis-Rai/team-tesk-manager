@@ -57,7 +57,7 @@ export default function MembersPage() {
   if (!teamId) return <div className="p-6">Invalid team</div>;
 
   return (
-    <div className="flex flex-col h-full min-h-0 gap-6">
+    <section className="flex flex-col h-full min-h-0 gap-6">
       <MembersHeader
         setAddMemberOpen={() => setAddMemberOpen(true)}
         setTransferOpen={() => setTransferOpen(true)}
@@ -101,6 +101,6 @@ export default function MembersPage() {
         onClose={() => setTransferOpen(false)}
         members={members}
       />
-    </div>
+    </section>
   );
 }

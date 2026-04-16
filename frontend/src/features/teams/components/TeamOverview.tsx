@@ -91,7 +91,7 @@ export default function TeamOverview() {
   }
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-4">
       <TeamHeader
         teamId={team.id}
         name={team.name}
@@ -122,7 +122,7 @@ export default function TeamOverview() {
         }
       />
 
-      <div className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
+      <section className="grid gap-2.5 md:grid-cols-2 xl:grid-cols-4">
         <TeamOverviewCard
           title="Projects"
           eyebrow="Portfolio"
@@ -158,9 +158,9 @@ export default function TeamOverview() {
           icon={Activity}
           onClick={() => navigate(`/teams/${team.id}/activity`)}
         />
-      </div>
+      </section>
 
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
+      <section className="grid gap-3 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.9fr)]">
         <Card className="border-border/60 bg-background/92">
           <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
             <div>
@@ -270,7 +270,7 @@ export default function TeamOverview() {
             </CardContent>
           </Card>
         </div>
-      </div>
+      </section>
 
       <Card className="border-border/60 bg-background/92">
         <CardHeader className="flex flex-row items-center justify-between gap-3 space-y-0">
@@ -329,6 +329,6 @@ export default function TeamOverview() {
         isLoading={false}
         onOpenChange={setAddMemberOpen}
       />
-    </div>
+    </section>
   );
 }

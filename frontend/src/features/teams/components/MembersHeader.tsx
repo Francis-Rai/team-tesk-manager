@@ -15,7 +15,7 @@ export default function MembersHeader({
   permissions,
 }: Props) {
   return (
-    <section className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
+    <header className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -49,6 +49,6 @@ export default function MembersHeader({
           )}
         </div>
       </div>
-    </section>
+    </header>
   );
 }

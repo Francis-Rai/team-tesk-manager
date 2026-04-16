@@ -156,7 +156,7 @@ export default function MembersList({
     );
   }
   return (
-    <div className="flex flex-col h-full min-h-0 gap-6">
+    <section className="flex flex-col h-full min-h-0 gap-6">
       <div className="flex h-full min-h-0 rounded-2xl border border-border/60 bg-background/92 shadow-sm overflow-hidden">
         <Table className="overflow-auto">
           <TableHeader className="sticky top-0 z-30 rounded-2xl bg-background/85 px-4 backdrop-blur supports-backdrop-filter:bg-background/75">
@@ -354,6 +354,6 @@ export default function MembersList({
         onConfirm={handleRemove}
         isLoading={removeMember.isPending}
       />
-    </div>
+    </section>
   );
 }

@@ -14,7 +14,7 @@ import ProjectDetails from "../features/projects/components/ProjectDetails";
 import ProjectsView from "../features/projects/components/ProjectsView";
 import WorkspaceLayout from "../layout/WorkspaceLayout";
 import TeamOverview from "../features/teams/components/TeamOverview";
-import TeamMembersPage from "../features/teams/components/TeamMembers";
+import TeamMembersPage from "../features/teams/components/MembersView";
 import AppLayout from "../layout/AppLayout";
 import TeamActivity from "../features/teams/components/TeamActivity";
 

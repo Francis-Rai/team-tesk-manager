@@ -24,7 +24,7 @@ export default function TeamHeader({
   const updateTeam = useUpdateTeam(teamId);
 
   return (
-    <section className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
+    <header className="rounded-2xl border border-border/60 bg-background/95 p-4 shadow-sm">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div className="flex-1 space-y-1.5">
           <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
@@ -51,7 +51,11 @@ export default function TeamHeader({
           />
         </div>
 
-        <div className={cn("flex flex-wrap items-center gap-2 lg:justify-end lg:self-start")}>
+        <div
+          className={cn(
+            "flex flex-wrap items-center gap-2 lg:justify-end lg:self-start",
+          )}
+        >
           {actions}
 
           {permissions.canDeleteTeam && (
@@ -59,6 +63,6 @@ export default function TeamHeader({
           )}
         </div>
       </div>
-    </section>
+    </header>
   );
 }
