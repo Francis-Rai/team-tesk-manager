@@ -3,6 +3,7 @@ package com.example.task_manager.task.dto;
 import java.util.List;
 import java.util.UUID;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.task.entity.TaskPriority;
 import com.example.task_manager.task.entity.TaskStatus;
 
@@ -16,6 +17,14 @@ public record TaskSearchRequest(
     UUID assigneeId,
     UUID supportId,
     Boolean overdue,
-    Boolean includeDeleted,
-    Boolean onlyDeleted) {
+    DeletedFilter deletedFilter,
+    Boolean all) {
+
+  public Boolean all() {
+    return Boolean.TRUE.equals(all);
+  }
+
+  public DeletedFilter deletedFilter() {
+    return deletedFilter == null ? DeletedFilter.ACTIVE : deletedFilter;
+  }
 }

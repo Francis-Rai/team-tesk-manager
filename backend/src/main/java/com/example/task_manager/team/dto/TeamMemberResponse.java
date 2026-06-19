@@ -1,18 +1,27 @@
 package com.example.task_manager.team.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 import com.example.task_manager.team.entity.TeamRole;
+import com.example.task_manager.user.entity.UserRole;
 
 /**
  * DTO for returning team member information.
  */
 public record TeamMemberResponse(
-    UUID userId,
+    UUID id,
     String firstName,
     String lastName,
     String email,
-    TeamRole role,
-    LocalDateTime joinedAt) {
+    TeamRole teamRole,
+    UserRole globalRole,
+    Instant joinedAt,
+    User addedBy) {
+  public record User(
+      UUID userId,
+      String firstName,
+      String lastName,
+      String email) {
+  }
 }

@@ -1,6 +1,5 @@
 package com.example.task_manager.team;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.springframework.data.domain.Pageable;
@@ -11,21 +10,30 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.task_manager.common.PageResponse;
-import com.example.task_manager.team.dto.AddTeamMemberRequest;
+import com.example.task_manager.team.dto.AddTeamMembersRequest;
+import com.example.task_manager.team.dto.AddTeamMembersResponse;
 import com.example.task_manager.team.dto.ChangeTeamRoleRequest;
 import com.example.task_manager.team.dto.CreateTeamRequest;
+import com.example.task_manager.team.dto.RemoveTeamMembersRequest;
+import com.example.task_manager.team.dto.RemoveTeamMembersResponse;
+import com.example.task_manager.team.dto.TeamActivityResponse;
+import com.example.task_manager.team.dto.TeamMeResponse;
 import com.example.task_manager.team.dto.TeamMemberResponse;
+import com.example.task_manager.team.dto.TeamMemberSearchRequest;
 import com.example.task_manager.team.dto.TeamResponse;
 import com.example.task_manager.team.dto.TeamSearchRequest;
 import com.example.task_manager.team.dto.UpdateTeamRequest;
+import com.example.task_manager.user.dto.UserResponse;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -40,9 +48,6 @@ public class TeamController {
 
   private final TeamService teamService;
 
-  /**
-   * Create new team.
-   */
   @PostMapping
   public ResponseEntity<TeamResponse> create(
       @Valid @RequestBody CreateTeamRequest request,
@@ -50,9 +55,6 @@ public class TeamController {
     return ResponseEntity.status(HttpStatus.CREATED).body(teamService.createTeam(request, authentication.getName()));
   }
 
-  /**
-   * Update team info.
-   */
   @PatchMapping("/{teamId}")
   public ResponseEntity<TeamResponse> updateTeam(
       @PathVariable UUID teamId,
@@ -61,9 +63,6 @@ public class TeamController {
     return ResponseEntity.ok(teamService.updateTeam(teamId, request, authentication.getName()));
   }
 
-  /**
-   * Soft delete a team.
-   */
   @DeleteMapping("/{teamId}")
   public ResponseEntity<Void> deleteTeam(
       @PathVariable UUID teamId,
@@ -72,44 +71,73 @@ public class TeamController {
     return ResponseEntity.noContent().build();
   }
 
-  /**
-   * Add members in a team.
-   */
-  @PostMapping("/{teamId}/members")
-  public ResponseEntity<TeamMemberResponse> addMember(
+  @GetMapping
+  public ResponseEntity<PageResponse<TeamResponse>> getTeams(
+      @ModelAttribute TeamSearchRequest request,
+      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(teamService.getTeams(request, pageable, authentication));
+  }
+
+  @GetMapping("/{teamId}")
+  public ResponseEntity<TeamResponse> getTeamById(
       @PathVariable UUID teamId,
-      @Valid @RequestBody AddTeamMemberRequest request,
+      Authentication authentication) {
+
+    return ResponseEntity.ok(teamService.getTeamById(teamId, authentication));
+  }
+
+  @GetMapping("/{teamId}/members")
+  public ResponseEntity<PageResponse<TeamMemberResponse>> getTeamMembers(
+      @ModelAttribute TeamMemberSearchRequest request,
+      @PathVariable UUID teamId,
+      @PageableDefault(page = 0, size = 20, sort = "joinedAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getTeamMembers(request, teamId, pageable, authentication));
+  }
+
+  @GetMapping("/{teamId}/available-users")
+  public ResponseEntity<PageResponse<UserResponse>> getAvailableUsers(
+      @PathVariable UUID teamId,
+      @RequestParam(required = false) String search,
+      @PageableDefault(page = 0, size = 20, sort = "lastName", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getAvailableUsers(search, teamId, pageable, authentication));
+  }
+
+  @GetMapping("/{teamId}/me")
+  public ResponseEntity<TeamMeResponse> getMyTeamRole(
+      @PathVariable UUID teamId,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getMyTeamRole(teamId, authentication.getName()));
+  }
+
+  @GetMapping("/{teamId}/activities")
+  public ResponseEntity<PageResponse<TeamActivityResponse>> getTeamActivities(
+      @PathVariable UUID teamId,
+      @PageableDefault(size = 10, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
+      Authentication authentication) {
+    return ResponseEntity.ok(teamService.getTeamActivities(teamId, pageable, authentication));
+  }
+
+  @PostMapping("/{teamId}/members")
+  public ResponseEntity<AddTeamMembersResponse> addMembers(
+      @PathVariable UUID teamId,
+      @Valid @RequestBody AddTeamMembersRequest request,
       Authentication authentication) {
     return ResponseEntity.status(HttpStatus.CREATED)
-        .body(teamService.addMember(teamId, request, authentication.getName()));
+        .body(teamService.addMembers(teamId, request, authentication.getName()));
   }
 
-  /**
-   * Remove a member of a team.
-   */
-  @DeleteMapping("/{teamId}/members/{userId}")
-  public ResponseEntity<Void> removeMember(
+  @DeleteMapping("/{teamId}/members")
+  public ResponseEntity<RemoveTeamMembersResponse> removeMembers(
       @PathVariable UUID teamId,
-      @PathVariable UUID userId,
+      @Valid @RequestBody RemoveTeamMembersRequest request,
       Authentication authentication) {
-    teamService.removeMember(teamId, userId, authentication.getName());
-    return ResponseEntity.noContent().build();
+    return ResponseEntity.ok(teamService.removeMembers(teamId, request, authentication.getName()));
   }
 
-  /**
-   * Transfer ownership of a team.
-   */
-  @PatchMapping("/{teamId}/transfer/{userId}")
-  public ResponseEntity<TeamMemberResponse> transferOwnership(
-      @PathVariable UUID teamId,
-      @PathVariable UUID userId,
-      Authentication authentication) {
-    return ResponseEntity.ok(teamService.transferOwnership(teamId, userId, authentication.getName()));
-  }
-
-  /**
-   * Change role of user
-   */
   @PatchMapping("/{teamId}/members/{userId}/role")
   public ResponseEntity<TeamMemberResponse> changeTeamRole(
       @PathVariable UUID teamId,
@@ -119,55 +147,12 @@ public class TeamController {
     return ResponseEntity.ok(teamService.changeTeamRole(teamId, userId, request.role(), authentication.getName()));
   }
 
-  /**
-   * Retrieves teams with support for:
-   * - Search
-   * - Filtering
-   * - Sorting
-   * - Pagination
-   * - Role-based soft-delete visibility
-   *
-   * Default behavior:
-   * - Returns only active (non-deleted) teams.
-   *
-   * Global Admins users may include deleted records using:
-   * ?includeDeleted=true
-   */
-  @GetMapping
-  public ResponseEntity<PageResponse<TeamResponse>> getTeams(
-      TeamSearchRequest request,
-      @PageableDefault(page = 0, size = 20, sort = "createdAt", direction = Sort.Direction.DESC) Pageable pageable,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getTeams(request, pageable, authentication));
-  }
-
-  /**
-   * Get Active team by ID.
-   */
-  @GetMapping("/{teamId}")
-  public ResponseEntity<TeamResponse> getActiveTeamById(
+  @PatchMapping("/{teamId}/transfer/{userId}")
+  public ResponseEntity<TeamMemberResponse> transferOwnership(
       @PathVariable UUID teamId,
+      @PathVariable UUID userId,
       Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getActiveTeamById(teamId, authentication.getName()));
+    return ResponseEntity.ok(teamService.transferOwnership(teamId, userId, authentication.getName()));
   }
 
-  /**
-   * Get Existing team by ID.
-   */
-  @GetMapping("/{teamId}/existing")
-  public ResponseEntity<TeamResponse> getExistingTeamById(
-      @PathVariable UUID teamId,
-      Authentication authentication) {
-
-    return ResponseEntity.ok(teamService.getExistingTeamById(teamId, authentication.getName()));
-  }
-
-  @GetMapping("/{teamId}/members")
-  public ResponseEntity<List<TeamMemberResponse>> getTeamMembers(
-      @PathVariable UUID teamId,
-      Authentication authentication) {
-    return ResponseEntity.ok(teamService.getTeamMembers(teamId, authentication.getName()));
-  }
 }

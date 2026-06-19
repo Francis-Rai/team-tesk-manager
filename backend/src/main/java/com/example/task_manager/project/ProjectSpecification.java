@@ -1,10 +1,12 @@
 package com.example.task_manager.project;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 import org.springframework.data.jpa.domain.Specification;
 
+import com.example.task_manager.common.DeletedFilter;
 import com.example.task_manager.project.entity.ProjectEntity;
 import com.example.task_manager.project.entity.ProjectStatus;
 import com.example.task_manager.user.entity.UserEntity;
@@ -15,23 +17,25 @@ import jakarta.persistence.criteria.JoinType;
 /**
  * Builds dynamic filtering logic for ProjectEntity queries.
  */
-public class ProjectSpecification {
+public final class ProjectSpecification {
+
+  private ProjectSpecification() {
+  }
 
   public static Specification<ProjectEntity> build(
       UUID teamId,
       String search,
       List<ProjectStatus> status,
       UUID createdBy,
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
-      boolean isGlobalAdmin) {
+      DeletedFilter deletedFilter,
+      boolean canViewDeleted) {
 
     return Specification
         .where(belongsToTeam(teamId))
         .and(search(search))
         .and(hasStatuses(status))
         .and(hasCreatedBy(createdBy))
-        .and(deletedFilter(includeDeleted, onlyDeleted, isGlobalAdmin));
+        .and(deletedFilter(deletedFilter, canViewDeleted));
   }
 
   private static Specification<ProjectEntity> belongsToTeam(UUID teamId) {
@@ -46,7 +50,7 @@ public class ProjectSpecification {
         return cb.conjunction();
       }
 
-      String pattern = "%" + keyword.toLowerCase() + "%";
+      String pattern = "%" + keyword.toLowerCase(Locale.ROOT) + "%";
 
       Join<ProjectEntity, UserEntity> creatorJoin = root.join("createdBy", JoinType.LEFT);
 
@@ -78,25 +82,20 @@ public class ProjectSpecification {
   }
 
   private static Specification<ProjectEntity> deletedFilter(
-      Boolean includeDeleted,
-      Boolean onlyDeleted,
-      boolean isGlobalAdmin) {
+      DeletedFilter filter,
+      boolean canViewDeleted) {
 
     return (root, query, cb) -> {
 
-      if (!isGlobalAdmin) {
+      if (!canViewDeleted) {
         return cb.isNull(root.get("deletedAt"));
       }
 
-      if (Boolean.TRUE.equals(onlyDeleted)) {
-        return cb.isNotNull(root.get("deletedAt"));
-      }
-
-      if (Boolean.TRUE.equals(includeDeleted)) {
-        return cb.conjunction();
-      }
-
-      return cb.isNull(root.get("deletedAt"));
+      return switch (filter == null ? DeletedFilter.ACTIVE : filter) {
+        case DELETED -> cb.isNotNull(root.get("deletedAt"));
+        case ALL -> cb.conjunction();
+        case ACTIVE -> cb.isNull(root.get("deletedAt"));
+      };
     };
   }
 }
